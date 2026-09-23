@@ -1,0 +1,18 @@
+{
+  "publishers": ["Alfaguara"],
+  "number_of_pages": 471,
+  "covers": [-1, 8231856],
+  "edition_name": "Edición conmemorativa",
+  "key": "/books/OL7353617M",
+  "authors": [
+    { "key": "/authors/OL2622837A" },
+    { "key": "/authors/OL9388A" }
+  ],
+  "subtitle": "novela",
+  "languages": [{ "key": "/languages/spa" }],
+  "title": "Cien años de soledad",
+  "publish_date": "May 2007",
+  "works": [{ "key": "/works/OL27258W" }],
+  "type": { "key": "/type/edition" },
+  "isbn_13": ["9788420471839"]
+}

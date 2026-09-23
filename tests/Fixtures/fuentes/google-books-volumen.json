@@ -1,0 +1,26 @@
+{
+  "kind": "books#volumes",
+  "totalItems": 1,
+  "items": [
+    {
+      "kind": "books#volume",
+      "id": "kPnKDwAAQBAJ",
+      "volumeInfo": {
+        "title": "Pedro Páramo",
+        "authors": ["Juan Rulfo"],
+        "publisher": "Editorial RM",
+        "publishedDate": "2005-11-01",
+        "description": "<p>Juan Preciado llega a Comala buscando a su padre.</p><br>Lo que encuentra es un pueblo de &aacute;nimas.",
+        "industryIdentifiers": [
+          { "type": "ISBN_13", "identifier": "9788437604176" },
+          { "type": "ISBN_10", "identifier": "8437604176" }
+        ],
+        "imageLinks": {
+          "smallThumbnail": "http://books.google.com/books/content?id=kPnKDwAAQBAJ&printsec=frontcover&img=1&zoom=5",
+          "thumbnail": "http://books.google.com/books/content?id=kPnKDwAAQBAJ&printsec=frontcover&img=1&zoom=1"
+        },
+        "language": "es"
+      }
+    }
+  ]
+}

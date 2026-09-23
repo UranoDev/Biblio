@@ -1,0 +1,9 @@
+{
+  "publishers": ["Ediciones Era"],
+  "covers": [-1],
+  "key": "/books/OL1000000M",
+  "authors": [{ "key": "/authors/OL2622837A" }],
+  "title": "Los recuerdos del porvenir",
+  "publish_date": "1963",
+  "type": { "key": "/type/edition" }
+}

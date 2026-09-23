@@ -1,0 +1,9 @@
+{
+  "key": "/works/OL27258W",
+  "title": "Cien años de soledad",
+  "description": {
+    "type": "/type/text",
+    "value": "La historia de la familia Buendía a lo largo de siete generaciones en el pueblo de Macondo."
+  },
+  "type": { "key": "/type/work" }
+}

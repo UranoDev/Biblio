@@ -15,6 +15,7 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Support\Carbon;
+use Illuminate\Support\Facades\Storage;
 
 /**
  * Una edición concreta, identificada por su ISBN: la unidad que se registra,
@@ -31,6 +32,8 @@ use Illuminate\Support\Carbon;
  * @property Procedencia|null $descripcion_procedencia
  * @property Fuente|null $fuente
  * @property string|null $portada_ruta
+ * @property string|null $portada_origen_url
+ * @property string|null $portada_miniatura_ruta
  * @property Situacion $situacion
  * @property bool $leido
  * @property Carbon|null $fecha_lectura
@@ -102,6 +105,55 @@ class Libro extends Model
         return $this->fecha_lectura === null
             ? EstadoLectura::LeidoSinFecha
             : EstadoLectura::LeidoConFecha;
+    }
+
+    /**
+     * La Portada se guarda en el disco configurado, no se enlaza a la Fuente
+     * (ADR-004). Un Libro sin Portada es un estado normal: la descarga pudo
+     * fallar, o nunca hubo imagen que bajar.
+     */
+    public function tienePortada(): bool
+    {
+        return $this->portada_ruta !== null;
+    }
+
+    /** La Portada a tamaño original, para la ficha del Libro. */
+    public function portadaUrl(): ?string
+    {
+        return $this->portada_ruta === null
+            ? null
+            : Storage::disk()->url($this->portada_ruta);
+    }
+
+    /**
+     * La versión reducida, para las retículas del Acervo y de la Vitrina. Si
+     * por alguna razón no se guardó, cae en la original antes que en nada.
+     */
+    public function portadaMiniaturaUrl(): ?string
+    {
+        return $this->portada_miniatura_ruta === null
+            ? $this->portadaUrl()
+            : Storage::disk()->url($this->portada_miniatura_ruta);
+    }
+
+    /**
+     * Si queda de dónde volver a bajar la Portada. Sin URL de origen —Captura
+     * manual, o una Fuente que no trajo imagen— la única vía es subirla.
+     */
+    public function puedeReintentarLaPortada(): bool
+    {
+        return ! $this->tienePortada() && $this->portada_origen_url !== null;
+    }
+
+    /**
+     * Los Libros a los que les falta la Portada.
+     *
+     * @param  Builder<$this>  $query
+     */
+    #[Scope]
+    protected function sinPortada(Builder $query): void
+    {
+        $query->whereNull('portada_ruta');
     }
 
     /**

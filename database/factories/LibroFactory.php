@@ -32,6 +32,8 @@ class LibroFactory extends Factory
             'descripcion_procedencia' => Procedencia::Fuente,
             'fuente' => Fuente::OpenLibrary,
             'portada_ruta' => 'portadas/'.fake()->uuid().'.jpg',
+            'portada_origen_url' => 'https://covers.openlibrary.org/b/id/'.fake()->numberBetween(1, 999999).'-L.jpg',
+            'portada_miniatura_ruta' => 'portadas/'.fake()->uuid().'-miniatura.jpg',
             'situacion' => Situacion::Acervo,
             'leido' => false,
             'fecha_lectura' => null,
@@ -174,6 +176,33 @@ class LibroFactory extends Factory
             'isbn' => null,
             'fuente' => Fuente::Manual,
             'portada_ruta' => null,
+            'portada_origen_url' => null,
+            'portada_miniatura_ruta' => null,
+        ]);
+    }
+
+    /**
+     * Sin Portada, pero con de dónde bajarla: la descarga falló y se puede
+     * reintentar.
+     */
+    public function portadaPendiente(): static
+    {
+        return $this->state(fn (array $attributes) => [
+            'portada_ruta' => null,
+            'portada_miniatura_ruta' => null,
+            'portada_origen_url' => 'https://covers.openlibrary.org/b/id/'.fake()->numberBetween(1, 999999).'-L.jpg',
+        ]);
+    }
+
+    /**
+     * Sin Portada y sin de dónde bajarla.
+     */
+    public function sinPortada(): static
+    {
+        return $this->state(fn (array $attributes) => [
+            'portada_ruta' => null,
+            'portada_miniatura_ruta' => null,
+            'portada_origen_url' => null,
         ]);
     }
 }

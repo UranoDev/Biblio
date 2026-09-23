@@ -1,6 +1,7 @@
 <?php
 
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Facades\Http;
 use Tests\TestCase;
 
 /*
@@ -16,6 +17,14 @@ use Tests\TestCase;
 
 pest()->extend(TestCase::class)
     ->use(RefreshDatabase::class)
+    ->beforeEach(function () {
+        // Ninguna prueba sale a internet. Http::fake() con patrones de URL no
+        // alcanza: Laravel ejecuta de verdad las peticiones que no coinciden
+        // con ningun patron (preventStrayRequests viene en false). Asi el dia
+        // que un adaptador pida una URL nueva, la prueba falla diciendolo en
+        // vez de pegarle al catalogo real.
+        Http::preventStrayRequests();
+    })
     ->in('Feature');
 
 /*
@@ -47,4 +56,43 @@ expect()->extend('toBeOne', function () {
 function something()
 {
     // ..
+}
+
+/**
+ * Una respuesta grabada de una Fuente. Las pruebas de los adaptadores corren
+ * contra estos archivos y nunca salen a internet.
+ */
+function grabada(string $nombre): string
+{
+    return file_get_contents(__DIR__."/Fixtures/fuentes/{$nombre}.json");
+}
+
+/**
+ * Una imagen de verdad, hecha en el momento: las pruebas de Portadas no salen
+ * a internet ni cargan archivos binarios al repo.
+ */
+function imagenDePrueba(int $ancho = 400, int $alto = 600, string $formato = 'jpeg'): string
+{
+    $lienzo = imagecreatetruecolor($ancho, $alto);
+
+    $color = imagecolorallocate($lienzo, 190, 40, 40);
+
+    if ($color !== false) {
+        imagefilledrectangle($lienzo, 0, 0, $ancho, $alto, $color);
+    }
+
+    ob_start();
+
+    match ($formato) {
+        'png' => imagepng($lienzo),
+        'gif' => imagegif($lienzo),
+        'webp' => imagewebp($lienzo),
+        default => imagejpeg($lienzo, null, 90),
+    };
+
+    $binario = (string) ob_get_clean();
+
+    imagedestroy($lienzo);
+
+    return $binario;
 }
