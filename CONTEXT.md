@@ -78,8 +78,10 @@ El catálogo público al que se le consulta un ISBN o un título para armar el R
 _Avoid_: Api, Provider (Provider es el proveedor de IA), Catalog; servicio
 
 **Cover** · en la interfaz: «portada»:
-La imagen de la cubierta de esa edición. Se descarga de la Source al registrar el Book y
-se guarda; también puede subirse a mano.
+La imagen de la cubierta de esa edición. Se descarga de la Source al registrar el Book,
+se puede subir a mano, y **si no llega ninguna que sirva, se genera** una pieza
+tipográfica con el título y los Authors (ADR-008). Todo Book tiene Cover, y el suyo lleva
+su Origin.
 _Avoid_: Image, Thumbnail (la miniatura es una variante del Cover, no otra cosa);
 carátula, tapa
 
@@ -91,8 +93,10 @@ _Avoid_: Summary, Synopsis, Blurb; sinopsis, resumen (el resumen de lo que a mí
 es la Note), contraportada
 
 **Origin** · en la interfaz: no se nombra, se muestra:
-De dónde salió una Description: `source`, `ai` u `owner`. Es lo que permite que regenerar
-nunca pise lo que escribí yo ni lo que dijo el editor.
+De dónde salió algo que puede venir de varias partes. La Description lo lleva —`source`,
+`ai` u `owner`— y el Cover también —`source`, `generated` u `owner`—. Es lo que permite
+que regenerar nunca pise lo que escribí yo ni lo que dijo el editor, y lo que convierte
+«los Covers generados» en la lista de lo que falta fotografiar.
 _Avoid_: Provenance, Kind; procedencia como nombre de columna
 
 **Author** · en la interfaz: «autor»:
@@ -205,7 +209,7 @@ _Avoid_: Vendor, Service; Source (Source es el catálogo de libros)
 
 ## Decisiones tomadas
 
-Las siete primeras tienen ADR en `docs/adr/`, porque son las costosas de revertir.
+Las ocho primeras tienen ADR en `docs/adr/`, porque son las costosas de revertir.
 
 1. **El Scanner es un lector USB que se comporta como teclado** — ADR-001. La pantalla de
    captura es un campo de ISBN siempre enfocado que acepta una línea terminada en Enter.
@@ -221,37 +225,41 @@ Las siete primeras tienen ADR en `docs/adr/`, porque son las costosas de reverti
 6. **Las Categories las propone una IA, con el AiModel elegido en pantalla** — ADR-006. Se
    piden en cola, nunca durante la captura; el AiModel vive en la base y las llaves de API
    en el entorno; se puede regenerar por Book o en masa.
-7. **La Description lleva su Origin, y la escrita por IA se marca** — ADR-007. Se le pide a
+7. **El Cover siempre existe: si no llega uno bueno, se genera** — ADR-008. Medido: de
+   cuatro ISBN reales, ninguno dio un Cover utilizable. El generado es tipográfico, su
+   color se deriva del ISBN, y su Origin lo distingue del real — con eso, «los Covers
+   generados» son la cola de lo que falta fotografiar.
+8. **La Description lleva su Origin, y la escrita por IA se marca** — ADR-007. Se le pide a
    la IA sólo si ninguna Source la trajo; editarla la vuelve `owner`, y desde entonces
    ninguna regeneración la toca.
-8. **El Book es la edición, no la obra.** No hay concepto de Work: el original y su
+9. **El Book es la edición, no la obra.** No hay concepto de Work: el original y su
    traducción son dos Books sin relación entre sí.
-9. **El Reading distingue tres estados, no dos:** sin leer, leído sin fecha, y leído con
+10. **El Reading distingue tres estados, no dos:** sin leer, leído sin fecha, y leído con
    fecha. Cualquier interfaz que sólo ofrezca una casilla de «leído» pierde el de en medio.
-10. **Shelf y Wanted son la misma entidad con distinto Status**, no dos listas separadas.
+11. **Shelf y Wanted son la misma entidad con distinto Status**, no dos listas separadas.
     Al escanear un Book que estaba Wanted, pasa a `owned` solo, con deshacer.
-11. **Las Quotes son del Book; las Notes son mías.** No se mezclan en la misma superficie
+12. **Las Quotes son del Book; las Notes son mías.** No se mezclan en la misma superficie
     ni en la misma tabla, porque no se buscan igual.
-12. **Una Note por Book**, libre y editable en su lugar. Partir una en varias después es
+13. **Una Note por Book**, libre y editable en su lugar. Partir una en varias después es
     trivial; colapsar varias en una pierde información.
-13. **El préstamo es un campo, no una entidad**: `lent_to` en texto libre y `lent_on`. Sin
+14. **El préstamo es un campo, no una entidad**: `lent_to` en texto libre y `lent_on`. Sin
     tabla de personas, sin estados, sin recordatorios.
-14. **Una sola pantalla de TitleLookup** sirve para los Books que están Wanted y para los
+15. **Una sola pantalla de TitleLookup** sirve para los Books que están Wanted y para los
     que no traen código de barras. Lo único que cambia es el Status con el que nace.
-15. **Los doscientos libros del acervo entran escaneando, sin importador.** Un importador
+16. **Los doscientos libros del acervo entran escaneando, sin importador.** Un importador
     corre una sola vez en la vida del sistema y compite con lo que se usa siempre.
-16. **Google Books se consulta con llave propia**, leída del entorno. Sin llave, la cuota
+17. **Google Books se consulta con llave propia**, leída del entorno. Sin llave, la cuota
     es compartida y devuelve 429 — que no puede tratarse como «no lo conoce».
-17. **No hay límite de Quotes públicas por Book.** Un Book puede tener ninguna o muchas, y
+18. **No hay límite de Quotes públicas por Book.** Un Book puede tener ninguna o muchas, y
     todas se muestran en el Showcase.
-18. **El TitleLookup consulta las Sources al revés que el Scan.** Google Books primero,
+19. **El TitleLookup consulta las Sources al revés que el Scan.** Google Books primero,
     Open Library de respaldo, porque la búsqueda de Open Library devuelve obras y de cada
     una entrega una sola edición elegida por ella. Medido de los dos lados el 2026-09-23;
     ver la ampliación del ADR-002.
-19. **El código va en inglés y la interfaz en español**, con cada término fijando las dos
+20. **El código va en inglés y la interfaz en español**, con cada término fijando las dos
     formas (ver § El idioma). El sistema se renombró completo al tomar esta decisión,
     antes de tener datos: dos idiomas conviviendo era peor que cualquiera de los dos.
-20. **Las pruebas no usan respuestas inventadas.** Lo que se guarda en `tests/Fixtures` es
+21. **Las pruebas no usan respuestas inventadas.** Lo que se guarda en `tests/Fixtures` es
     una grabación real del catálogo, sin recortar, y hay pruebas de contrato aparte que
     verifican que la Source sigue respondiendo como el día que se grabó.
 
