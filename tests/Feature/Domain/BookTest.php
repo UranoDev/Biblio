@@ -2,6 +2,7 @@
 
 namespace Tests\Feature\Domain;
 
+use App\Ai\AiModel;
 use App\Enums\Origin;
 use App\Enums\ReadingStatus;
 use App\Enums\Status;
@@ -192,6 +193,37 @@ class BookTest extends TestCase
 
         $this->assertSame(0, Book::query()->wanted()->count());
         $this->assertSame(2, Book::query()->owned()->count());
+    }
+
+    public function test_it_counts_the_books_written_by_another_ai_model(): void
+    {
+        $chosen = new AiModel('gemini', 'gemini-nuevo');
+
+        Book::factory()->count(2)->categoriesGenerated('gemini', 'gemini-de-antes')->create();
+        Book::factory()->categoriesGenerated('gemini', 'gemini-nuevo')->create();
+        Book::factory()->create();
+
+        $this->assertSame(2, Book::query()->categoriesFromAnotherAiModel($chosen)->count());
+    }
+
+    public function test_the_same_ai_model_from_another_provider_is_another_ai_model(): void
+    {
+        $chosen = new AiModel('gemini', 'un-modelo');
+
+        Book::factory()->categoriesGenerated('openrouter', 'un-modelo')->create();
+
+        $this->assertSame(1, Book::query()->categoriesFromAnotherAiModel($chosen)->count());
+    }
+
+    public function test_the_description_of_the_source_and_mine_are_not_from_another_ai_model(): void
+    {
+        $chosen = new AiModel('gemini', 'gemini-nuevo');
+
+        Book::factory()->descriptionFromAi('gemini', 'gemini-de-antes')->create();
+        Book::factory()->descriptionFromSource()->create();
+        Book::factory()->descriptionFromOwner()->create();
+
+        $this->assertSame(1, Book::query()->descriptionFromAnotherAiModel($chosen)->count());
     }
 
     public function test_the_loan_is_a_pair_of_fields_and_is_cleared_when_it_comes_back(): void

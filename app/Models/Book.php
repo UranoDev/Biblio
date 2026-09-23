@@ -208,6 +208,42 @@ class Book extends Model
     }
 
     /**
+     * The Books whose Categories were written by another AiModel.
+     *
+     * Knowing which ones they are is what makes the regeneration precise:
+     * without it the only way to bring them up to date is to regenerate all of
+     * them and pay for them again (ADR-006).
+     *
+     * @param  Builder<$this>  $query
+     */
+    #[Scope]
+    protected function categoriesFromAnotherAiModel(Builder $query, AiModel $chosen): void
+    {
+        $query->whereNotNull('categories_ai_model')
+            ->where(function (Builder $query) use ($chosen): void {
+                $query->where('categories_ai_model', '!=', $chosen->name)
+                    ->orWhere('categories_provider', '!=', $chosen->provider);
+            });
+    }
+
+    /**
+     * The Books whose Description was written by another AiModel. The ones the
+     * Source wrote and mine are not here: their Origin is not the AI and
+     * regenerating never touches them (ADR-007).
+     *
+     * @param  Builder<$this>  $query
+     */
+    #[Scope]
+    protected function descriptionFromAnotherAiModel(Builder $query, AiModel $chosen): void
+    {
+        $query->whereNotNull('description_ai_model')
+            ->where(function (Builder $query) use ($chosen): void {
+                $query->where('description_ai_model', '!=', $chosen->name)
+                    ->orWhere('description_provider', '!=', $chosen->provider);
+            });
+    }
+
+    /**
      * The Books that are missing their Cover.
      *
      * @param  Builder<$this>  $query
