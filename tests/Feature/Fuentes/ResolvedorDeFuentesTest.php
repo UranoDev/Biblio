@@ -3,6 +3,8 @@
 use App\Dominio\Isbn;
 use App\Dominio\IsbnInvalido;
 use App\Enums;
+use App\Fuentes\Candidato;
+use App\Fuentes\Candidatos;
 use App\Fuentes\Ficha;
 use App\Fuentes\Fuente;
 use App\Fuentes\ResolvedorDeFuentes;
@@ -10,15 +12,18 @@ use App\Fuentes\Respuesta;
 use Illuminate\Support\Facades\Http;
 
 /** Una Fuente de mentiras que contesta siempre lo mismo, para probar el orden. */
-function fuenteQue(Respuesta $respuesta, Enums\Fuente $identificador): Fuente
+function fuenteQue(Respuesta $respuesta, Enums\Fuente $identificador, ?Candidatos $candidatos = null): Fuente
 {
-    return new class($respuesta, $identificador) implements Fuente
+    return new class($respuesta, $identificador, $candidatos) implements Fuente
     {
         public int $consultas = 0;
+
+        public int $busquedas = 0;
 
         public function __construct(
             private readonly Respuesta $respuesta,
             private readonly Enums\Fuente $identificador,
+            private readonly ?Candidatos $candidatos,
         ) {}
 
         public function identificador(): Enums\Fuente
@@ -32,7 +37,29 @@ function fuenteQue(Respuesta $respuesta, Enums\Fuente $identificador): Fuente
 
             return $this->respuesta;
         }
+
+        public function porTitulo(string $titulo, ?string $autor = null): Candidatos
+        {
+            $this->busquedas++;
+
+            return $this->candidatos ?? Candidatos::ninguno();
+        }
     };
+}
+
+function candidatoDeMentiras(Enums\Fuente $fuente): Candidato
+{
+    return new Candidato(
+        isbn: Isbn::desde('9788437604176'),
+        titulo: 'Pedro Páramo',
+        autores: ['Juan Rulfo'],
+        editorial: 'Editorial RM',
+        anio: 2005,
+        edicion: null,
+        portadaUrl: null,
+        descripcion: null,
+        fuente: $fuente,
+    );
 }
 
 function fichaDeMentiras(Enums\Fuente $fuente): Ficha
@@ -134,4 +161,92 @@ it('usa Google Books de respaldo cuando Open Library no conoce el ISBN', functio
 
     expect($ficha->fuente)->toBe(Enums\Fuente::GoogleBooks)
         ->and($ficha->titulo)->toBe('Pedro Páramo');
+});
+
+it('se queda con los Candidatos de la primera Fuente que tenga alguno', function () {
+    $primera = fuenteQue(
+        Respuesta::sinFicha(),
+        Enums\Fuente::GoogleBooks,
+        Candidatos::con([candidatoDeMentiras(Enums\Fuente::GoogleBooks)]),
+    );
+    $segunda = fuenteQue(Respuesta::sinFicha(), Enums\Fuente::OpenLibrary, Candidatos::ninguno());
+
+    $candidatos = (new ResolvedorDeFuentes([$primera], [$primera, $segunda]))->porTitulo('Pedro Páramo');
+
+    expect($candidatos)->toHaveCount(1)
+        ->and($segunda->busquedas)->toBe(0);
+});
+
+it('cae a la siguiente Fuente cuando la primera no tiene el título', function () {
+    $resolvedor = new ResolvedorDeFuentes([], [
+        fuenteQue(Respuesta::sinFicha(), Enums\Fuente::GoogleBooks, Candidatos::ninguno()),
+        fuenteQue(Respuesta::sinFicha(), Enums\Fuente::OpenLibrary, Candidatos::con([
+            candidatoDeMentiras(Enums\Fuente::OpenLibrary),
+        ])),
+    ]);
+
+    expect($resolvedor->porTitulo('Pedro Páramo')->candidatos[0]->fuente)
+        ->toBe(Enums\Fuente::OpenLibrary);
+});
+
+it('devuelve una lista vacía cuando ninguna tiene el título, sin lanzar excepción', function () {
+    $resolvedor = new ResolvedorDeFuentes([], [
+        fuenteQue(Respuesta::sinFicha(), Enums\Fuente::GoogleBooks, Candidatos::ninguno()),
+        fuenteQue(Respuesta::sinFicha(), Enums\Fuente::OpenLibrary, Candidatos::ninguno()),
+    ]);
+
+    $candidatos = $resolvedor->porTitulo('un título que no existe');
+
+    expect($candidatos->noConoceElTitulo())->toBeTrue()
+        ->and($candidatos->respondio())->toBeTrue()
+        ->and($candidatos->candidatos)->toBe([]);
+});
+
+it('no confunde una Fuente que no pudo contestar con un título que nadie tiene', function () {
+    $resolvedor = new ResolvedorDeFuentes([], [
+        fuenteQue(Respuesta::sinFicha(), Enums\Fuente::GoogleBooks, Candidatos::noDisponible('HTTP 429')),
+        fuenteQue(Respuesta::sinFicha(), Enums\Fuente::OpenLibrary, Candidatos::ninguno()),
+    ]);
+
+    $candidatos = $resolvedor->porTitulo('Pedro Páramo');
+
+    expect($candidatos->respondio())->toBeFalse()
+        ->and($candidatos->noConoceElTitulo())->toBeFalse()
+        ->and($candidatos->motivo)->toContain('Google Books');
+});
+
+it('sigue buscando cuando la primera Fuente no pudo contestar', function () {
+    $resolvedor = new ResolvedorDeFuentes([], [
+        fuenteQue(Respuesta::sinFicha(), Enums\Fuente::GoogleBooks, Candidatos::noDisponible('HTTP 429')),
+        fuenteQue(Respuesta::sinFicha(), Enums\Fuente::OpenLibrary, Candidatos::con([
+            candidatoDeMentiras(Enums\Fuente::OpenLibrary),
+        ])),
+    ]);
+
+    expect($resolvedor->porTitulo('Pedro Páramo')->hayCandidatos())->toBeTrue();
+});
+
+it('busca por título con Google Books primero, al revés que por ISBN', function () {
+    Http::fake([
+        'www.googleapis.com/*' => Http::response(grabada('google-books-busqueda')),
+        'openlibrary.org/*' => Http::response(grabada('open-library-busqueda')),
+    ]);
+
+    $candidatos = app(ResolvedorDeFuentes::class)->porTitulo('Pedro Páramo', 'Rulfo');
+
+    expect($candidatos->candidatos[0]->fuente)->toBe(Enums\Fuente::GoogleBooks);
+
+    Http::assertNotSent(fn ($peticion) => str_contains($peticion->url(), 'openlibrary.org'));
+});
+
+it('usa Open Library de respaldo cuando Google Books agotó la cuota', function () {
+    Http::fake([
+        'www.googleapis.com/*' => Http::response(grabada('google-books-cuota-agotada'), 429),
+        'openlibrary.org/*' => Http::response(grabada('open-library-busqueda')),
+    ]);
+
+    $candidatos = app(ResolvedorDeFuentes::class)->porTitulo('Pedro Páramo', 'Rulfo');
+
+    expect($candidatos->hayCandidatos())->toBeTrue()
+        ->and($candidatos->candidatos[0]->fuente)->toBe(Enums\Fuente::OpenLibrary);
 });

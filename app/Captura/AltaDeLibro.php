@@ -4,6 +4,7 @@ namespace App\Captura;
 
 use App\Enums\Fuente;
 use App\Enums\Situacion;
+use App\Fuentes\Candidato;
 use App\Fuentes\Ficha;
 use App\Jobs\DescargarPortada;
 use App\Models\Libro;
@@ -19,10 +20,10 @@ use App\Models\Libro;
  */
 final class AltaDeLibro
 {
-    /** Con la Ficha que trajo una Fuente: el Escaneo y el Alta por título. */
+    /** Con la Ficha que trajo una Fuente a partir del ISBN: el Escaneo. */
     public function desdeLaFicha(Ficha $ficha, Situacion $situacion = Situacion::Acervo): Libro
     {
-        $libro = Libro::create([
+        return $this->nace([
             'isbn' => $ficha->isbn->valor(),
             'titulo' => $ficha->titulo,
             'autores' => $ficha->autores,
@@ -33,13 +34,38 @@ final class AltaDeLibro
             'descripcion_procedencia' => $ficha->procedenciaDeLaDescripcion(),
             'fuente' => $ficha->fuente,
             'situacion' => $situacion,
-        ]);
+        ], $ficha->portadaUrl);
+    }
 
-        DescargarPortada::paraElLibro($libro, $ficha->portadaUrl);
+    /**
+     * Con la edición que se eligió en un Alta por título.
+     *
+     * Un Candidato con ISBN trae exactamente la Ficha que habría traído el
+     * Escaneo, así que entra por ahí. Uno **sin** ISBN se registra igual: el
+     * Libro queda sin ISBN, y la unicidad del acervo sólo alcanza a los que sí
+     * lo tienen (ADR-005). Lo que no cambia es que la Portada la dio el
+     * catálogo, así que se baja y se guarda como cualquier otra (ADR-004).
+     */
+    public function desdeElCandidato(Candidato $candidato, Situacion $situacion = Situacion::Acervo): Libro
+    {
+        $ficha = $candidato->aFicha();
 
-        $this->encolarLasCategorias($libro);
+        if ($ficha instanceof Ficha) {
+            return $this->desdeLaFicha($ficha, $situacion);
+        }
 
-        return $libro;
+        return $this->nace([
+            'isbn' => null,
+            'titulo' => $candidato->titulo,
+            'autores' => $candidato->autores,
+            'editorial' => $candidato->editorial,
+            'anio' => $candidato->anio,
+            'edicion' => $candidato->edicion,
+            'descripcion' => $candidato->descripcion,
+            'descripcion_procedencia' => $candidato->procedenciaDeLaDescripcion(),
+            'fuente' => $candidato->fuente,
+            'situacion' => $situacion,
+        ], $candidato->portadaUrl);
     }
 
     /**
@@ -52,7 +78,7 @@ final class AltaDeLibro
      */
     public function aMano(LibroCapturado $datos): Libro
     {
-        $libro = Libro::create([
+        return $this->nace([
             'isbn' => $datos->isbn?->valor(),
             'titulo' => $datos->titulo,
             'autores' => $datos->autores,
@@ -61,7 +87,20 @@ final class AltaDeLibro
             'edicion' => $datos->edicion,
             'fuente' => Fuente::Manual,
             'situacion' => $datos->situacion,
-        ]);
+        ], null);
+    }
+
+    /**
+     * Donde nace el Libro, sea cual sea la vía: se registra, se le encola la
+     * Portada cuando hay de dónde bajarla y se le encolan las Categorías.
+     *
+     * @param  array<string, mixed>  $atributos
+     */
+    private function nace(array $atributos, ?string $portadaUrl): Libro
+    {
+        $libro = Libro::create($atributos);
+
+        DescargarPortada::paraElLibro($libro, $portadaUrl);
 
         $this->encolarLasCategorias($libro);
 

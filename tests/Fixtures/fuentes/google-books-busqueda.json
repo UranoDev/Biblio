@@ -1,0 +1,72 @@
+{
+  "kind": "books#volumes",
+  "totalItems": 4,
+  "items": [
+    {
+      "kind": "books#volume",
+      "id": "kPnKDwAAQBAJ",
+      "volumeInfo": {
+        "title": "Pedro Páramo",
+        "authors": ["Juan Rulfo"],
+        "publisher": "Editorial RM",
+        "publishedDate": "2005-11-01",
+        "description": "<p>Juan Preciado llega a Comala buscando a su padre.</p>",
+        "industryIdentifiers": [
+          { "type": "ISBN_13", "identifier": "9788437604176" },
+          { "type": "ISBN_10", "identifier": "8437604176" }
+        ],
+        "imageLinks": {
+          "smallThumbnail": "http://books.google.com/books/content?id=kPnKDwAAQBAJ&printsec=frontcover&img=1&zoom=5",
+          "thumbnail": "http://books.google.com/books/content?id=kPnKDwAAQBAJ&printsec=frontcover&img=1&zoom=1"
+        },
+        "language": "es"
+      }
+    },
+    {
+      "kind": "books#volume",
+      "id": "3sKZDwAAQBAJ",
+      "volumeInfo": {
+        "title": "Pedro Páramo",
+        "authors": ["Juan Rulfo"],
+        "publisher": "Cátedra",
+        "publishedDate": "1997",
+        "industryIdentifiers": [
+          { "type": "ISBN_13", "identifier": "9788437622170" },
+          { "type": "ISBN_10", "identifier": "8437622174" }
+        ],
+        "imageLinks": {
+          "thumbnail": "http://books.google.com/books/content?id=3sKZDwAAQBAJ&printsec=frontcover&img=1&zoom=1"
+        },
+        "language": "es"
+      }
+    },
+    {
+      "kind": "books#volume",
+      "id": "7HlLAAAAMAAJ",
+      "volumeInfo": {
+        "title": "Pedro Páramo",
+        "authors": ["Juan Rulfo"],
+        "publisher": "Fondo de Cultura Económica",
+        "publishedDate": "1955",
+        "language": "es"
+      }
+    },
+    {
+      "kind": "books#volume",
+      "id": "QQQQDwAAQBAJ",
+      "volumeInfo": {
+        "title": "Pedro Páramo",
+        "subtitle": "edición conmemorativa",
+        "authors": ["Juan Rulfo", "Jorge Zepeda"],
+        "publisher": "Editorial Planeta Mexicana",
+        "publishedDate": "2010-03",
+        "industryIdentifiers": [
+          { "type": "OTHER", "identifier": "UOM:39015062823174" },
+          { "type": "ISBN_13", "identifier": "9788437604177" },
+          { "type": "ISBN_10", "identifier": "8437654327" }
+        ],
+        "language": "es"
+      }
+    }
+  ]
+}

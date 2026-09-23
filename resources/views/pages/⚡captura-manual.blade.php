@@ -15,8 +15,8 @@ use Livewire\Component;
  * Fuente lo conoce (ADR-002).
  *
  * Se llega desde el Escaneo con el ISBN ya puesto y desde el Alta por título
- * con el título ya puesto, de modo que no haya que volver a escribir lo que ya
- * se escribió.
+ * con el título y el Autor ya puestos, de modo que no haya que volver a
+ * escribir lo que ya se escribió.
  */
 new #[Title('Captura manual')] class extends Component
 {
@@ -46,9 +46,15 @@ new #[Title('Captura manual')] class extends Component
     public function mount(): void
     {
         // Lo que ya se escribió en la vía anterior: el ISBN que se escaneó, o
-        // el título que se buscó en la Fuente.
+        // el título y el Autor con los que se consultó la Fuente.
         $this->isbn = trim((string) request()->query('isbn', ''));
         $this->titulo = trim((string) request()->query('titulo', ''));
+
+        $autor = trim((string) request()->query('autor', ''));
+
+        if ($autor !== '') {
+            $this->autores = [$autor];
+        }
 
         $this->situacion = Situacion::Acervo->value;
     }

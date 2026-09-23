@@ -237,6 +237,15 @@ en un formulario.
     libro dejan de ser una cita y se acercan a una reproducción— y se decidió que no:
     cuando algún Libro acumule tantas que incomode, se revisa entonces y no antes.
 
+18. **El Alta por título consulta las Fuentes al revés que el Escaneo.** Google Books
+    primero y Open Library de respaldo. Comprobado el 2026-09-23: la búsqueda de Open
+    Library devuelve **obras** y de cada una entrega una sola edición elegida por ella,
+    mientras que cada volumen de Google Books ya es una edición con su editorial, su año
+    y su ISBN. Un Candidato es una edición, así que una obra por renglón no sirve para
+    elegir. **Medido sólo del lado de Open Library**: la búsqueda de Google Books no se
+    pudo ejecutar ese día por cuota agotada, y lo que se afirma de ella se dedujo de su
+    respuesta por ISBN. Ver la ampliación del ADR-002.
+
 ## Lo que sigue abierto
 
 **Nada por ahora.** Las decisiones que estaban aquí —qué Escáner, cuál Fuente, si la

@@ -99,3 +99,124 @@ it('le pregunta a Google el ISBN normalizado a trece dígitos', function () {
 
     Http::assertSent(fn ($peticion) => str_contains(urldecode($peticion->url()), 'isbn:9788437604176'));
 });
+
+it('devuelve un Candidato por cada edición que encuentra del título', function () {
+    Http::fake(['www.googleapis.com/*' => Http::response(grabada('google-books-busqueda'))]);
+
+    $candidatos = googleBooks()->porTitulo('Pedro Páramo');
+
+    expect($candidatos)->toHaveCount(4)
+        ->and($candidatos->hayCandidatos())->toBeTrue();
+});
+
+it('trae de cada Candidato lo que hace falta para elegir una edición', function () {
+    Http::fake(['www.googleapis.com/*' => Http::response(grabada('google-books-busqueda'))]);
+
+    $candidato = googleBooks()->porTitulo('Pedro Páramo')->candidatos[0];
+
+    expect($candidato->titulo)->toBe('Pedro Páramo')
+        ->and($candidato->autores)->toBe(['Juan Rulfo'])
+        ->and($candidato->editorial)->toBe('Editorial RM')
+        ->and($candidato->anio)->toBe(2005)
+        ->and($candidato->portadaUrl)->toStartWith('https://')
+        ->and($candidato->isbn->valor())->toBe('9788437604176')
+        ->and($candidato->fuente)->toBe(Fuente::GoogleBooks);
+});
+
+it('distingue dos Candidatos del mismo título pero distinta edición', function () {
+    Http::fake(['www.googleapis.com/*' => Http::response(grabada('google-books-busqueda'))]);
+
+    [$rm, $catedra] = googleBooks()->porTitulo('Pedro Páramo')->candidatos;
+
+    expect($rm->titulo)->toBe($catedra->titulo)
+        ->and($rm->editorial)->not->toBe($catedra->editorial)
+        ->and($rm->anio)->not->toBe($catedra->anio)
+        ->and($rm->isbn->valor())->not->toBe($catedra->isbn->valor())
+        ->and($rm->clave())->not->toBe($catedra->clave());
+});
+
+it('acepta el Candidato que no trae ISBN, en vez de descartarlo', function () {
+    Http::fake(['www.googleapis.com/*' => Http::response(grabada('google-books-busqueda'))]);
+
+    $sinIsbn = googleBooks()->porTitulo('Pedro Páramo')->candidatos[2];
+
+    expect($sinIsbn->tieneIsbn())->toBeFalse()
+        ->and($sinIsbn->isbn)->toBeNull()
+        ->and($sinIsbn->editorial)->toBe('Fondo de Cultura Económica')
+        ->and($sinIsbn->clave())->toContain('7HlLAAAAMAAJ');
+});
+
+it('ignora el ISBN que no cuadra y se queda con el que sí', function () {
+    Http::fake(['www.googleapis.com/*' => Http::response(grabada('google-books-busqueda'))]);
+
+    $candidato = googleBooks()->porTitulo('Pedro Páramo')->candidatos[3];
+
+    // El ISBN_13 del volumen trae mal el dígito de control; el de diez cuadra.
+    expect($candidato->isbn->valor())->toBe('9788437654324');
+});
+
+it('acota cada término a su campo y agrega el autor cuando se da', function () {
+    Http::fake(['www.googleapis.com/*' => Http::response(grabada('google-books-busqueda'))]);
+
+    googleBooks()->porTitulo('Pedro Páramo', 'Rulfo');
+
+    Http::assertSent(function ($peticion) {
+        $consulta = urldecode($peticion->url());
+
+        return str_contains($consulta, 'intitle:"Pedro Páramo"')
+            && str_contains($consulta, 'inauthor:"Rulfo"');
+    });
+});
+
+it('no manda el autor cuando no se da', function () {
+    Http::fake(['www.googleapis.com/*' => Http::response(grabada('google-books-busqueda'))]);
+
+    googleBooks()->porTitulo('Pedro Páramo');
+
+    Http::assertSent(fn ($peticion) => ! str_contains(urldecode($peticion->url()), 'inauthor:'));
+});
+
+it('manda la llave también en la búsqueda por título', function () {
+    Http::fake(['www.googleapis.com/*' => Http::response(grabada('google-books-busqueda'))]);
+
+    googleBooks('la-llave')->porTitulo('Pedro Páramo');
+
+    Http::assertSent(fn ($peticion) => str_contains($peticion->url(), 'key=la-llave'));
+});
+
+it('devuelve una lista vacía cuando el título no da resultados, no una excepción', function () {
+    Http::fake(['www.googleapis.com/*' => Http::response(grabada('google-books-sin-resultados'))]);
+
+    $candidatos = googleBooks()->porTitulo('un título que no existe');
+
+    expect($candidatos->noConoceElTitulo())->toBeTrue()
+        ->and($candidatos->candidatos)->toBe([])
+        ->and($candidatos->respondio())->toBeTrue();
+});
+
+it('no traduce el 429 de la búsqueda a «no hay ese título»', function () {
+    Http::fake(['www.googleapis.com/*' => Http::response(grabada('google-books-cuota-agotada'), 429)]);
+
+    $candidatos = googleBooks()->porTitulo('Pedro Páramo');
+
+    expect($candidatos->respondio())->toBeFalse()
+        ->and($candidatos->noConoceElTitulo())->toBeFalse()
+        ->and($candidatos->motivo)->toContain('429');
+});
+
+it('avisa que no pudo buscar cuando la red falla', function () {
+    Http::fake(fn () => throw new ConnectionException('cURL error 28: Operation timed out'));
+
+    $candidatos = googleBooks()->porTitulo('Pedro Páramo');
+
+    expect($candidatos->respondio())->toBeFalse()
+        ->and($candidatos->motivo)->toContain('no respondió');
+});
+
+it('no sale a la red con un título vacío', function () {
+    Http::fake();
+
+    expect(googleBooks()->porTitulo('   ')->candidatos)->toBe([]);
+
+    Http::assertNothingSent();
+});

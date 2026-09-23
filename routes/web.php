@@ -9,6 +9,8 @@ Route::middleware(['auth', 'verified'])->group(function () {
 
     Route::livewire('captura', 'pages::captura')->name('captura');
 
+    Route::livewire('alta-por-titulo', 'pages::alta-por-titulo')->name('alta-por-titulo');
+
     Route::livewire('captura-manual', 'pages::captura-manual')->name('captura-manual');
 });
 

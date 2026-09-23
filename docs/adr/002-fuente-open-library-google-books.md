@@ -47,3 +47,38 @@ adaptador distingue los dos casos aunque haya llave, porque una cuota también s
 
 Sin llave configurada, el respaldo sigue funcionando hasta que la cuota compartida se
 acabe; a partir de ahí avisa que la Fuente no pudo responder, en vez de mentir.
+
+## Ampliación del 2026-09-23 — El Alta por título consulta al revés
+
+La cascada por ISBN y la del Alta por título **no son la misma**, y cada una vive en su
+propia lista en `config/fuentes.php`.
+
+Un Candidato es una edición (ADR-005) y tiene que traer Portada, autores, editorial y
+año, porque sin eso no hay forma de distinguir la de bolsillo de la del 2015. Comprobado
+contra los catálogos reales, buscando «Pedro Páramo» de Rulfo:
+
+- **Open Library busca obras, no ediciones.** Devolvió 6 obras que entre todas suman 134
+  ediciones, y de cada obra entrega **una sola**, elegida por ella: la de la primera no
+  trae ISBN, y la de la segunda es una traducción al portugués. `editions.limit` se
+  ignora, así que no hay manera de pedirle las demás sin una petición por obra.
+- **Google Books busca volúmenes, y cada volumen es una edición**, con sus
+  `industryIdentifiers`, su editorial y su año en la misma respuesta.
+
+**Lo que no se pudo medir.** La comparación de arriba es medida **sólo del lado de Open
+Library**. La búsqueda de Google Books no se pudo ejecutar ese día: su cuota anónima
+estaba en cero —el mismo 429 de la decisión 16— y no había llave configurada. Lo que se
+afirma de Google Books se dedujo de la forma de su respuesta **por ISBN**, que es otra
+consulta, y por eso `tests/Fixtures/fuentes/google-books-busqueda.json` está escrita
+sobre esa forma: **nadie en este proyecto ha visto nunca una respuesta real de la
+búsqueda por título de Google Books**. Ver el README de esa carpeta.
+
+Eso deja el orden elegido apoyado en evidencia despareja: sabemos que Open Library no
+sirve para elegir edición, no que Google Books sí. **El día que haya llave, hay que
+rehacer esa grabación contra la API y volver a mirar esta decisión** — si Google Books
+resultara igual de pobre, la conclusión no cambia (sigue siendo mejor que obras), pero el
+orden podría dar lo mismo.
+
+Por eso el Alta por título consulta **Google Books primero y Open Library de respaldo**,
+al revés que por ISBN. Open Library no se quita: una obra por renglón es poco, pero es
+mejor que nada el día que la otra no pueda contestar — y con la búsqueda por título ese
+día llega antes, porque es la operación que más rápido agota una cuota.

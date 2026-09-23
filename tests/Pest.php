@@ -2,6 +2,8 @@
 
 use App\Dominio\Isbn;
 use App\Enums;
+use App\Fuentes\Candidato;
+use App\Fuentes\Candidatos;
 use App\Fuentes\Ficha;
 use App\Fuentes\Fuente;
 use App\Fuentes\ResolvedorDeFuentes;
@@ -109,13 +111,21 @@ function imagenDePrueba(int $ancho = 400, int $alto = 600, string $formato = 'jp
  * desenlace que la prueba quiera.
  *
  * @param  Respuesta|(callable(Isbn): Respuesta)  $respuesta
+ * @param  Candidatos|(callable(string, ?string): Candidatos)|null  $candidatos  lo que
+ *                                                                               contesta el Alta por título; sin Candidatos cuando no se da.
  */
-function lasFuentesContestan(Respuesta|callable $respuesta): void
+function lasFuentesContestan(Respuesta|callable $respuesta, Candidatos|callable|null $candidatos = null): void
 {
-    $fuente = new class($respuesta) implements Fuente
+    $fuente = new class($respuesta, $candidatos) implements Fuente
     {
-        /** @param  Respuesta|(callable(Isbn): Respuesta)  $respuesta */
-        public function __construct(private readonly mixed $respuesta) {}
+        /**
+         * @param  Respuesta|(callable(Isbn): Respuesta)  $respuesta
+         * @param  Candidatos|(callable(string, ?string): Candidatos)|null  $candidatos
+         */
+        public function __construct(
+            private readonly mixed $respuesta,
+            private readonly mixed $candidatos,
+        ) {}
 
         public function identificador(): Enums\Fuente
         {
@@ -128,9 +138,59 @@ function lasFuentesContestan(Respuesta|callable $respuesta): void
                 ? $this->respuesta
                 : ($this->respuesta)($isbn);
         }
+
+        public function porTitulo(string $titulo, ?string $autor = null): Candidatos
+        {
+            if ($this->candidatos === null) {
+                return Candidatos::ninguno();
+            }
+
+            return $this->candidatos instanceof Candidatos
+                ? $this->candidatos
+                : ($this->candidatos)($titulo, $autor);
+        }
     };
 
     app()->instance(ResolvedorDeFuentes::class, new ResolvedorDeFuentes([$fuente]));
+}
+
+/**
+ * Lo que contesta la Fuente en un Alta por título, cuando la prueba no
+ * necesita decir nada del Escaneo.
+ *
+ * @param  Candidatos|(callable(string, ?string): Candidatos)  $candidatos
+ */
+function lasFuentesDevuelven(Candidatos|callable $candidatos): void
+{
+    lasFuentesContestan(Respuesta::sinFicha(), $candidatos);
+}
+
+/**
+ * Un Candidato armado a mano, con la forma que tendría el de cualquier Fuente.
+ *
+ * @param  list<string>  $autores
+ */
+function candidatoDe(
+    ?string $isbn = null,
+    string $titulo = 'Pedro Páramo',
+    array $autores = ['Juan Rulfo'],
+    ?string $editorial = 'Editorial RM',
+    ?int $anio = 2005,
+    ?string $portadaUrl = null,
+    ?string $referencia = null,
+): Candidato {
+    return new Candidato(
+        isbn: $isbn === null ? null : Isbn::desde($isbn),
+        titulo: $titulo,
+        autores: $autores,
+        editorial: $editorial,
+        anio: $anio,
+        edicion: null,
+        portadaUrl: $portadaUrl,
+        descripcion: null,
+        fuente: Enums\Fuente::OpenLibrary,
+        referencia: $referencia,
+    );
 }
 
 /**

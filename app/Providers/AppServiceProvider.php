@@ -23,7 +23,10 @@ class AppServiceProvider extends ServiceProvider
     {
         $this->app->singleton(
             ResolvedorDeFuentes::class,
-            fn (): ResolvedorDeFuentes => new ResolvedorDeFuentes($this->fuentes()),
+            fn (): ResolvedorDeFuentes => new ResolvedorDeFuentes(
+                fuentes: $this->fuentes('fuentes.orden'),
+                porTitulo: $this->fuentes('fuentes.orden_por_titulo'),
+            ),
         );
 
         $this->app->singleton(
@@ -45,18 +48,20 @@ class AppServiceProvider extends ServiceProvider
     }
 
     /**
-     * Las Fuentes en el orden configurado (ADR-002).
+     * Las Fuentes en el orden configurado (ADR-002). Hay un orden por
+     * operación: consultar un ISBN y buscar un título no se le dan igual de
+     * bien al mismo catálogo, y por qué está anotado en `config/fuentes.php`.
      *
      * @return list<Fuente>
      */
-    protected function fuentes(): array
+    protected function fuentes(string $clave = 'fuentes.orden'): array
     {
         $timeout = (int) config('fuentes.timeout', 10);
 
         $fuentes = [];
 
         /** @var list<string> $orden */
-        $orden = config('fuentes.orden', []);
+        $orden = config($clave, []);
 
         foreach ($orden as $clave) {
             $fuentes[] = match ($clave) {

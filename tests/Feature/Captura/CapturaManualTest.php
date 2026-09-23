@@ -48,6 +48,12 @@ it('llega desde el Alta por título con el título ya puesto', function () {
         ->assertSet('isbn', '');
 });
 
+it('llega desde el Alta por título con el Autor ya puesto', function () {
+    capturaManual(['titulo' => 'El llano en llamas', 'autor' => 'Juan Rulfo'])
+        ->assertSet('titulo', 'El llano en llamas')
+        ->assertSet('autores', ['Juan Rulfo']);
+});
+
 it('registra un Libro con sólo el título', function () {
     capturaManual()
         ->set('titulo', 'Cartucho')

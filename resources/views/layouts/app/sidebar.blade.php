@@ -19,6 +19,10 @@
                     <flux:sidebar.item icon="plus" :href="route('captura')" :current="request()->routeIs('captura')" wire:navigate>
                         Captura
                     </flux:sidebar.item>
+
+                    <flux:sidebar.item icon="book-open-text" :href="route('alta-por-titulo')" :current="request()->routeIs('alta-por-titulo')" wire:navigate>
+                        Alta por título
+                    </flux:sidebar.item>
                 </flux:sidebar.group>
             </flux:sidebar.nav>
 
