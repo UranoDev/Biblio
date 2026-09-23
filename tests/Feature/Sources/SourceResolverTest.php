@@ -77,7 +77,7 @@ function fakeRecord(Enums\Source $source): Record
     );
 }
 
-it('se queda con la primera Fuente que conoce el ISBN y no consulta las demás', function () {
+it('se queda con la primera Source que conoce el ISBN y no consulta las demás', function () {
     $first = sourceThat(LookupResult::withRecord(fakeRecord(Enums\Source::OpenLibrary)), Enums\Source::OpenLibrary);
     $second = sourceThat(LookupResult::withoutRecord(), Enums\Source::GoogleBooks);
 
@@ -87,7 +87,7 @@ it('se queda con la primera Fuente que conoce el ISBN y no consulta las demás',
         ->and($second->lookups)->toBe(0);
 });
 
-it('cae a la siguiente Fuente cuando la primera no conoce el ISBN', function () {
+it('cae a la siguiente Source cuando la primera no conoce el ISBN', function () {
     $first = sourceThat(LookupResult::withoutRecord(), Enums\Source::OpenLibrary);
     $second = sourceThat(LookupResult::withRecord(fakeRecord(Enums\Source::GoogleBooks)), Enums\Source::GoogleBooks);
 
@@ -96,7 +96,7 @@ it('cae a la siguiente Fuente cuando la primera no conoce el ISBN', function () 
     expect($result->record->source)->toBe(Enums\Source::GoogleBooks);
 });
 
-it('devuelve sin Ficha cuando ninguna lo conoce, sin lanzar excepción', function () {
+it('devuelve sin Record cuando ninguna lo conoce, sin lanzar excepción', function () {
     $resolver = new SourceResolver([
         sourceThat(LookupResult::withoutRecord(), Enums\Source::OpenLibrary),
         sourceThat(LookupResult::withoutRecord(), Enums\Source::GoogleBooks),
@@ -108,7 +108,7 @@ it('devuelve sin Ficha cuando ninguna lo conoce, sin lanzar excepción', functio
         ->and($result->answered())->toBeTrue();
 });
 
-it('no manda a Captura manual un ISBN que una Fuente no pudo contestar', function () {
+it('no manda a ManualEntry un ISBN que una Source no pudo contestar', function () {
     $resolver = new SourceResolver([
         sourceThat(LookupResult::withoutRecord(), Enums\Source::OpenLibrary),
         sourceThat(LookupResult::unavailable('HTTP 429'), Enums\Source::GoogleBooks),
@@ -121,7 +121,7 @@ it('no manda a Captura manual un ISBN que una Fuente no pudo contestar', functio
         ->and($result->reason)->toContain('Google Books');
 });
 
-it('sigue consultando cuando la primera Fuente no pudo contestar', function () {
+it('sigue consultando cuando la primera Source no pudo contestar', function () {
     $resolver = new SourceResolver([
         sourceThat(LookupResult::unavailable('se cayó la red'), Enums\Source::OpenLibrary),
         sourceThat(LookupResult::withRecord(fakeRecord(Enums\Source::GoogleBooks)), Enums\Source::GoogleBooks),
@@ -163,7 +163,7 @@ it('usa Google Books de respaldo cuando Open Library no conoce el ISBN', functio
         ->and($record->title)->toBe('Pedro Páramo');
 });
 
-it('se queda con los Candidatos de la primera Fuente que tenga alguno', function () {
+it('se queda con los Candidates de la primera Source que tenga alguno', function () {
     $first = sourceThat(
         LookupResult::withoutRecord(),
         Enums\Source::GoogleBooks,
@@ -177,7 +177,7 @@ it('se queda con los Candidatos de la primera Fuente que tenga alguno', function
         ->and($second->searches)->toBe(0);
 });
 
-it('cae a la siguiente Fuente cuando la primera no tiene el título', function () {
+it('cae a la siguiente Source cuando la primera no tiene el título', function () {
     $resolver = new SourceResolver([], [
         sourceThat(LookupResult::withoutRecord(), Enums\Source::GoogleBooks, Candidates::none()),
         sourceThat(LookupResult::withoutRecord(), Enums\Source::OpenLibrary, Candidates::of([
@@ -202,7 +202,7 @@ it('devuelve una lista vacía cuando ninguna tiene el título, sin lanzar excepc
         ->and($candidates->candidates)->toBe([]);
 });
 
-it('no confunde una Fuente que no pudo contestar con un título que nadie tiene', function () {
+it('no confunde una Source que no pudo contestar con un título que nadie tiene', function () {
     $resolver = new SourceResolver([], [
         sourceThat(LookupResult::withoutRecord(), Enums\Source::GoogleBooks, Candidates::unavailable('HTTP 429')),
         sourceThat(LookupResult::withoutRecord(), Enums\Source::OpenLibrary, Candidates::none()),
@@ -215,7 +215,7 @@ it('no confunde una Fuente que no pudo contestar con un título que nadie tiene'
         ->and($candidates->reason)->toContain('Google Books');
 });
 
-it('sigue buscando cuando la primera Fuente no pudo contestar', function () {
+it('sigue buscando cuando la primera Source no pudo contestar', function () {
     $resolver = new SourceResolver([], [
         sourceThat(LookupResult::withoutRecord(), Enums\Source::GoogleBooks, Candidates::unavailable('HTTP 429')),
         sourceThat(LookupResult::withoutRecord(), Enums\Source::OpenLibrary, Candidates::of([

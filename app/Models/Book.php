@@ -2,6 +2,8 @@
 
 namespace App\Models;
 
+use App\Ai\AiModel;
+use App\Enums\GenerationStatus;
 use App\Enums\Origin;
 use App\Enums\ReadingStatus;
 use App\Enums\Source;
@@ -105,6 +107,49 @@ class Book extends Model
         return $this->read_on === null
             ? ReadingStatus::ReadUndated
             : ReadingStatus::ReadDated;
+    }
+
+    /**
+     * Whether the Book already has a Description, whoever wrote it.
+     */
+    public function hasDescription(): bool
+    {
+        return $this->description !== null && trim($this->description) !== '';
+    }
+
+    /**
+     * Whether the AI may write the Description of this Book (ADR-007).
+     *
+     * It may when there is none —no Source brought it— and when the one there
+     * is was written by the AI itself. The one from the Source and mine are
+     * never overwritten, not even by a regeneration.
+     */
+    public function acceptsAiDescription(): bool
+    {
+        if (! $this->hasDescription()) {
+            return true;
+        }
+
+        return $this->description_origin?->isRegenerated() === true;
+    }
+
+    /**
+     * Which of the three situations the Categories of the Book are in
+     * (ADR-006).
+     *
+     * A Book without Categories is not one thing but two: one that is waiting
+     * in the queue, and one that is not going to get any until somebody chooses
+     * an AiModel. The screen that shows them says which.
+     */
+    public function categoriesStatus(): GenerationStatus
+    {
+        if ($this->categories_ai_model !== null) {
+            return GenerationStatus::Generated;
+        }
+
+        return AiModel::chosen() instanceof AiModel
+            ? GenerationStatus::Pending
+            : GenerationStatus::Off;
     }
 
     /**

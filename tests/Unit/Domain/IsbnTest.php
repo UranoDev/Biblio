@@ -11,7 +11,7 @@ it('acepta un ISBN-10 y lo normaliza a trece dígitos', function () {
     expect(Isbn::from('8437604176')->value())->toBe('9788437604176');
 });
 
-it('llega al mismo resultado con el ISBN-10 y con el ISBN-13 del mismo Libro', function () {
+it('llega al mismo resultado con el ISBN-10 y con el ISBN-13 del mismo Book', function () {
     expect(Isbn::from('8437604176')->equals(Isbn::from('9788437604176')))->toBeTrue();
 });
 

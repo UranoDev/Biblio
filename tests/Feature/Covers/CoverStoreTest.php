@@ -20,7 +20,7 @@ function coverStore(): CoverStore
     return app(CoverStore::class);
 }
 
-it('guarda la original y la versión reducida, y el Libro apunta a las dos', function () {
+it('guarda la original y la versión reducida, y el Book apunta a las dos', function () {
     $book = Book::factory()->withoutCover()->create();
 
     $this->store->store($book, testImage(800, 1200));
@@ -60,7 +60,7 @@ it('guarda la original en el formato en el que llegó', function () {
         ->and($book->cover_thumbnail_path)->toEndWith('-thumbnail.jpg');
 });
 
-it('reemplaza la Portada anterior y borra sus archivos', function () {
+it('reemplazal Cover anterior y borra sus archivos', function () {
     $book = Book::factory()->withoutCover()->create();
 
     $this->store->store($book, testImage(400, 600));
@@ -77,7 +77,7 @@ it('reemplaza la Portada anterior y borra sus archivos', function () {
     Storage::disk()->assertExists($book->cover_path);
 });
 
-it('guarda la Portada que se sube a mano', function () {
+it('guardal Cover que se sube a mano', function () {
     $book = Book::factory()->withoutCover()->create();
 
     $file = UploadedFile::fake()->createWithContent('portada.jpg', testImage(400, 600));
@@ -107,7 +107,7 @@ it('rechaza la imagen que pesa de más', function () {
         ->toThrow(InvalidImage::class);
 });
 
-it('deja al Libro sin Portada y borra sus archivos', function () {
+it('deja al Book sin Cover y borra sus archivos', function () {
     $book = Book::factory()->withoutCover()->create();
 
     $this->store->store($book, testImage(400, 600));
@@ -137,7 +137,7 @@ it('escribe en el disco que diga FILESYSTEM_DISK, sin tocar el código', functio
     Storage::disk('otro')->assertExists($book->cover_path);
 });
 
-it('respeta el directorio configurado', function () {
+it('respetal directorio configurado', function () {
     config()->set('covers.directory', 'cubiertas');
 
     $book = Book::factory()->withoutCover()->create();

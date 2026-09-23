@@ -28,7 +28,7 @@ it('pide sesión', function () {
     $this->get(route('manual-entry'))->assertRedirect(route('login'));
 });
 
-it('llega desde el Escaneo con el ISBN ya puesto', function () {
+it('llega desdel Scan con el ISBN ya puesto', function () {
     $this->get(route('manual-entry', ['isbn' => '9788437604176']))
         ->assertOk()
         ->assertSee('9788437604176');
@@ -38,7 +38,7 @@ it('llega desde el Escaneo con el ISBN ya puesto', function () {
         ->assertSet('title', '');
 });
 
-it('llega desde el Alta por título con el título ya puesto', function () {
+it('llega desdel TitleLookup con el título ya puesto', function () {
     $this->get(route('manual-entry', ['title' => 'El llano en llamas']))
         ->assertOk()
         ->assertSee('El llano en llamas');
@@ -48,13 +48,13 @@ it('llega desde el Alta por título con el título ya puesto', function () {
         ->assertSet('isbn', '');
 });
 
-it('llega desde el Alta por título con el Autor ya puesto', function () {
+it('llega desdel TitleLookup con el Autor ya puesto', function () {
     manualEntry(['title' => 'El llano en llamas', 'author' => 'Juan Rulfo'])
         ->assertSet('title', 'El llano en llamas')
         ->assertSet('authors', ['Juan Rulfo']);
 });
 
-it('registra un Libro con sólo el título', function () {
+it('registra un Book con sólo el título', function () {
     manualEntry()
         ->set('title', 'Cartucho')
         ->call('register')
@@ -78,13 +78,13 @@ it('no registra nada sin título', function () {
     expect(Book::count())->toBe(0);
 });
 
-it('marca el Libro como capturado a mano', function () {
+it('marcal Book como capturado a mano', function () {
     manualEntry()->set('title', 'Cartucho')->call('register');
 
     expect(Book::sole()->source)->toBe(Source::Manual);
 });
 
-it('conserva el orden en que se escribieron los Autores', function () {
+it('conserval orden en que se escribieron los Autores', function () {
     manualEntry()
         ->set('title', 'Cien años de soledad')
         ->call('addAuthor')
@@ -123,7 +123,7 @@ it('quita un Autor sin descolocar a los demás', function () {
         ->assertSet('authors', ['Primero', 'Tercero']);
 });
 
-it('guarda la Ficha completa cuando se escribe toda', function () {
+it('guardal Record completa cuando se escribe toda', function () {
     manualEntry()
         ->set('title', 'Noticias del Imperio')
         ->set('authors.0', 'Fernando del Paso')
@@ -145,7 +145,7 @@ it('guarda la Ficha completa cuando se escribe toda', function () {
         ->and($book->isbn)->toBe('9788437604176');
 });
 
-it('registra el año de un libro anterior a 1901', function () {
+it('registral año de un libro anterior a 1901', function () {
     manualEntry()
         ->set('title', 'Los bandidos de Río Frío')
         ->set('year', '1891')
@@ -155,7 +155,7 @@ it('registra el año de un libro anterior a 1901', function () {
     expect(Book::sole()->year)->toBe(1891);
 });
 
-it('avisa el año que no es un año', function () {
+it('avisal año que no es un año', function () {
     manualEntry()
         ->set('title', 'Cartucho')
         ->set('year', 'mil novecientos treinta y uno')
@@ -165,7 +165,7 @@ it('avisa el año que no es un año', function () {
     expect(Book::count())->toBe(0);
 });
 
-it('avisa el ISBN que ya está registrado en vez de duplicarlo', function () {
+it('avisal ISBN que ya está registrado en vez de duplicarlo', function () {
     Book::factory()->create([
         'isbn' => '9788437604176',
         'title' => 'Pedro Páramo',
@@ -193,7 +193,7 @@ it('reconoce el ISBN ya registrado aunque se escriba con diez dígitos', functio
     expect(Book::count())->toBe(1);
 });
 
-it('avisa el ISBN inválido', function () {
+it('avisal ISBN inválido', function () {
     manualEntry()
         ->set('title', 'Cartucho')
         ->set('isbn', '9788437604177')
@@ -204,13 +204,13 @@ it('avisa el ISBN inválido', function () {
     expect(Book::count())->toBe(0);
 });
 
-it('registra en el Acervo por omisión', function () {
+it('registra en el Shelf por omisión', function () {
     manualEntry()->set('title', 'Cartucho')->call('register');
 
     expect(Book::sole()->status)->toBe(Status::Owned);
 });
 
-it('registra Por comprar cuando se elige esa Situación', function () {
+it('registra Wanted cuando se elige esa Status', function () {
     manualEntry()
         ->set('title', 'Cartucho')
         ->set('status', Status::Wanted->value)
@@ -220,7 +220,7 @@ it('registra Por comprar cuando se elige esa Situación', function () {
     expect(Book::sole()->status)->toBe(Status::Wanted);
 });
 
-it('rechaza una Situación que no es ninguna de las dos', function () {
+it('rechaza una Status que no es ninguna de las dos', function () {
     manualEntry()
         ->set('title', 'Cartucho')
         ->set('status', 'prestado')
@@ -231,7 +231,7 @@ it('rechaza una Situación que no es ninguna de las dos', function () {
     expect(Book::count())->toBe(0);
 });
 
-it('ofrece subir la Portada en cuanto el Libro queda registrado', function () {
+it('ofrece subir el Cover en cuanto el Book queda registrado', function () {
     manualEntry()
         ->set('title', 'Cartucho')
         ->call('register')
@@ -239,7 +239,7 @@ it('ofrece subir la Portada en cuanto el Libro queda registrado', function () {
         ->assertSeeLivewire('book-cover');
 });
 
-it('deja el Libro registrado aunque no se le suba ninguna Portada', function () {
+it('dejal Book registrado aunque no se le suba ningun Cover', function () {
     manualEntry()->set('title', 'Cartucho')->call('register');
 
     $book = Book::sole();
@@ -252,7 +252,7 @@ it('deja el Libro registrado aunque no se le suba ninguna Portada', function () 
     Queue::assertNothingPushed();
 });
 
-it('sube la Portada del Libro recién capturado con el componente que ya existe', function () {
+it('sube el Cover del Book recién capturado con el componente que ya existe', function () {
     Storage::fake();
 
     manualEntry()->set('title', 'Cartucho')->call('register');
@@ -267,7 +267,7 @@ it('sube la Portada del Libro recién capturado con el componente que ya existe'
     expect($book->refresh()->hasCover())->toBeTrue();
 });
 
-it('deja la pantalla en blanco para capturar el Libro siguiente', function () {
+it('deja la pantalla en blanco para capturar el Book siguiente', function () {
     manualEntry(['isbn' => '9788437604176'])
         ->set('title', 'Cartucho')
         ->call('register')

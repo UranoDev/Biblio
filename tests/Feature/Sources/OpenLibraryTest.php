@@ -29,7 +29,7 @@ function fakeOpenLibrary(array $extra = []): void
     ]);
 }
 
-it('arma la Ficha de un ISBN que conoce, siguiendo el enlace a la obra', function () {
+it('armal Record de un ISBN que conoce, siguiendo el enlace a la obra', function () {
     fakeOpenLibrary();
 
     $result = openLibrary()->byIsbn(Isbn::from('9788420471839'));
@@ -49,7 +49,7 @@ it('arma la Ficha de un ISBN que conoce, siguiendo el enlace a la obra', functio
         ->and($record->descriptionOrigin())->toBe(Origin::Source);
 });
 
-it('conserva el orden en que la Fuente acredita a los autores', function () {
+it('conserval orden en que la Source acredita a los autores', function () {
     fakeOpenLibrary();
 
     $record = openLibrary()->byIsbn(Isbn::from('9788420471839'))->record;
@@ -67,7 +67,7 @@ it('lee la descripción de la obra venga como cadena o como objeto con value', f
     );
 })->with(['open-library-work', 'open-library-work-description-object']);
 
-it('devuelve sin Ficha cuando Open Library no conoce el ISBN', function () {
+it('devuelve sin Record cuando Open Library no conoce el ISBN', function () {
     Http::fake(['openlibrary.org/*' => Http::response(status: 404)]);
 
     $result = openLibrary()->byIsbn(Isbn::from('9788420471839'));
@@ -96,7 +96,7 @@ it('avisa que no pudo contestar cuando la red falla', function () {
         ->and($result->reason)->toContain('did not answer');
 });
 
-it('da la Ficha sin Descripción cuando la edición no apunta a ninguna obra', function () {
+it('dal Record sin Description cuando la edición no apunta a ninguna obra', function () {
     Http::fake([
         'openlibrary.org/isbn/*' => Http::response(recorded('open-library-edition-without-work')),
         'openlibrary.org/authors/*' => Http::response(recorded('open-library-author-garcia-marquez')),
@@ -109,7 +109,7 @@ it('da la Ficha sin Descripción cuando la edición no apunta a ninguna obra', f
         ->and($record->descriptionOrigin())->toBeNull();
 });
 
-it('da la Ficha sin Descripción cuando la obra no se pudo consultar', function () {
+it('dal Record sin Description cuando la obra no se pudo consultar', function () {
     fakeOpenLibrary(['openlibrary.org/works/*' => Http::response(status: 429)]);
 
     $result = openLibrary()->byIsbn(Isbn::from('9788420471839'));
@@ -118,7 +118,7 @@ it('da la Ficha sin Descripción cuando la obra no se pudo consultar', function 
         ->and($result->record->hasDescription())->toBeFalse();
 });
 
-it('no devuelve Portada cuando la edición sólo trae la marca de que no tiene', function () {
+it('no devuelve Cover cuando la edición sólo trae la marca de que no tiene', function () {
     Http::fake([
         'openlibrary.org/isbn/*' => Http::response(recorded('open-library-edition-without-work')),
         'openlibrary.org/authors/*' => Http::response(recorded('open-library-author-garcia-marquez')),
@@ -129,7 +129,7 @@ it('no devuelve Portada cuando la edición sólo trae la marca de que no tiene',
     expect($record->coverUrl)->toBeNull();
 });
 
-it('prefiere reintentar antes que dar una Ficha a la que le faltan autores', function () {
+it('prefiere reintentar antes que dar una Record a la que le faltan autores', function () {
     fakeOpenLibrary(['openlibrary.org/authors/*' => Http::response(status: 500)]);
 
     $result = openLibrary()->byIsbn(Isbn::from('9788420471839'));
@@ -146,7 +146,7 @@ it('le pregunta a Open Library el ISBN normalizado a trece dígitos', function (
     Http::assertSent(fn ($request) => str_contains($request->url(), '/isbn/9788420471839.json'));
 });
 
-it('devuelve un Candidato por obra, que es todo lo que su búsqueda entrega', function () {
+it('devuelve un Candidate por obra, que es todo lo que su búsqueda entrega', function () {
     Http::fake(['openlibrary.org/search.json*' => Http::response(recorded('open-library-search'))]);
 
     $candidates = openLibrary()->byTitle('Pedro Páramo', 'Rulfo');
@@ -157,7 +157,7 @@ it('devuelve un Candidato por obra, que es todo lo que su búsqueda entrega', fu
     expect($candidates)->toHaveCount(6);
 });
 
-it('arma el Candidato con los datos de la edición, no con los de la obra', function () {
+it('armal Candidate con los datos de la edición, no con los de la obra', function () {
     Http::fake(['openlibrary.org/search.json*' => Http::response(recorded('open-library-search'))]);
 
     $candidate = openLibrary()->byTitle('Pedro Páramo', 'Rulfo')->candidates[0];
@@ -179,7 +179,7 @@ it('acepta la edición que Open Library no publica con ISBN', function () {
         ->and($candidate->key())->toContain('OL27792668M');
 });
 
-it('guarda el ISBN de la edición normalizado a trece dígitos', function () {
+it('guardal ISBN de la edición normalizado a trece dígitos', function () {
     Http::fake(['openlibrary.org/search.json*' => Http::response(recorded('open-library-search'))]);
 
     $candidate = openLibrary()->byTitle('Pedro Páramo', 'Rulfo')->candidates[1];
@@ -187,7 +187,7 @@ it('guarda el ISBN de la edición normalizado a trece dígitos', function () {
     expect($candidate->isbn->value())->toBe('9788521906032');
 });
 
-it('distingue dos Candidatos del mismo título por su editorial y su año', function () {
+it('distingue dos Candidates del mismo título por su editorial y su año', function () {
     Http::fake(['openlibrary.org/search.json*' => Http::response(recorded('open-library-search'))]);
 
     $candidates = openLibrary()->byTitle('Pedro Páramo', 'Rulfo')->candidates;
@@ -197,7 +197,7 @@ it('distingue dos Candidatos del mismo título por su editorial y su año', func
     expect(array_unique($keys))->toHaveCount(count($candidates));
 });
 
-it('le pasa el título y el autor a la búsqueda, y pide los campos de la edición', function () {
+it('le pasal título y el autor a la búsqueda, y pide los campos de la edición', function () {
     Http::fake(['openlibrary.org/search.json*' => Http::response(recorded('open-library-search'))]);
 
     openLibrary()->byTitle('Pedro Páramo', 'Rulfo');
@@ -211,7 +211,7 @@ it('le pasa el título y el autor a la búsqueda, y pide los campos de la edici�
     });
 });
 
-it('no manda el autor cuando no se da', function () {
+it('no mandal autor cuando no se da', function () {
     Http::fake(['openlibrary.org/search.json*' => Http::response(recorded('open-library-search'))]);
 
     openLibrary()->byTitle('Pedro Páramo');

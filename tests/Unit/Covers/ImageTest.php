@@ -11,7 +11,7 @@ it('lee las medidas y el formato de la imagen', function () {
         ->and($image->extension())->toBe('jpg');
 });
 
-it('reconoce los formatos en los que llegan las Portadas', function (string $format, string $extension) {
+it('reconoce los formatos en los que llegan los Covers', function (string $format, string $extension) {
     expect(Image::from(testImage(120, 180, $format))->extension())->toBe($extension);
 })->with([
     ['jpeg', 'jpg'],

@@ -19,7 +19,7 @@ function registerCandidate(...$arguments): IntakeResult
     return app(RegisterCandidate::class)->register(...$arguments);
 }
 
-it('registra el Candidato con la Situación que se le indique', function () {
+it('registral Candidate con el Status que se le indique', function () {
     $result = registerCandidate(
         candidateOf(isbn: '9788437604176', title: 'Pedro Páramo'),
         Status::Owned,
@@ -31,19 +31,19 @@ it('registra el Candidato con la Situación que se le indique', function () {
         ->and($result->book->status)->toBe(Status::Owned);
 });
 
-it('nace Por comprar cuando no se indica Situación', function () {
+it('nace Wanted cuando no se indica Status', function () {
     $result = registerCandidate(candidateOf(isbn: '9788437604176'));
 
     expect($result->book->status)->toBe(Status::Wanted);
 });
 
-it('deja registrado de qué Fuente salió la edición', function () {
+it('deja registrado de qué Source salió la edición', function () {
     $result = registerCandidate(candidateOf(isbn: '9788437604176'));
 
     expect($result->book->source)->toBe(Source::OpenLibrary);
 });
 
-it('encola la Portada que dio la Fuente', function () {
+it('encolal Cover que dio la Source', function () {
     $result = registerCandidate(candidateOf(
         isbn: '9788437604176',
         coverUrl: 'https://covers.example/pedro-paramo.jpg',
@@ -55,7 +55,7 @@ it('encola la Portada que dio la Fuente', function () {
         ->toBe('https://covers.example/pedro-paramo.jpg');
 });
 
-it('registra el Candidato que no trae ISBN, y el Libro queda sin ISBN', function () {
+it('registral Candidate que no trae ISBN, y el Book queda sin ISBN', function () {
     $result = registerCandidate(candidateOf(isbn: null, title: 'El llano en llamas'));
 
     expect($result->alreadyRegistered)->toBeFalse()
@@ -64,7 +64,7 @@ it('registra el Candidato que no trae ISBN, y el Libro queda sin ISBN', function
         ->and($result->book->source)->toBe(Source::OpenLibrary);
 });
 
-it('encola la Portada también cuando el Candidato no trae ISBN', function () {
+it('encolal Cover también cuando el Candidate no trae ISBN', function () {
     $result = registerCandidate(candidateOf(
         isbn: null,
         coverUrl: 'https://covers.example/sin-isbn.jpg',
@@ -76,7 +76,7 @@ it('encola la Portada también cuando el Candidato no trae ISBN', function () {
         ->toBe('https://covers.example/sin-isbn.jpg');
 });
 
-it('avisa cuál es el Libro que ya tenía ese ISBN, en vez de duplicarlo', function () {
+it('avisa cuál es el Book que ya tenía ese ISBN, en vez de duplicarlo', function () {
     $alreadyThere = Book::factory()->create(['isbn' => '9788437604176', 'title' => 'Pedro Páramo']);
 
     $result = registerCandidate(candidateOf(isbn: '9788437604176'), Status::Owned);
@@ -86,7 +86,7 @@ it('avisa cuál es el Libro que ya tenía ese ISBN, en vez de duplicarlo', funct
         ->and(Book::count())->toBe(1);
 });
 
-it('no cambia la Situación del Libro que ya estaba', function () {
+it('no cambial Status del Book que ya estaba', function () {
     Book::factory()->create([
         'isbn' => '9788437604176',
         'status' => Status::Wanted,
@@ -97,14 +97,14 @@ it('no cambia la Situación del Libro que ya estaba', function () {
     expect($result->book->status)->toBe(Status::Wanted);
 });
 
-it('dos Candidatos sin ISBN del mismo título se registran por separado', function () {
+it('dos Candidates sin ISBN del mismo título se registran por separado', function () {
     registerCandidate(candidateOf(isbn: null, title: 'Cartucho'));
     registerCandidate(candidateOf(isbn: null, title: 'Cartucho'));
 
     expect(Book::count())->toBe(2);
 });
 
-it('guarda la Descripción del Candidato con la procedencia de la Fuente', function () {
+it('guarda la Description del Candidate con la procedencia de la Source', function () {
     $candidate = new Candidate(
         isbn: null,
         title: 'Cartucho',
@@ -123,7 +123,7 @@ it('guarda la Descripción del Candidato con la procedencia de la Fuente', funct
         ->and($result->book->description_origin)->toBe(Origin::Source);
 });
 
-it('un Candidato sin Descripción no guarda procedencia', function () {
+it('un Candidate sin Description no guarda procedencia', function () {
     $result = registerCandidate(candidateOf(isbn: null));
 
     expect($result->book->description)->toBeNull()

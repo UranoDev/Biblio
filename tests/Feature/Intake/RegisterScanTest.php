@@ -19,7 +19,7 @@ function scanOf(string $typed): ScanResult
     return app(RegisterScan::class)->register($typed);
 }
 
-it('registra el Libro con la Ficha que trajo la Fuente', function () {
+it('registral Book con el Record que trajo la Source', function () {
     sourcesAnswer(LookupResult::withRecord(recordOf(
         isbn: '9788437604176',
         description: 'La historia de Juan Preciado en Comala.',
@@ -36,7 +36,7 @@ it('registra el Libro con la Ficha que trajo la Fuente', function () {
         ->and(Book::count())->toBe(1);
 });
 
-it('encola la Portada del Libro que acaba de registrar', function () {
+it('encolal Cover del Book que acaba de registrar', function () {
     sourcesAnswer(LookupResult::withRecord(recordOf(
         isbn: '9788437604176',
         coverUrl: 'https://covers.openlibrary.org/b/id/12345-L.jpg',
@@ -50,7 +50,7 @@ it('encola la Portada del Libro que acaba de registrar', function () {
         ->toBe('https://covers.openlibrary.org/b/id/12345-L.jpg');
 });
 
-it('no encola nada cuando la Ficha no trae Portada', function () {
+it('no encola nada cuando el Record no trae Cover', function () {
     sourcesAnswer(LookupResult::withRecord(recordOf('9788437604176')));
 
     scanOf('9788437604176');
@@ -58,7 +58,7 @@ it('no encola nada cuando la Ficha no trae Portada', function () {
     Queue::assertNothingPushed();
 });
 
-it('avisa que el Libro ya está en el Acervo, sin duplicarlo ni volver a preguntarle a la Fuente', function () {
+it('avisa que el Book ya está en el Shelf, sin duplicarlo ni volver a preguntarle a la Source', function () {
     $book = Book::factory()->owned()->create(['isbn' => '9788437604176']);
 
     sourcesAnswer(LookupResult::unavailable('no tendría que haberse consultado'));
@@ -71,7 +71,7 @@ it('avisa que el Libro ya está en el Acervo, sin duplicarlo ni volver a pregunt
         ->and(Book::count())->toBe(1);
 });
 
-it('pasa al Acervo el Libro que estaba Por comprar', function () {
+it('pasa al Shelf el Book que estaba Wanted', function () {
     $book = Book::factory()->wanted()->create(['isbn' => '9788437604176']);
 
     $result = scanOf('9788437604176');
@@ -82,14 +82,14 @@ it('pasa al Acervo el Libro que estaba Por comprar', function () {
         ->and(Book::count())->toBe(1);
 });
 
-it('reconoce el ISBN-10 del Libro guardado con su ISBN-13', function () {
+it('reconoce el ISBN-10 del Book guardado con su ISBN-13', function () {
     Book::factory()->owned()->create(['isbn' => '9788437604176']);
 
     expect(scanOf('8437604176')->outcome)->toBe(ScanOutcome::AlreadyOnShelf)
         ->and(Book::count())->toBe(1);
 });
 
-it('ofrece Captura manual cuando ninguna Fuente conoce el ISBN', function () {
+it('ofrece ManualEntry cuando ninguna Source conoce el ISBN', function () {
     sourcesAnswer(LookupResult::withoutRecord());
 
     $result = scanOf('9788437604176');
@@ -100,7 +100,7 @@ it('ofrece Captura manual cuando ninguna Fuente conoce el ISBN', function () {
         ->and(Book::count())->toBe(0);
 });
 
-it('no ofrece Captura manual cuando la Fuente no pudo contestar', function () {
+it('no ofrece ManualEntry cuando la Source no pudo contestar', function () {
     sourcesAnswer(LookupResult::unavailable('Google Books: quota exhausted'));
 
     $result = scanOf('9788437604176');
@@ -111,7 +111,7 @@ it('no ofrece Captura manual cuando la Fuente no pudo contestar', function () {
         ->and(Book::count())->toBe(0);
 });
 
-it('rechaza lo que no es un ISBN sin consultar a ninguna Fuente', function () {
+it('rechaza lo que no es un ISBN sin consultar a ninguna Source', function () {
     sourcesAnswer(LookupResult::unavailable('no tendría que haberse consultado'));
 
     $result = scanOf('1234567890');
@@ -122,13 +122,13 @@ it('rechaza lo que no es un ISBN sin consultar a ninguna Fuente', function () {
         ->and(Book::count())->toBe(0);
 });
 
-it('acepta el ISBN tal como lo imprime el código de barras, con guiones', function () {
+it('aceptal ISBN tal como lo imprime el código de barras, con guiones', function () {
     sourcesAnswer(LookupResult::withRecord(recordOf('9788437604176')));
 
     expect(scanOf('978-84-376-0417-6')->book->isbn)->toBe('9788437604176');
 });
 
-it('deja el Libro sin Descripción cuando la Fuente no la trajo', function () {
+it('dejal Book sin Description cuando la Source no la trajo', function () {
     sourcesAnswer(LookupResult::withRecord(recordOf('9788437604176')));
 
     $book = scanOf('9788437604176')->book;

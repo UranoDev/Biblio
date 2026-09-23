@@ -2,6 +2,7 @@
 
 namespace App\Intake;
 
+use App\Ai\Proposals;
 use App\Enums\Source;
 use App\Enums\Status;
 use App\Jobs\DownloadCover;
@@ -20,6 +21,8 @@ use App\Sources\Record;
  */
 final class AddBook
 {
+    public function __construct(private readonly Proposals $proposals) {}
+
     /** With the Record a Source brought from the ISBN: the Scan. */
     public function fromRecord(Record $record, Status $status = Status::Owned): Book
     {
@@ -112,9 +115,16 @@ final class AddBook
 
     /**
      * The Categories are written by an AI out of the Record, in the queue and
-     * never during capture (ADR-006). The agent that writes them does not exist
-     * yet —that is BIB-8—, and its dispatch goes here: at this point the Book is
-     * already registered, which is the only thing the queue needs.
+     * never during capture (ADR-006); so is the Description, when no Source
+     * brought one (ADR-007). At this point the Book is already registered,
+     * which is the only thing the queue needs.
+     *
+     * Nothing is queued while no AiModel has been chosen, and the Book is
+     * registered all the same: choosing one is a screen somebody may not have
+     * visited yet.
      */
-    private function queueTheCategories(Book $book): void {}
+    private function queueTheCategories(Book $book): void
+    {
+        $this->proposals->queueFor($book);
+    }
 }

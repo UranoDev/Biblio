@@ -15,7 +15,7 @@ function googleBooks(?string $key = null): GoogleBooks
     );
 }
 
-it('arma la Ficha de un ISBN que conoce, con la misma forma que la otra Fuente', function () {
+it('armal Record de un ISBN que conoce, con la misma forma que la otra Source', function () {
     Http::fake(['www.googleapis.com/*' => Http::response(recorded('google-books-volume'))]);
 
     $record = googleBooks()->byIsbn(Isbn::from('9788437604176'))->record;
@@ -29,7 +29,7 @@ it('arma la Ficha de un ISBN que conoce, con la misma forma que la otra Fuente',
         ->and($record->source)->toBe(Source::GoogleBooks);
 });
 
-it('entrega la Descripción como texto, sin las etiquetas de HTML que manda Google', function () {
+it('entrega la Description como texto, sin las etiquetas de HTML que manda Google', function () {
     Http::fake(['www.googleapis.com/*' => Http::response(recorded('google-books-volume'))]);
 
     $record = googleBooks()->byIsbn(Isbn::from('9788437604176'))->record;
@@ -56,7 +56,7 @@ it('funciona igual sin llave, pero no la manda', function () {
     Http::assertSent(fn ($request) => ! str_contains($request->url(), 'key='));
 });
 
-it('devuelve sin Ficha cuando Google no encuentra el ISBN', function () {
+it('devuelve sin Record cuando Google no encuentral ISBN', function () {
     Http::fake(['www.googleapis.com/*' => Http::response(recorded('google-books-no-results'))]);
 
     $result = googleBooks()->byIsbn(Isbn::from('9788437604176'));
@@ -64,7 +64,7 @@ it('devuelve sin Ficha cuando Google no encuentra el ISBN', function () {
     expect($result->isbnUnknown())->toBeTrue();
 });
 
-it('trata el 429 como Fuente que no pudo contestar, no como ISBN desconocido', function (?string $key) {
+it('tratal 429 como Source que no pudo contestar, no como ISBN desconocido', function (?string $key) {
     Http::fake(['www.googleapis.com/*' => Http::response(recorded('google-books-quota-exhausted'), 429)]);
 
     $result = googleBooks($key)->byIsbn(Isbn::from('9788437604176'));
@@ -100,7 +100,7 @@ it('le pregunta a Google el ISBN normalizado a trece dígitos', function () {
     Http::assertSent(fn ($request) => str_contains(urldecode($request->url()), 'isbn:9788437604176'));
 });
 
-it('devuelve un Candidato por cada edición que encuentra del título', function () {
+it('devuelve un Candidate por cada edición que encuentra del título', function () {
     Http::fake(['www.googleapis.com/*' => Http::response(recorded('google-books-search'))]);
 
     $candidates = googleBooks()->byTitle('Pedro Páramo');
@@ -109,7 +109,7 @@ it('devuelve un Candidato por cada edición que encuentra del título', function
         ->and($candidates->hasCandidates())->toBeTrue();
 });
 
-it('trae de cada Candidato lo que hace falta para elegir una edición', function () {
+it('trae de cada Candidate lo que hace falta para elegir una edición', function () {
     Http::fake(['www.googleapis.com/*' => Http::response(recorded('google-books-search'))]);
 
     $candidate = googleBooks()->byTitle('Pedro Páramo')->candidates[0];
@@ -123,7 +123,7 @@ it('trae de cada Candidato lo que hace falta para elegir una edición', function
         ->and($candidate->source)->toBe(Source::GoogleBooks);
 });
 
-it('distingue dos Candidatos del mismo título pero distinta edición', function () {
+it('distingue dos Candidates del mismo título pero distinta edición', function () {
     Http::fake(['www.googleapis.com/*' => Http::response(recorded('google-books-search'))]);
 
     [$rm, $catedra] = googleBooks()->byTitle('Pedro Páramo')->candidates;
@@ -135,7 +135,7 @@ it('distingue dos Candidatos del mismo título pero distinta edición', function
         ->and($rm->key())->not->toBe($catedra->key());
 });
 
-it('acepta el Candidato que no trae ISBN, en vez de descartarlo', function () {
+it('aceptal Candidate que no trae ISBN, en vez de descartarlo', function () {
     Http::fake(['www.googleapis.com/*' => Http::response(recorded('google-books-search'))]);
 
     $withoutIsbn = googleBooks()->byTitle('Pedro Páramo')->candidates[2];
@@ -146,7 +146,7 @@ it('acepta el Candidato que no trae ISBN, en vez de descartarlo', function () {
         ->and($withoutIsbn->key())->toContain('7HlLAAAAMAAJ');
 });
 
-it('ignora el ISBN que no cuadra y se queda con el que sí', function () {
+it('ignoral ISBN que no cuadra y se queda con el que sí', function () {
     Http::fake(['www.googleapis.com/*' => Http::response(recorded('google-books-search'))]);
 
     $candidate = googleBooks()->byTitle('Pedro Páramo')->candidates[3];
@@ -155,7 +155,7 @@ it('ignora el ISBN que no cuadra y se queda con el que sí', function () {
     expect($candidate->isbn->value())->toBe('9788437654324');
 });
 
-it('acota cada término a su campo y agrega el autor cuando se da', function () {
+it('acota cada término a su campo y agregal autor cuando se da', function () {
     Http::fake(['www.googleapis.com/*' => Http::response(recorded('google-books-search'))]);
 
     googleBooks()->byTitle('Pedro Páramo', 'Rulfo');
@@ -168,7 +168,7 @@ it('acota cada término a su campo y agrega el autor cuando se da', function () 
     });
 });
 
-it('no manda el autor cuando no se da', function () {
+it('no mandal autor cuando no se da', function () {
     Http::fake(['www.googleapis.com/*' => Http::response(recorded('google-books-search'))]);
 
     googleBooks()->byTitle('Pedro Páramo');

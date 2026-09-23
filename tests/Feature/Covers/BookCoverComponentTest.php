@@ -11,7 +11,7 @@ beforeEach(function () {
     Storage::fake();
 });
 
-it('sube una Portada a mano', function () {
+it('sube un Cover a mano', function () {
     $book = Book::factory()->withoutCover()->create();
 
     Livewire::test('book-cover', ['book' => $book])
@@ -27,7 +27,7 @@ it('sube una Portada a mano', function () {
     Storage::disk()->assertExists($book->cover_thumbnail_path);
 });
 
-it('reemplaza la Portada que ya tenía', function () {
+it('reemplazal Cover que ya tenía', function () {
     $book = Book::factory()->withoutCover()->create();
 
     Livewire::test('book-cover', ['book' => $book])
@@ -68,7 +68,7 @@ it('pone la descarga en cola otra vez cuando falló', function () {
     Queue::assertPushed(DownloadCover::class);
 });
 
-it('avisa que no hay de dónde bajar la Portada', function () {
+it('avisa que no hay de dónde bajar el Cover', function () {
     Queue::fake();
 
     $book = Book::factory()->withoutCover()->create();
@@ -90,7 +90,7 @@ it('ofrece reintentar sólo cuando la descarga puede repetirse', function () {
         ->assertSee('Este Libro no tiene Portada');
 });
 
-it('muestra el título del Libro en lugar de una imagen rota', function () {
+it('muestral título del Book en lugar de una imagen rota', function () {
     $book = Book::factory()->withoutCover()->create(['title' => 'El coronel no tiene quien le escriba']);
 
     $this->blade('<x-cover :book="$book" />', ['book' => $book])
@@ -98,7 +98,7 @@ it('muestra el título del Libro en lugar de una imagen rota', function () {
         ->assertDontSee('<img', false);
 });
 
-it('muestra la miniatura cuando el Libro tiene Portada', function () {
+it('muestra la miniatura cuando el Book tiene Cover', function () {
     $book = Book::factory()->create([
         'cover_path' => 'covers/9/abc.jpg',
         'cover_thumbnail_path' => 'covers/9/abc-thumbnail.jpg',

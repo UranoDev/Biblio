@@ -3,7 +3,7 @@
 use App\Models\Book;
 use Illuminate\Support\Facades\Storage;
 
-it('arma la URL de la Portada con el disco configurado', function () {
+it('arma la URL del Cover con el disco configurado', function () {
     Storage::fake();
 
     $book = Book::factory()->create([
@@ -15,7 +15,7 @@ it('arma la URL de la Portada con el disco configurado', function () {
         ->and($book->coverThumbnailUrl())->toBe(Storage::disk()->url('covers/7/abc-thumbnail.jpg'));
 });
 
-it('no inventa una URL cuando el Libro no tiene Portada', function () {
+it('no inventa una URL cuando el Book no tiene Cover', function () {
     $book = Book::factory()->withoutCover()->create();
 
     expect($book->hasCover())->toBeFalse()
@@ -34,13 +34,13 @@ it('cae en la original cuando falta la versión reducida', function () {
     expect($book->coverThumbnailUrl())->toBe($book->coverUrl());
 });
 
-it('sólo se puede reintentar el que no tiene Portada y sí tiene de dónde bajarla', function () {
+it('sólo se puede reintentar el que no tiene Cover y sí tiene de dónde bajarla', function () {
     expect(Book::factory()->coverPending()->create()->canRetryCover())->toBeTrue()
         ->and(Book::factory()->withoutCover()->create()->canRetryCover())->toBeFalse()
         ->and(Book::factory()->create()->canRetryCover())->toBeFalse();
 });
 
-it('lista los Libros a los que les falta la Portada', function () {
+it('lista los Books a los que les faltal Cover', function () {
     Book::factory()->count(2)->create();
     Book::factory()->coverPending()->create();
     Book::factory()->withoutCover()->create();

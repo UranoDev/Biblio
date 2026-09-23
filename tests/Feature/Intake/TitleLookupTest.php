@@ -61,14 +61,14 @@ it('pide sesión', function () {
     $this->get(route('title-lookup'))->assertRedirect(route('login'));
 });
 
-it('se abre con la Situación en Por comprar', function () {
+it('se abre con el Status en Wanted', function () {
     $this->get(route('title-lookup'))->assertOk();
 
     Livewire::test('pages::title-lookup')
         ->assertSet('status', Status::Wanted->value);
 });
 
-it('muestra los Candidatos con Portada, autores, editorial y año', function () {
+it('muestra los Candidates con Cover, autores, editorial y año', function () {
     sourcesReturn(twoEditions());
 
     lookUp()
@@ -91,7 +91,7 @@ it('distingue dos ediciones del mismo título por editorial, año e ISBN', funct
         ->assertSee('9786074454635');
 });
 
-it('le manda el Autor a la Fuente para acotar', function () {
+it('le mandal Autor a la Source para acotar', function () {
     $received = [];
 
     sourcesReturn(function (string $title, ?string $author) use (&$received): Candidates {
@@ -129,7 +129,7 @@ it('no consulta nada sin título', function () {
         ->assertCount('candidates', 0);
 });
 
-it('registra el Libro con la Situación elegida al elegir el Candidato', function () {
+it('registral Book con el Status elegida al elegir el Candidate', function () {
     sourcesReturn(twoEditions());
 
     $screen = lookUp()->set('status', Status::Owned->value);
@@ -146,7 +146,7 @@ it('registra el Libro con la Situación elegida al elegir el Candidato', functio
     $screen->assertSet('registered', $book->getKey())->assertSee('quedó registrado');
 });
 
-it('registra Por comprar cuando no se cambia la Situación', function () {
+it('registra Wanted cuando no se cambial Status', function () {
     sourcesReturn(twoEditions());
 
     $screen = lookUp();
@@ -156,7 +156,7 @@ it('registra Por comprar cuando no se cambia la Situación', function () {
     expect(Book::sole()->status)->toBe(Status::Wanted);
 });
 
-it('encola la Portada del Candidato que se eligió', function () {
+it('encolal Cover del Candidate que se eligió', function () {
     sourcesReturn(twoEditions());
 
     $screen = lookUp();
@@ -168,7 +168,7 @@ it('encola la Portada del Candidato que se eligió', function () {
     expect(Book::sole()->cover_source_url)->toBe('https://covers.example/catedra.jpg');
 });
 
-it('registra el Candidato que no trae ISBN', function () {
+it('registral Candidate que no trae ISBN', function () {
     sourcesReturn(Candidates::of([
         candidateOf(isbn: null, title: 'El llano en llamas', reference: 'sin-isbn'),
     ]));
@@ -184,7 +184,7 @@ it('registra el Candidato que no trae ISBN', function () {
         ->and($book->isbn)->toBeNull();
 });
 
-it('avisa cuál es el Libro que ya tenía ese ISBN, en vez de duplicarlo', function () {
+it('avisa cuál es el Book que ya tenía ese ISBN, en vez de duplicarlo', function () {
     Book::factory()->create(['isbn' => '9788437604176', 'title' => 'Pedro Páramo']);
 
     sourcesReturn(twoEditions());
@@ -198,7 +198,7 @@ it('avisa cuál es el Libro que ya tenía ese ISBN, en vez de duplicarlo', funct
     expect(Book::count())->toBe(1);
 });
 
-it('ofrece ir al Libro que ya estaba, en cuanto exista su ficha', function () {
+it('ofrece ir al Book que ya estaba, en cuanto exista su Record', function () {
     // The Book sheet arrives with BIB-14. Until then there is nowhere to send
     // the person, and the notice just says which Book it is.
     Route::middleware('web')->get('books/{book}', fn () => '')->name('book');
@@ -228,7 +228,7 @@ it('deja elegir otra edición después de avisar que una ya estaba', function ()
         ->and(Book::query()->where('isbn', '9786074454635')->exists())->toBeTrue();
 });
 
-it('ofrece Captura manual cuando ninguna Fuente tiene ese título, conservando lo escrito', function () {
+it('ofrece ManualEntry cuando ninguna Source tiene ese título, conservando lo escrito', function () {
     sourcesReturn(Candidates::none());
 
     lookUp('Un título que nadie tiene', 'Quien sea')
@@ -240,7 +240,7 @@ it('ofrece Captura manual cuando ninguna Fuente tiene ese título, conservando l
         ]));
 });
 
-it('la Fuente que no pudo contestar pide reintentar y no ofrece Captura manual', function () {
+it('la Source que no pudo contestar pide reintentar y no ofrece ManualEntry', function () {
     sourcesReturn(Candidates::unavailable('HTTP 429'));
 
     lookUp()
@@ -250,7 +250,7 @@ it('la Fuente que no pudo contestar pide reintentar y no ofrece Captura manual',
         ->assertDontSee('Capturar a mano');
 });
 
-it('deja la pantalla lista para el Libro siguiente', function () {
+it('deja la pantalla lista paral Book siguiente', function () {
     sourcesReturn(twoEditions());
 
     $screen = lookUp();
@@ -264,7 +264,7 @@ it('deja la pantalla lista para el Libro siguiente', function () {
         ->assertCount('candidates', 0);
 });
 
-it('no usa la palabra «búsqueda»: aquí se consulta la Fuente', function () {
+it('no usa la palabra «búsqueda»: aquí se consulta la Source', function () {
     sourcesReturn(twoEditions());
 
     $screen = lookUp();
