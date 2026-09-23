@@ -64,19 +64,21 @@ contra los catálogos reales, buscando «Pedro Páramo» de Rulfo:
 - **Google Books busca volúmenes, y cada volumen es una edición**, con sus
   `industryIdentifiers`, su editorial y su año en la misma respuesta.
 
-**Lo que no se pudo medir.** La comparación de arriba es medida **sólo del lado de Open
-Library**. La búsqueda de Google Books no se pudo ejecutar ese día: su cuota anónima
-estaba en cero —el mismo 429 de la decisión 16— y no había llave configurada. Lo que se
-afirma de Google Books se dedujo de la forma de su respuesta **por ISBN**, que es otra
-consulta, y por eso `tests/Fixtures/fuentes/google-books-busqueda.json` está escrita
-sobre esa forma: **nadie en este proyecto ha visto nunca una respuesta real de la
-búsqueda por título de Google Books**. Ver el README de esa carpeta.
+**Medido de los dos lados el 2026-09-23.** La primera versión de esta ampliación sólo
+había podido medir Open Library —la cuota anónima de Google Books estaba en cero—, y lo
+que afirmaba del otro lado era deducción. Con llave propia se ejecutó la búsqueda real
+(`intitle:"Pedro Paramo" inauthor:Rulfo`): **300 resultados, y cada volumen es una
+edición** con su ISBN, su editorial y su fecha. La conclusión se sostiene.
 
-Eso deja el orden elegido apoyado en evidencia despareja: sabemos que Open Library no
-sirve para elegir edición, no que Google Books sí. **El día que haya llave, hay que
-rehacer esa grabación contra la API y volver a mirar esta decisión** — si Google Books
-resultara igual de pobre, la conclusión no cambia (sigue siendo mejor que obras), pero el
-orden podría dar lo mismo.
+Lo que la medición agregó, y no se sabía: **el orden de los resultados es pobre y muchas
+ediciones vienen sin editorial.** De los cinco primeros, cuatro eran ediciones de
+impresión bajo demanda y tres no traían `publisher`. O sea que Google Books sí devuelve
+ediciones, pero no las devuelve ordenadas por relevancia editorial, y el dato con el que
+se distinguen —la editorial— falta seguido.
+
+Eso no cambia la cascada, cambia la pantalla: **el año y la Portada cargan con el peso de
+distinguir una edición de otra**, y conviene que la lista muestre más de cinco
+Candidatos. Queda anotado para el Alta por título.
 
 Por eso el Alta por título consulta **Google Books primero y Open Library de respaldo**,
 al revés que por ISBN. Open Library no se quita: una obra por renglón es poco, pero es

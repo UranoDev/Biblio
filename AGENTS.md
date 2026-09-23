@@ -10,6 +10,16 @@ Two conventions that are easy to miss: ordered subtasks need formal **`depends o
 
 Five canonical triage roles mapped to a dedicated `Triage` enum custom field on BIB; category (bug/enhancement) uses the native `Type` field. `State` stays reserved for engineering workflow. See `docs/agents/triage-labels.md`.
 
+### Idioma
+
+**El código va en inglés; lo que ve una persona va en español.** En inglés las clases,
+componentes, rutas, variables, funciones, tablas, columnas, enums, archivos y comentarios.
+En español todo lo que aparece en pantalla, los mensajes de commit, los issues y los ADR.
+
+Cada término de `CONTEXT.md` § Language fija las dos formas: cómo se llama en el código y
+cómo se dice en la interfaz. `Book` no se escribe nunca en pantalla, y «Libro» no se
+escribe nunca en el código.
+
 ### Stack
 
 Laravel 13 con Livewire 4 y Flux, Fortify para autenticación, Pest 5 para pruebas, y
@@ -19,11 +29,10 @@ el MySQL de Laragon.
 Para levantarlo: `php artisan serve --port=8022`, ya declarado en `.claude/launch.json`.
 Las pruebas corren con `php artisan test`; el formato, con `./vendor/bin/pint`.
 
-Las Categorías se generan con el SDK oficial `laravel/ai` (ver ADR-006); lo instala el
-primer grupo del backlog, junto con el `git init` y el repositorio en GitHub, que el
-despliegue necesita.
+Las Categories se generan con el SDK oficial `laravel/ai` (ver ADR-006); lo instala
+BIB-8. `GOOGLE_BOOKS_API_KEY` ya está en el `.env` local.
 
-La Vitrina —la cara pública— vive en `biblio.urano.dev`; el despliegue es Plesk sobre el
+El Showcase —la cara pública— vive en `biblio.urano.dev`; el despliegue es Plesk sobre el
 VPS, con clave de despliegue de sólo lectura, igual que `reviews`.
 
 El `.gitignore` del skeleton de Laravel ignora `/AGENTS.md`, `/CLAUDE.md` y `/.claude`.
@@ -40,4 +49,4 @@ antes de comitear. La regla es global (`~/.claude/CLAUDE.md`), no de este repo.
 ### Catálogo de skills
 
 `docs/agents/skills.md` lista las skills que aplican a este dominio con su gancho
-concreto: modelo de dominio, la pantalla de captura, y el sistema visual del Acervo.
+concreto: modelo de dominio, la pantalla de captura, y el sistema visual del Shelf.

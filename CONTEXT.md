@@ -6,252 +6,252 @@ caber en ella: se compra dos veces el mismo título, se presta y no se sabe a qu
 lo que se subrayó hace cinco años se queda en el libro cerrado.
 
 El registro tiene que costar poco, o no se hace. Por eso la entrada al sistema es el
-**Escaneo**: se pasa el código de barras por el Escáner, el ISBN trae la **Ficha** desde
-una **Fuente** pública —autores, editorial, año, **Portada**, **Descripción**— y lo
-único que queda por
+**Scan**: se pasa el código de barras por el Scanner, el ISBN trae el Record desde una
+Source pública —autores, editorial, año, Cover, Description— y lo único que queda por
 hacer a mano es lo que ninguna fuente sabe: si ya lo leí, cuándo, qué me dejó y qué
 frases quiero conservar.
 
-Eso último es el valor real. La Ficha la puede dar cualquier catálogo del mundo; los
-**Apuntes** y las **Citas** no existen en ninguna otra parte.
+Eso último es el valor real. El Record lo puede dar cualquier catálogo del mundo; las
+Notes y las Quotes no existen en ninguna otra parte.
 
-Una parte del acervo se enseña: la **Vitrina** es la cara pública, de sólo lectura, donde
-cualquiera puede ver qué libros hay, cuáles están leídos, qué Citas se guardaron y qué
-falta por comprar. Lo íntimo —los Apuntes, las fechas, a quién se prestó— no sale de ahí.
+Una parte del acervo se enseña: el **Showcase** es la cara pública, de sólo lectura,
+donde cualquiera puede ver qué libros hay, cuáles están leídos, qué Quotes se guardaron
+y qué falta por comprar. Lo íntimo —las Notes, las fechas, a quién se prestó— no sale de
+ahí.
+
+## El idioma
+
+**El código va en inglés; lo que ve una persona va en español.**
+
+En inglés: nombres de clases, componentes, rutas, variables, funciones, tablas, columnas,
+enums, archivos y **comentarios**.
+
+En español: absolutamente todo lo que aparece en pantalla —títulos, etiquetas, botones,
+mensajes de error, textos de ayuda—, los mensajes de commit, los issues de YouTrack, este
+glosario y los ADR.
+
+Por eso cada término de abajo fija **las dos cosas**: cómo se llama en el código y cómo se
+dice en la interfaz. No son sinónimos intercambiables — `Book` no se escribe nunca en
+pantalla, y «Libro» no se escribe nunca en el código.
 
 ## Las superficies
 
 Son cinco, y pesan muy distinto:
 
-- **La captura** — el Escaneo, de pie y frente a una pila de libros. Se usa en ráfagas de
-  veinte libros, no de uno; cada paso extra se paga veinte veces.
-- **El Alta por título** — para lo que no se puede escanear: los Libros Por comprar, que
-  no están en la mano, y los viejos, que no traen código de barras.
-- **El Acervo** — privado. Buscar y ver lo que tengo, con su estado de Lectura a la vista,
-  y la ficha de cada Libro con lo mío: Apuntes, Citas, Lectura, préstamo.
-- **La Vitrina** — pública. Los Libros y sus Citas, navegables por Categoría.
-- **La configuración** — dentro del back: qué Modelo se usa y qué proveedores tienen
-  llave. Se entra pocas veces, pero cada visita cambia lo que el sistema escribe.
+- **Scan** — la captura con el Scanner, de pie y frente a una pila de libros. Se usa en
+  ráfagas de veinte libros, no de uno; cada paso extra se paga veinte veces.
+- **TitleLookup** — para lo que no se puede escanear: los Books que están Wanted, que no
+  están en la mano, y los viejos, que no traen código de barras.
+- **Shelf** — privado. Buscar y ver lo que tengo, con su estado de Reading a la vista, y
+  la ficha de cada Book con lo mío: Note, Quotes, Reading, préstamo.
+- **Showcase** — público. Los Books y sus Quotes, navegables por Category.
+- **Settings** — dentro del back: qué AiModel se usa y qué Providers tienen llave.
 
 ## Language
 
-### El Libro y su Ficha
+### El Book y su Record
 
-**Libro**:
+**Book** · en la interfaz: «Libro»:
 Una edición concreta, identificada por su ISBN; es la unidad que registro, que tengo o
 que quiero tener.
-_Avoid_: obra, título, ejemplar, volumen, item
+_Avoid_: Edition, Item, Volume, Title; obra, ejemplar, volumen
 
-**ISBN**:
+**Isbn** · en la interfaz: «ISBN»:
 El identificador impreso en el código de barras. Identifica la **edición**, no la obra:
-dos ediciones del mismo título son dos ISBN y, por lo tanto, dos Libros. Es único en el
-acervo: un mismo ISBN no se registra dos veces.
-_Avoid_: código, código de barras (eso es el dibujo, no el número), SKU, clave
+dos ediciones del mismo título son dos ISBN y, por lo tanto, dos Books. Es único en el
+sistema: un mismo ISBN no se registra dos veces.
+_Avoid_: Code, Barcode (eso es el dibujo, no el número), Sku; clave
 
-**Ficha**:
-Los datos bibliográficos que llegan de una Fuente a partir del ISBN — autores,
-editorial, año, edición, Portada y, cuando la hay, Descripción. La Ficha no la escribo yo.
-_Avoid_: metadatos, datos, información, detalles
+**Record** · en la interfaz: «ficha»:
+Los datos bibliográficos que llegan de una Source a partir del ISBN — autores, editorial,
+año, edición, Cover y, cuando la hay, Description. El Record no lo escribo yo.
+_Avoid_: Metadata, Data, Info; metadatos, información
 
-**Fuente**:
-El catálogo público al que se le consulta un ISBN o un título para armar la Ficha.
-_Avoid_: API, proveedor, servicio, catálogo
+**Source** · en la interfaz: «fuente»:
+El catálogo público al que se le consulta un ISBN o un título para armar el Record.
+_Avoid_: Api, Provider (Provider es el proveedor de IA), Catalog; servicio
 
-**Portada**:
-La imagen de la cubierta de esa edición. Se descarga de la Fuente al registrar el Libro
-y se guarda; también puede subirse a mano.
-_Avoid_: imagen, carátula, cover, tapa
+**Cover** · en la interfaz: «portada»:
+La imagen de la cubierta de esa edición. Se descarga de la Source al registrar el Book y
+se guarda; también puede subirse a mano.
+_Avoid_: Image, Thumbnail (la miniatura es una variante del Cover, no otra cosa);
+carátula, tapa
 
-**Descripción**:
-El texto que cuenta de qué va el Libro, como el de la contraportada. Puede venir de la
-Fuente, haberla escrito la IA o haberla escrito yo, y **siempre se guarda de cuál de las
-tres viene**.
-_Avoid_: sinopsis, resumen (el resumen de lo que a mí me dejó es el Apunte), reseña,
-contraportada
+**Description** · en la interfaz: «descripción»:
+El texto que cuenta de qué va el Book, como el de la contraportada. Puede venir de la
+Source, haberla escrito la IA o haberla escrito yo, y **siempre se guarda de cuál de las
+tres viene** (ver Origin).
+_Avoid_: Summary, Synopsis, Blurb; sinopsis, resumen (el resumen de lo que a mí me dejó
+es la Note), contraportada
 
-**Autor**:
-Persona acreditada en la Ficha. Un Libro puede tener varios, y el orden en que vienen
-es parte del dato.
-_Avoid_: escritor, creador
+**Origin** · en la interfaz: no se nombra, se muestra:
+De dónde salió una Description: `source`, `ai` u `owner`. Es lo que permite que regenerar
+nunca pise lo que escribí yo ni lo que dijo el editor.
+_Avoid_: Provenance, Kind; procedencia como nombre de columna
 
-### Cómo entra un Libro
+**Author** · en la interfaz: «autor»:
+Persona acreditada en el Record. Un Book puede tener varios, y el orden en que vienen es
+parte del dato.
+_Avoid_: Writer, Creator
 
-**Escáner**:
+### Cómo entra un Book
+
+**Scanner** · en la interfaz: «escáner»:
 El lector óptico con el que capturo el ISBN. Se comporta como un teclado: escribe el
 número en el campo enfocado y manda Enter.
-_Avoid_: lector (en este proyecto quien lee es una persona), pistola, scanner
+_Avoid_: Reader (quien lee es una persona), Gun, Device; lector, pistola
 
-**Escaneo**:
-El acto de pasar el código de barras por el Escáner para obtener el ISBN. **Nunca se le
-dice «lectura»**: Lectura es haber leído el Libro.
-_Avoid_: lectura del código, lectura del ISBN, captura, scan
+**Scan** · en la interfaz: «escaneo»:
+El acto de pasar el código de barras por el Scanner para obtener el ISBN. **Nunca se le
+dice «lectura»**: Reading es haber leído el Book.
+_Avoid_: Read, Capture; lectura del código, captura
 
-**Alta por título**:
-Dar de alta un Libro escribiendo su título —y opcionalmente su autor—, consultando la
-Fuente y eligiendo entre los Candidatos que devuelve. Es la vía para los Libros Por
-comprar y para los que no traen código de barras.
-_Avoid_: búsqueda (eso es dentro de mi Acervo), buscador, autocompletar
+**TitleLookup** · en la interfaz: «alta por título»:
+Dar de alta un Book escribiendo su título —y opcionalmente su autor—, consultando la
+Source y eligiendo entre los Candidates que devuelve. Es la vía para los Books que están
+Wanted y para los que no traen código de barras.
+_Avoid_: Search (eso es dentro de lo mío), TitleSearch, Autocomplete; búsqueda
 
-**Candidato**:
-Cada edición que la Fuente devuelve en un Alta por título. Se muestra con Portada,
-autores, editorial y año, porque sin eso no hay forma de distinguir una edición de otra.
-_Avoid_: resultado, sugerencia, opción, match
+**Candidate** · en la interfaz: «edición»:
+Cada edición que la Source devuelve en un TitleLookup. Se muestra con Cover, autores,
+editorial y año, porque sin eso no hay forma de distinguir una edición de otra.
+_Avoid_: Result, Suggestion, Match; resultado, sugerencia
 
-**Captura manual**:
-Registrar un Libro escribiendo sus datos a mano, porque ninguna Fuente lo conoce. Es la
+**ManualEntry** · en la interfaz: «captura manual»:
+Registrar un Book escribiendo sus datos a mano, porque ninguna Source lo conoce. Es la
 salida de emergencia de las otras dos vías.
-_Avoid_: alta manual, registro manual, a mano
+_Avoid_: ManualCapture, Custom; alta manual
 
 ### Lo mío
 
-**Lectura**:
-El registro de que ya leí el Libro. Puede llevar Fecha de lectura o no llevarla: un
-Libro leído hace años, sin saber cuándo, sigue estando leído. Un Libro **sin** Lectura y
-uno **con** Lectura sin fecha son dos cosas distintas, y el sistema las distingue.
-_Avoid_: leído (como adjetivo suelto, se confunde con la marca), review
+**Reading** · en la interfaz: «lectura»:
+El registro de que ya leí el Book. Puede llevar fecha o no llevarla: un Book leído hace
+años, sin saber cuándo, sigue estando leído. Un Book **sin** Reading y uno **con** Reading
+sin fecha son dos cosas distintas, y el sistema las distingue — por eso hay un
+ReadingStatus con tres valores, no una casilla.
+_Avoid_: Read como sustantivo, Finished; leído (como adjetivo suelto)
 
-**Fecha de lectura**:
-Cuándo terminé de leerlo. Opcional, y su ausencia no significa que no lo haya leído.
-No sale en la Vitrina.
-_Avoid_: fecha de término, fecha de fin
+**Note** · en la interfaz: «apunte»:
+Lo que yo escribo sobre el Book: el comentario o el resumen de lo más relevante de la
+Reading. Son mis palabras, hay una sola por Book, y no sale en el Showcase.
+_Avoid_: Review (no es pública ni califica), Comment, Annotation; reseña, comentario
 
-**Apunte**:
-Lo que yo escribo sobre el Libro: el comentario o el resumen de lo más relevante de la
-Lectura. Son mis palabras, hay uno solo por Libro, y no sale en la Vitrina.
-_Avoid_: reseña (no es pública ni califica), nota, comentario, review
+**Quote** · en la interfaz: «cita»:
+Un fragmento textual del Book que quiero conservar, con su página si la anoté. Son las
+palabras del Book, no mías. Un Book puede no tener ninguna o tener muchas.
+_Avoid_: Excerpt, Passage, Highlight; frase, subrayado, extracto
 
-**Cita**:
-Un fragmento textual del Libro que quiero conservar, con su página si la anoté. Son las
-palabras del Libro, no mías. Un Libro puede no tener ninguna o tener muchas.
-_Avoid_: quote, frase, subrayado, extracto, fragmento
+**LentTo** · en la interfaz: «prestado a»:
+A quién salió el Book, en texto libre, con la fecha en que salió. No hay entidad de
+personas ni historial: cuando vuelve, se borra. No sale en el Showcase.
+_Avoid_: Loan, Borrower, Lending (suenan a entidad con estados); préstamo como entidad
 
-**Prestado a**:
-A quién salió el Libro, en texto libre, con la fecha en que salió. No hay entidad de
-personas ni historial: cuando vuelve, se borra. No sale en la Vitrina.
-_Avoid_: préstamo (suena a entidad con estados), deudor, persona
+### El Shelf y el Showcase
 
-### El Acervo y la Vitrina
+**Shelf** · en la interfaz: «acervo»:
+Los Books que ya tengo, y la pantalla privada donde los veo.
+_Avoid_: Collection, Inventory, Library (así se llama todo el sistema); colección
 
-**Acervo**:
-Los Libros que ya tengo.
-_Avoid_: colección, inventario, estante, biblioteca (así se llama todo el sistema)
+**Status** · en la interfaz: «situación»:
+Si un Book está `owned` o `wanted`. Es lo mismo que registrar en los dos casos: un Book
+que compro no se vuelve a capturar, nada más cambia de Status.
+_Avoid_: State (State es el campo del tracker), Situation, Stage
 
-**Por comprar**:
-El Libro que registré porque lo quiero y que todavía no tengo.
-_Avoid_: wishlist, deseados, pendiente (**pendiente** es ambiguo: puede ser no comprado
-o no leído, y nunca queda claro cuál)
+**Wanted** · en la interfaz: «por comprar»:
+El Book que registré porque lo quiero y que todavía no tengo.
+_Avoid_: Wishlist, Desired, Pending (**pendiente** es ambiguo: puede ser no comprado o no
+leído, y nunca queda claro cuál)
 
-**Situación**:
-Si un Libro está en el Acervo o Por comprar. Es lo mismo que registrar en los dos casos:
-un Libro que compro no se vuelve a capturar, nada más cambia de Situación.
-_Avoid_: estado (State es campo del tracker), lista, etapa
+**Showcase** · en la interfaz: «vitrina»:
+La cara pública del sistema, de sólo lectura y sin sesión. Muestra los Books con su
+Record, su Cover, su Description, su marca de Reading, sus Quotes y sus Categories, más
+lo que está Wanted.
+_Avoid_: Profile, PublicSite, Catalog, Landing; perfil, catálogo
 
-**Vitrina**:
-La cara pública del sistema, de sólo lectura y sin sesión. Muestra los Libros con su
-Ficha, su Portada, su marca de Lectura, sus Citas y sus Categorías, más lo que está Por
-comprar.
-_Avoid_: perfil, sitio público, catálogo, landing
+**Hidden** · en la interfaz: «oculto»:
+El Book que no aparece en el Showcase. Sus Quotes tampoco: heredan del Book. Es la
+excepción — un Book nace visible.
+_Avoid_: Private, Archived, Draft, Unpublished; privado, archivado
 
-**Oculto**:
-El Libro que no aparece en la Vitrina. Sus Citas tampoco: heredan del Libro. Es la
-excepción — un Libro nace visible.
-_Avoid_: privado, archivado, borrador, despublicado
+**Search** · en la interfaz: «búsqueda»:
+Buscar dentro de lo mío: un Book del Shelf por título o autor, o una Quote por sus
+palabras. **Nunca** se usa para consultar la Source — eso es el TitleLookup.
+_Avoid_: Filter, Query, Lookup (Lookup es contra la Source); filtro
 
-**Búsqueda**:
-Buscar dentro de lo mío: un Libro del Acervo por título o autor, o una Cita por sus
-palabras. **Nunca** se usa para consultar la Fuente — eso es el Alta por título.
-_Avoid_: filtro, buscador, consulta
+### Las Categories y el AiModel
 
-### Las Categorías y el Modelo
+**Category** · en la interfaz: «categoría»:
+El tema al que pertenece un Book. Las propone una IA a partir del Record y yo las corrijo;
+un Book puede tener varias, y en el Showcase son el modo de navegar.
+_Avoid_: Genre, Tag, Label, Topic; género, etiqueta
 
-**Categoría**:
-El tema al que pertenece un Libro. Las propone una IA a partir de la Ficha y yo las
-corrijo; un Libro puede tener varias, y en la Vitrina son el modo de navegar.
-_Avoid_: género, etiqueta, tag, tema, clasificación
+**AiModel** · en la interfaz: «modelo»:
+Qué inteligencia artificial escribe las Categories y las Descriptions. Se elige en una
+pantalla del back y queda guardado con cada Book que generó, para saber qué falta
+regenerar cuando se cambia. **Se llama `AiModel` y no `Model`**, porque en Laravel un
+Model es otra cosa y confundirlos no tiene arreglo después.
+_Avoid_: Model a secas, Engine, Llm; IA (es la categoría general, no cuál)
 
-**Modelo**:
-Qué inteligencia artificial escribe las Categorías y las Descripciones. Se elige en una
-pantalla del back y queda guardado con cada Libro que generó, para saber qué falta
-regenerar cuando se cambia.
-_Avoid_: IA (es la categoría general, no cuál), proveedor (el proveedor es la empresa; el
-Modelo es el que responde), motor
+**Provider** · en la interfaz: «proveedor»:
+La empresa o el servidor detrás del AiModel — Gemini, DeepSeek, Ollama. Su llave de API
+vive en el entorno, nunca en la base.
+_Avoid_: Vendor, Service; Source (Source es el catálogo de libros)
 
 ## Decisiones tomadas
 
 Las siete primeras tienen ADR en `docs/adr/`, porque son las costosas de revertir.
 
-1. **El Escáner es un lector USB que se comporta como teclado** — ADR-001. La pantalla de
+1. **El Scanner es un lector USB que se comporta como teclado** — ADR-001. La pantalla de
    captura es un campo de ISBN siempre enfocado que acepta una línea terminada en Enter.
-   El foco es requisito funcional: si se pierde, el Escáner teclea al vacío.
-2. **La Ficha se arma con Open Library primero y Google Books de respaldo** — ADR-002. Si
-   ninguna Fuente conoce el ISBN, se ofrece Captura manual en vez de fallar.
-3. **La Vitrina es pública, de sólo lectura y sin indexar** — ADR-003. Qué sale y qué no
-   es una regla global por tipo de dato, más el interruptor Oculto por Libro.
-4. **La Portada se guarda; el disco es configurable** — ADR-004. Local hoy, S3 el día que
-   se prenda, sin tocar el código.
-5. **Un ISBN es único en el acervo y no se modelan ejemplares** — ADR-005. Nada de lo que
-   se guarda es del ejemplar: Citas, Apuntes y Lectura son de la edición.
-6. **Las Categorías las propone una IA, con el Modelo elegido en pantalla** — ADR-006. Se
-   piden en cola, nunca durante la captura; el Modelo se guarda en la base y **las llaves
-   de API siguen en el entorno**; se puede regenerar por Libro o en masa, y queda
-   registrado con qué Modelo se generó cada uno.
-7. **La Descripción lleva su procedencia, y la escrita por IA se marca** — ADR-007. Se le
-   pide a la IA sólo si ninguna Fuente la trajo; editarla a mano la vuelve mía, y a partir
-   de ahí ninguna regeneración la toca.
-8. **El Libro es la edición, no la obra.** Es lo que el ISBN identifica y lo que la
-   Portada retrata. No hay concepto de obra: el original y su traducción son dos Libros
-   sin relación entre sí.
-9. **La Lectura distingue tres estados, no dos:** no leído, leído sin fecha, y leído con
-   fecha. Cualquier interfaz que sólo ofrezca una casilla de «leído» pierde el de en
-   medio.
-10. **Acervo y Por comprar son la misma entidad con distinta Situación**, no dos listas
-    separadas. Al escanear un Libro que estaba Por comprar, pasa al Acervo solo, con
-    deshacer.
-11. **Las Citas son del Libro; los Apuntes son míos.** No se mezclan en la misma
-    superficie ni en la misma tabla, porque no se buscan igual: una Cita se busca por sus
-    palabras, un Apunte por el Libro al que pertenece.
-12. **Un Apunte por Libro**, libre y editable en su lugar. Se eligió sobre varios apuntes
-    fechados porque partir uno en varios después es trivial, y colapsar varios en uno
-    pierde información.
-13. **El préstamo es un campo, no una entidad**: «prestado a» en texto libre y la fecha de
-    salida. Sin tabla de personas, sin estados, sin recordatorios.
-14. **Una sola pantalla de Alta por título** sirve para los Libros Por comprar y para los
-    que no traen código de barras. Es el mismo flujo —escribir el título, ver Candidatos,
-    elegir edición, guardar— y lo único que cambia es la Situación con la que nace el
-    Libro.
+   El foco es requisito funcional: si se pierde, el Scanner teclea al vacío.
+2. **El Record se arma con Open Library primero y Google Books de respaldo** — ADR-002. Si
+   ninguna Source conoce el ISBN, se ofrece ManualEntry en vez de fallar.
+3. **El Showcase es público, de sólo lectura y sin indexar** — ADR-003. Qué sale y qué no
+   es una regla global por tipo de dato, más el interruptor Hidden por Book.
+4. **El Cover se guarda; el disco es configurable** — ADR-004. Local hoy, S3 el día que se
+   prenda, sin tocar el código.
+5. **Un ISBN es único y no se modelan ejemplares** — ADR-005. Nada de lo que se guarda es
+   del ejemplar: Quotes, Note y Reading son de la edición.
+6. **Las Categories las propone una IA, con el AiModel elegido en pantalla** — ADR-006. Se
+   piden en cola, nunca durante la captura; el AiModel vive en la base y las llaves de API
+   en el entorno; se puede regenerar por Book o en masa.
+7. **La Description lleva su Origin, y la escrita por IA se marca** — ADR-007. Se le pide a
+   la IA sólo si ninguna Source la trajo; editarla la vuelve `owner`, y desde entonces
+   ninguna regeneración la toca.
+8. **El Book es la edición, no la obra.** No hay concepto de Work: el original y su
+   traducción son dos Books sin relación entre sí.
+9. **El Reading distingue tres estados, no dos:** sin leer, leído sin fecha, y leído con
+   fecha. Cualquier interfaz que sólo ofrezca una casilla de «leído» pierde el de en medio.
+10. **Shelf y Wanted son la misma entidad con distinto Status**, no dos listas separadas.
+    Al escanear un Book que estaba Wanted, pasa a `owned` solo, con deshacer.
+11. **Las Quotes son del Book; las Notes son mías.** No se mezclan en la misma superficie
+    ni en la misma tabla, porque no se buscan igual.
+12. **Una Note por Book**, libre y editable en su lugar. Partir una en varias después es
+    trivial; colapsar varias en una pierde información.
+13. **El préstamo es un campo, no una entidad**: `lent_to` en texto libre y `lent_on`. Sin
+    tabla de personas, sin estados, sin recordatorios.
+14. **Una sola pantalla de TitleLookup** sirve para los Books que están Wanted y para los
+    que no traen código de barras. Lo único que cambia es el Status con el que nace.
 15. **Los doscientos libros del acervo entran escaneando, sin importador.** Un importador
-    corre una sola vez en la vida del sistema y compite por tiempo con lo que se usa
-    siempre.
-
-**Qué Modelo se usa dejó de ser una decisión de arquitectura.** Se elige en una pantalla,
-se cambia cuando convenga y se regenera lo que haga falta; lo único que sigue viviendo en
-el entorno son las llaves de API, y ahí se quedan: no se guardan en la base ni se capturan
-en un formulario.
-
-16. **Google Books se consulta con llave propia**, leída del entorno. Comprobado el
-    2026-09-23: sin llave, las peticiones comparten una cuota global que se agota y
-    devuelve HTTP 429. Eso no puede tratarse como «no lo conoce» — mandaría a Captura
-    manual un libro que la Fuente sí tenía.
-17. **No hay límite de Citas públicas por Libro.** Un Libro puede tener ninguna o muchas,
-    y todas se muestran en la Vitrina. Se consideró limitarlas —muchas citas del mismo
-    libro dejan de ser una cita y se acercan a una reproducción— y se decidió que no:
-    cuando algún Libro acumule tantas que incomode, se revisa entonces y no antes.
-
-18. **El Alta por título consulta las Fuentes al revés que el Escaneo.** Google Books
-    primero y Open Library de respaldo. Comprobado el 2026-09-23: la búsqueda de Open
-    Library devuelve **obras** y de cada una entrega una sola edición elegida por ella,
-    mientras que cada volumen de Google Books ya es una edición con su editorial, su año
-    y su ISBN. Un Candidato es una edición, así que una obra por renglón no sirve para
-    elegir. **Medido sólo del lado de Open Library**: la búsqueda de Google Books no se
-    pudo ejecutar ese día por cuota agotada, y lo que se afirma de ella se dedujo de su
-    respuesta por ISBN. Ver la ampliación del ADR-002.
+    corre una sola vez en la vida del sistema y compite con lo que se usa siempre.
+16. **Google Books se consulta con llave propia**, leída del entorno. Sin llave, la cuota
+    es compartida y devuelve 429 — que no puede tratarse como «no lo conoce».
+17. **No hay límite de Quotes públicas por Book.** Un Book puede tener ninguna o muchas, y
+    todas se muestran en el Showcase.
+18. **El TitleLookup consulta las Sources al revés que el Scan.** Google Books primero,
+    Open Library de respaldo, porque la búsqueda de Open Library devuelve obras y de cada
+    una entrega una sola edición elegida por ella. Medido de los dos lados el 2026-09-23;
+    ver la ampliación del ADR-002.
+19. **El código va en inglés y la interfaz en español**, con cada término fijando las dos
+    formas (ver § El idioma). El sistema se renombró completo al tomar esta decisión,
+    antes de tener datos: dos idiomas conviviendo era peor que cualquiera de los dos.
+20. **Las pruebas no usan respuestas inventadas.** Lo que se guarda en `tests/Fixtures` es
+    una grabación real del catálogo, sin recortar, y hay pruebas de contrato aparte que
+    verifican que la Source sigue respondiendo como el día que se grabó.
 
 ## Lo que sigue abierto
 
-**Nada por ahora.** Las decisiones que estaban aquí —qué Escáner, cuál Fuente, si la
-Portada se guarda, uno o varios Apuntes, si hace falta el concepto de obra, préstamos,
-qué proveedor de IA, la llave de Google Books y el límite de Citas— quedaron todas
-cerradas y viven arriba, en § Decisiones tomadas, o en su ADR.
+**Nada por ahora.**
 
 Cuando aparezca una decisión que no se pueda tomar sobre la marcha, va aquí, y la tarea
 que dependa de ella se marca `ready-for-human` con la explicación en el comentario.
