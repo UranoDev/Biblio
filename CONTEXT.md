@@ -207,6 +207,67 @@ La empresa o el servidor detrás del AiModel — Gemini, DeepSeek, Ollama. Su ll
 vive en el entorno, nunca en la base.
 _Avoid_: Vendor, Service; Source (Source es el catálogo de libros)
 
+## Dirección visual
+
+**Marginalia.** Un libro leído deja marcas en los márgenes, y el sistema se trata como
+ese cuaderno: papel, letra de máquina para lo que se cita, mucho silencio alrededor, y la
+portada asomándose apenas —recortada por el borde e inclinada unos grados, como un lomo
+que sobresale del librero.
+
+La regla que manda sobre todas: **las portadas son el color.** Doscientos libros traen su
+propio caos cromático y no se controla, así que el sistema es un escenario neutro. Por eso
+no hay color de acento en la interfaz: el acento son los libros.
+
+### El papel
+
+El fondo es papel, no blanco: una textura tenue multiplicada sobre `#FAF6EE`. Blanco puro
+ensucia los blancos de las portadas y deslumbra; el papel las hace ver intencionales.
+
+Ningún neutro es puro y todos van corridos al cálido. Un gris neutro sobre papel cálido se
+ve sucio, no sobrio — es el error clásico al agregarle textura a una paleta que no la
+esperaba.
+
+| Token | Valor | Para qué |
+| --- | --- | --- |
+| Papel | `#FAF6EE` + textura multiplicada | el fondo de todo |
+| Tinta | `#1A1A18` | texto principal; nunca negro puro |
+| Tinta tenue | `#6B6459` | secundarios, 4.6:1 sobre el papel |
+| Regla | `#D4CEC0` | la línea vertical de la Quote |
+| División | `#E2DDD1` | separadores entre bloques |
+| Filo de Cover | `rgba(26,26,24,0.22)` | ver abajo |
+| Enlace | `#8A5A2B` | lo único que se colorea |
+
+### Las tipografías
+
+**IBM Plex Mono** para las Quotes y para cualquier dato que se lea como dato —un ISBN, un
+año—. **Instrument Sans** para todo lo demás: títulos, etiquetas, interfaz. Instrument Sans
+ya está en el proyecto, servida por Bunny desde `vite.config.js`; la monoespaciada se
+agrega por la misma vía.
+
+La jerarquía no es de tamaño sino de peso: **la Quote pesa más que todo lo demás junto.**
+El título del Book y los Authors son pie de foto, no encabezado. Si el título compite con
+la cita, se perdió el efecto.
+
+| Rol | Tipografía | Tamaño y forma |
+| --- | --- | --- |
+| Quote | Plex Mono 400 | 19 px / 1.78, con regla vertical a la izquierda |
+| Título de Book | Instrument Sans 700 | 17 px, tracking `-0.01em` |
+| Authors | Instrument Sans 400 | 11 px, mayúsculas, tracking `0.2em` |
+| Encabezado de sección | Instrument Sans 400 | 10 px, mayúsculas, tracking `0.34em` |
+
+### El Cover
+
+Se muestra **recortado por el borde e inclinado** unos pocos grados, con sombra suave. Lo
+que se ve es un fragmento grande, nunca la portada completa encogida: ésa es la diferencia
+entre verse editorial y verse como ficha de catálogo.
+
+**Todo Cover lleva un filo de un píxel.** No es adorno: las portadas claras —y son
+comunes— se disuelven en el papel sin él. Comprobado con portadas reales.
+
+Y como el Cover siempre existe (ADR-008), la retícula nunca tiene huecos: lo que antes
+era un espacio punteado ahora es una pieza tipográfica generada, con el color derivado del
+ISBN y sacado de esta misma paleta.
+
 ## Decisiones tomadas
 
 Las ocho primeras tienen ADR en `docs/adr/`, porque son las costosas de revertir.
@@ -259,13 +320,21 @@ Las ocho primeras tienen ADR en `docs/adr/`, porque son las costosas de revertir
 20. **El código va en inglés y la interfaz en español**, con cada término fijando las dos
     formas (ver § El idioma). El sistema se renombró completo al tomar esta decisión,
     antes de tener datos: dos idiomas conviviendo era peor que cualquiera de los dos.
-21. **Las pruebas no usan respuestas inventadas.** Lo que se guarda en `tests/Fixtures` es
+21. **La dirección visual es Marginalia** (ver § Dirección visual): papel en vez de
+    blanco, Plex Mono para las Quotes, Instrument Sans para el resto, Cover recortado e
+    inclinado con su filo, y **sin color de acento en la interfaz** — el acento son las
+    portadas.
+22. **Las pruebas no usan respuestas inventadas.** Lo que se guarda en `tests/Fixtures` es
     una grabación real del catálogo, sin recortar, y hay pruebas de contrato aparte que
     verifican que la Source sigue respondiendo como el día que se grabó.
 
 ## Lo que sigue abierto
 
-**Nada por ahora.**
+1. **Cómo se ve el Reading en la dirección visual.** Marginalia no lo resuelve: quedó
+   escrito como texto en las muestras, no como diseño. Son tres estados —sin leer, leído
+   sin fecha, leído con fecha— y hay que distinguirlos de un vistazo en una retícula de
+   doscientas portadas, sin color de acento y sin una palomita, que es el recurso que este
+   sistema no quiere. La otra dirección lo resolvía con un sello; aquí falta decidirlo.
 
 Cuando aparezca una decisión que no se pueda tomar sobre la marcha, va aquí, y la tarea
 que dependa de ella se marca `ready-for-human` con la explicación en el comentario.
