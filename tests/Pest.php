@@ -1,5 +1,11 @@
 <?php
 
+use App\Dominio\Isbn;
+use App\Enums;
+use App\Fuentes\Ficha;
+use App\Fuentes\Fuente;
+use App\Fuentes\ResolvedorDeFuentes;
+use App\Fuentes\Respuesta;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Http;
 use Tests\TestCase;
@@ -95,4 +101,75 @@ function imagenDePrueba(int $ancho = 400, int $alto = 600, string $formato = 'jp
     imagedestroy($lienzo);
 
     return $binario;
+}
+
+/**
+ * Lo que contestan las Fuentes durante la prueba. Reemplaza el resolvedor del
+ * contenedor, de modo que nada sale a internet y la pantalla recibe el
+ * desenlace que la prueba quiera.
+ *
+ * @param  Respuesta|(callable(Isbn): Respuesta)  $respuesta
+ */
+function lasFuentesContestan(Respuesta|callable $respuesta): void
+{
+    $fuente = new class($respuesta) implements Fuente
+    {
+        /** @param  Respuesta|(callable(Isbn): Respuesta)  $respuesta */
+        public function __construct(private readonly mixed $respuesta) {}
+
+        public function identificador(): Enums\Fuente
+        {
+            return Enums\Fuente::OpenLibrary;
+        }
+
+        public function porIsbn(Isbn $isbn): Respuesta
+        {
+            return $this->respuesta instanceof Respuesta
+                ? $this->respuesta
+                : ($this->respuesta)($isbn);
+        }
+    };
+
+    app()->instance(ResolvedorDeFuentes::class, new ResolvedorDeFuentes([$fuente]));
+}
+
+/**
+ * Una Ficha armada a mano, con la forma que tendría la de cualquier Fuente.
+ *
+ * @param  list<string>  $autores
+ */
+function fichaDe(
+    string $isbn,
+    string $titulo = 'Pedro Páramo',
+    array $autores = ['Juan Rulfo'],
+    ?string $portadaUrl = null,
+    ?string $descripcion = null,
+): Ficha {
+    return new Ficha(
+        isbn: Isbn::desde($isbn),
+        titulo: $titulo,
+        autores: $autores,
+        editorial: 'Editorial RM',
+        anio: 2005,
+        edicion: null,
+        portadaUrl: $portadaUrl,
+        descripcion: $descripcion,
+        fuente: Enums\Fuente::OpenLibrary,
+    );
+}
+
+/**
+ * Un ISBN-13 con su dígito de control correcto, para las ráfagas de prueba:
+ * el Escaneo rechaza los números que no cuadran, así que no sirve cualquiera.
+ */
+function isbnDePrueba(int $numero): string
+{
+    $doce = '978'.str_pad((string) $numero, 9, '0', STR_PAD_LEFT);
+    $suma = 0;
+
+    foreach (str_split($doce) as $posicion => $digito) {
+        $suma += (int) $digito * ($posicion % 2 === 0 ? 1 : 3);
+    }
+
+    return $doce.((10 - $suma % 10) % 10);
 }

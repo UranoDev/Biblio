@@ -108,6 +108,21 @@ class Libro extends Model
     }
 
     /**
+     * El Libro que estaba Por comprar ya es mío. Es un cambio de Situación, no
+     * un registro nuevo: Acervo y Por comprar son la misma entidad (ADR-005).
+     */
+    public function pasaAlAcervo(): void
+    {
+        $this->forceFill(['situacion' => Situacion::Acervo])->save();
+    }
+
+    /** Deshace el paso anterior: el Libro vuelve a estar Por comprar. */
+    public function regresaAPorComprar(): void
+    {
+        $this->forceFill(['situacion' => Situacion::PorComprar])->save();
+    }
+
+    /**
      * La Portada se guarda en el disco configurado, no se enlaza a la Fuente
      * (ADR-004). Un Libro sin Portada es un estado normal: la descarga pudo
      * fallar, o nunca hubo imagen que bajar.
