@@ -16,11 +16,11 @@
                         {{ __('Dashboard') }}
                     </flux:sidebar.item>
 
-                    <flux:sidebar.item icon="plus" :href="route('captura')" :current="request()->routeIs('captura')" wire:navigate>
-                        Captura
+                    <flux:sidebar.item icon="plus" :href="route('scan')" :current="request()->routeIs('scan')" wire:navigate>
+                        Escaneo
                     </flux:sidebar.item>
 
-                    <flux:sidebar.item icon="book-open-text" :href="route('alta-por-titulo')" :current="request()->routeIs('alta-por-titulo')" wire:navigate>
+                    <flux:sidebar.item icon="book-open-text" :href="route('title-lookup')" :current="request()->routeIs('title-lookup')" wire:navigate>
                         Alta por título
                     </flux:sidebar.item>
                 </flux:sidebar.group>

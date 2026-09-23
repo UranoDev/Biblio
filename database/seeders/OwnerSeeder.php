@@ -12,7 +12,7 @@ class OwnerSeeder extends Seeder
     use WithoutModelEvents;
 
     /**
-     * Crear al único usuario del sistema, con los datos del entorno.
+     * Create the only user of the system, with the data from the environment.
      */
     public function run(): void
     {
@@ -32,11 +32,11 @@ class OwnerSeeder extends Seeder
         $owner->password = $password;
         $owner->save();
 
-        // El dashboard exige `verified` y el unico canal de correo en este
-        // proyecto es el log, asi que el dueno nace verificado. Se usa la API
-        // del modelo en vez de asignar `now()` a la propiedad: la app corre con
-        // CarbonImmutable (AppServiceProvider) y el tipo declarado de
-        // email_verified_at es el Carbon mutable.
+        // The dashboard requires `verified` and the only mail channel in this
+        // project is the log, so the owner is born verified. The model API is
+        // used instead of assigning `now()` to the property: the app runs with
+        // CarbonImmutable (AppServiceProvider) and the declared type of
+        // email_verified_at is the mutable Carbon.
         if (! $owner->hasVerifiedEmail()) {
             $owner->markEmailAsVerified();
         }

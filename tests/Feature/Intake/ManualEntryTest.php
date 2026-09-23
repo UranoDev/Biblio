@@ -1,0 +1,283 @@
+<?php
+
+use App\Enums\Source;
+use App\Enums\Status;
+use App\Models\Book;
+use App\Models\User;
+use Illuminate\Http\UploadedFile;
+use Illuminate\Support\Facades\Queue;
+use Illuminate\Support\Facades\Storage;
+use Livewire\Features\SupportTesting\Testable;
+use Livewire\Livewire;
+
+beforeEach(function () {
+    Queue::fake();
+
+    $this->actingAs(User::factory()->create());
+});
+
+/** The screen as it arrives from the Scan or from the TitleLookup. */
+function manualEntry(array $from = []): Testable
+{
+    return Livewire::withQueryParams($from)->test('pages::manual-entry');
+}
+
+it('pide sesión', function () {
+    auth()->logout();
+
+    $this->get(route('manual-entry'))->assertRedirect(route('login'));
+});
+
+it('llega desde el Escaneo con el ISBN ya puesto', function () {
+    $this->get(route('manual-entry', ['isbn' => '9788437604176']))
+        ->assertOk()
+        ->assertSee('9788437604176');
+
+    manualEntry(['isbn' => '9788437604176'])
+        ->assertSet('isbn', '9788437604176')
+        ->assertSet('title', '');
+});
+
+it('llega desde el Alta por título con el título ya puesto', function () {
+    $this->get(route('manual-entry', ['title' => 'El llano en llamas']))
+        ->assertOk()
+        ->assertSee('El llano en llamas');
+
+    manualEntry(['title' => 'El llano en llamas'])
+        ->assertSet('title', 'El llano en llamas')
+        ->assertSet('isbn', '');
+});
+
+it('llega desde el Alta por título con el Autor ya puesto', function () {
+    manualEntry(['title' => 'El llano en llamas', 'author' => 'Juan Rulfo'])
+        ->assertSet('title', 'El llano en llamas')
+        ->assertSet('authors', ['Juan Rulfo']);
+});
+
+it('registra un Libro con sólo el título', function () {
+    manualEntry()
+        ->set('title', 'Cartucho')
+        ->call('register')
+        ->assertHasNoErrors();
+
+    $book = Book::sole();
+
+    expect($book->title)->toBe('Cartucho')
+        ->and($book->isbn)->toBeNull()
+        ->and($book->authors)->toBe([])
+        ->and($book->publisher)->toBeNull()
+        ->and($book->year)->toBeNull();
+});
+
+it('no registra nada sin título', function () {
+    manualEntry()
+        ->set('title', '  ')
+        ->call('register')
+        ->assertHasErrors('title');
+
+    expect(Book::count())->toBe(0);
+});
+
+it('marca el Libro como capturado a mano', function () {
+    manualEntry()->set('title', 'Cartucho')->call('register');
+
+    expect(Book::sole()->source)->toBe(Source::Manual);
+});
+
+it('conserva el orden en que se escribieron los Autores', function () {
+    manualEntry()
+        ->set('title', 'Cien años de soledad')
+        ->call('addAuthor')
+        ->call('addAuthor')
+        ->set('authors.0', 'Gabriel García Márquez')
+        ->set('authors.1', 'Carmen Balcells')
+        ->set('authors.2', 'Gregory Rabassa')
+        ->call('register')
+        ->assertHasNoErrors();
+
+    expect(Book::sole()->authors)
+        ->toBe(['Gabriel García Márquez', 'Carmen Balcells', 'Gregory Rabassa']);
+});
+
+it('descarta los renglones de Autor que quedaron en blanco', function () {
+    manualEntry()
+        ->set('title', 'Pedro Páramo')
+        ->call('addAuthor')
+        ->call('addAuthor')
+        ->set('authors.0', 'Juan Rulfo')
+        ->set('authors.1', '   ')
+        ->set('authors.2', 'Jorge Zepeda')
+        ->call('register');
+
+    expect(Book::sole()->authors)->toBe(['Juan Rulfo', 'Jorge Zepeda']);
+});
+
+it('quita un Autor sin descolocar a los demás', function () {
+    manualEntry()
+        ->call('addAuthor')
+        ->call('addAuthor')
+        ->set('authors.0', 'Primero')
+        ->set('authors.1', 'Segundo')
+        ->set('authors.2', 'Tercero')
+        ->call('removeAuthor', 1)
+        ->assertSet('authors', ['Primero', 'Tercero']);
+});
+
+it('guarda la Ficha completa cuando se escribe toda', function () {
+    manualEntry()
+        ->set('title', 'Noticias del Imperio')
+        ->set('authors.0', 'Fernando del Paso')
+        ->set('publisher', 'Diana')
+        ->set('year', '1987')
+        ->set('edition', 'Primera edición')
+        ->set('isbn', '978-84-376-0417-6')
+        ->call('register')
+        ->assertHasNoErrors();
+
+    $book = Book::sole();
+
+    expect($book->title)->toBe('Noticias del Imperio')
+        ->and($book->authors)->toBe(['Fernando del Paso'])
+        ->and($book->publisher)->toBe('Diana')
+        ->and($book->year)->toBe(1987)
+        ->and($book->edition)->toBe('Primera edición')
+        // The ISBN is stored normalized to thirteen digits, as in the Scan.
+        ->and($book->isbn)->toBe('9788437604176');
+});
+
+it('registra el año de un libro anterior a 1901', function () {
+    manualEntry()
+        ->set('title', 'Los bandidos de Río Frío')
+        ->set('year', '1891')
+        ->call('register')
+        ->assertHasNoErrors();
+
+    expect(Book::sole()->year)->toBe(1891);
+});
+
+it('avisa el año que no es un año', function () {
+    manualEntry()
+        ->set('title', 'Cartucho')
+        ->set('year', 'mil novecientos treinta y uno')
+        ->call('register')
+        ->assertHasErrors('year');
+
+    expect(Book::count())->toBe(0);
+});
+
+it('avisa el ISBN que ya está registrado en vez de duplicarlo', function () {
+    Book::factory()->create([
+        'isbn' => '9788437604176',
+        'title' => 'Pedro Páramo',
+    ]);
+
+    manualEntry()
+        ->set('title', 'Pedro Páramo, otra vez')
+        ->set('isbn', '9788437604176')
+        ->call('register')
+        ->assertHasErrors('isbn')
+        ->assertSee('«Pedro Páramo» ya está registrado con ese ISBN.');
+
+    expect(Book::count())->toBe(1);
+});
+
+it('reconoce el ISBN ya registrado aunque se escriba con diez dígitos', function () {
+    Book::factory()->create(['isbn' => '9788437604176', 'title' => 'Pedro Páramo']);
+
+    manualEntry()
+        ->set('title', 'Pedro Páramo, otra vez')
+        ->set('isbn', '84-376-0417-X')
+        ->call('register')
+        ->assertHasErrors('isbn');
+
+    expect(Book::count())->toBe(1);
+});
+
+it('avisa el ISBN inválido', function () {
+    manualEntry()
+        ->set('title', 'Cartucho')
+        ->set('isbn', '9788437604177')
+        ->call('register')
+        ->assertHasErrors('isbn')
+        ->assertSee('«9788437604177» no es un ISBN.');
+
+    expect(Book::count())->toBe(0);
+});
+
+it('registra en el Acervo por omisión', function () {
+    manualEntry()->set('title', 'Cartucho')->call('register');
+
+    expect(Book::sole()->status)->toBe(Status::Owned);
+});
+
+it('registra Por comprar cuando se elige esa Situación', function () {
+    manualEntry()
+        ->set('title', 'Cartucho')
+        ->set('status', Status::Wanted->value)
+        ->call('register')
+        ->assertHasNoErrors();
+
+    expect(Book::sole()->status)->toBe(Status::Wanted);
+});
+
+it('rechaza una Situación que no es ninguna de las dos', function () {
+    manualEntry()
+        ->set('title', 'Cartucho')
+        ->set('status', 'prestado')
+        ->call('register')
+        ->assertHasErrors('status')
+        ->assertSee('La Situación es Acervo o Por comprar.');
+
+    expect(Book::count())->toBe(0);
+});
+
+it('ofrece subir la Portada en cuanto el Libro queda registrado', function () {
+    manualEntry()
+        ->set('title', 'Cartucho')
+        ->call('register')
+        ->assertSee('«Cartucho» quedó registrado')
+        ->assertSeeLivewire('book-cover');
+});
+
+it('deja el Libro registrado aunque no se le suba ninguna Portada', function () {
+    manualEntry()->set('title', 'Cartucho')->call('register');
+
+    $book = Book::sole();
+
+    expect($book->hasCover())->toBeFalse()
+        // Without a source URL there is no download to retry: the only way is
+        // to upload it by hand.
+        ->and($book->canRetryCover())->toBeFalse();
+
+    Queue::assertNothingPushed();
+});
+
+it('sube la Portada del Libro recién capturado con el componente que ya existe', function () {
+    Storage::fake();
+
+    manualEntry()->set('title', 'Cartucho')->call('register');
+
+    $book = Book::sole();
+
+    Livewire::test('book-cover', ['book' => $book])
+        ->set('file', UploadedFile::fake()->createWithContent('portada.jpg', testImage()))
+        ->call('save')
+        ->assertHasNoErrors();
+
+    expect($book->refresh()->hasCover())->toBeTrue();
+});
+
+it('deja la pantalla en blanco para capturar el Libro siguiente', function () {
+    manualEntry(['isbn' => '9788437604176'])
+        ->set('title', 'Cartucho')
+        ->call('register')
+        ->call('another')
+        ->assertSet('title', '')
+        ->assertSet('isbn', '')
+        ->assertSet('authors', [''])
+        ->assertSet('registered', null)
+        ->assertSet('status', Status::Owned->value)
+        ->assertSee('Registrar el Libro');
+
+    expect(Book::count())->toBe(1);
+});

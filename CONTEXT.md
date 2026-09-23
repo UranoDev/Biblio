@@ -26,9 +26,15 @@ ahí.
 En inglés: nombres de clases, componentes, rutas, variables, funciones, tablas, columnas,
 enums, archivos y **comentarios**.
 
-En español: absolutamente todo lo que aparece en pantalla —títulos, etiquetas, botones,
-mensajes de error, textos de ayuda—, los mensajes de commit, los issues de YouTrack, este
-glosario y los ADR.
+En español: todo lo que **lee una persona usando el sistema** —títulos, etiquetas,
+botones, avisos, errores de validación, textos de ayuda—, más los mensajes de commit, los
+issues de YouTrack, este glosario y los ADR.
+
+La línea divisoria no es «texto sí, código no», es **quién lo lee**. Un mensaje de
+excepción o una línea de log los lee quien programa, al lado del código y mezclados con
+los de Laravel: **van en inglés**. Un aviso en pantalla lo lee el dueño de la biblioteca:
+va en español. Cuando una excepción interna sí acaba mostrándose, no se muestra su
+mensaje — se traduce en la superficie, como hace `ScanOutcome` con sus etiquetas.
 
 Por eso cada término de abajo fija **las dos cosas**: cómo se llama en el código y cómo se
 dice en la interfaz. No son sinónimos intercambiables — `Book` no se escribe nunca en

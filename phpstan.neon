@@ -13,11 +13,11 @@ parameters:
     level: 7
 
     ignoreErrors:
-        # El trait lo usa resources/views/pages/settings/profile, que phpstan no
-        # analiza porque es Blade. Perdio su consumidor en PHP cuando BIB-3
-        # borro CreateNewUser. No es codigo muerto: el trait hermano
-        # PasswordValidationRules no da este error solo porque ResetUserPassword
-        # -- un archivo PHP -- tambien lo usa.
+        # The trait is used by resources/views/pages/settings/profile, which
+        # phpstan does not analyse because it is Blade. It lost its PHP consumer
+        # when BIB-3 deleted CreateNewUser. It is not dead code: the sibling
+        # trait PasswordValidationRules does not raise this error only because
+        # ResetUserPassword -- a PHP file -- uses it too.
         -
             identifier: trait.unused
             path: app/Concerns/ProfileValidationRules.php

@@ -2,11 +2,11 @@
 
 namespace App\Providers;
 
-use App\Fuentes\Fuente;
-use App\Fuentes\GoogleBooks;
-use App\Fuentes\OpenLibrary;
-use App\Fuentes\ResolvedorDeFuentes;
-use App\Portadas\AlmacenDePortadas;
+use App\Covers\CoverStore;
+use App\Sources\GoogleBooks;
+use App\Sources\OpenLibrary;
+use App\Sources\Source;
+use App\Sources\SourceResolver;
 use Carbon\CarbonImmutable;
 use Illuminate\Support\Facades\Date;
 use Illuminate\Support\Facades\DB;
@@ -22,19 +22,19 @@ class AppServiceProvider extends ServiceProvider
     public function register(): void
     {
         $this->app->singleton(
-            ResolvedorDeFuentes::class,
-            fn (): ResolvedorDeFuentes => new ResolvedorDeFuentes(
-                fuentes: $this->fuentes('fuentes.orden'),
-                porTitulo: $this->fuentes('fuentes.orden_por_titulo'),
+            SourceResolver::class,
+            fn (): SourceResolver => new SourceResolver(
+                sources: $this->sources('sources.order'),
+                titleOrder: $this->sources('sources.title_order'),
             ),
         );
 
         $this->app->singleton(
-            AlmacenDePortadas::class,
-            fn (): AlmacenDePortadas => new AlmacenDePortadas(
-                directorio: (string) config('portadas.directorio', 'portadas'),
-                anchoDeLaMiniatura: (int) config('portadas.ancho_miniatura', 320),
-                pesoMaximo: (int) config('portadas.peso_maximo', 5 * 1024 * 1024),
+            CoverStore::class,
+            fn (): CoverStore => new CoverStore(
+                directory: (string) config('covers.directory', 'covers'),
+                thumbnailWidth: (int) config('covers.thumbnail_width', 320),
+                maximumWeight: (int) config('covers.max_weight', 5 * 1024 * 1024),
             ),
         );
     }
@@ -48,40 +48,40 @@ class AppServiceProvider extends ServiceProvider
     }
 
     /**
-     * Las Fuentes en el orden configurado (ADR-002). Hay un orden por
-     * operación: consultar un ISBN y buscar un título no se le dan igual de
-     * bien al mismo catálogo, y por qué está anotado en `config/fuentes.php`.
+     * The Sources in the configured order (ADR-002). There is one order per
+     * operation: looking up an ISBN and searching a title do not suit the same
+     * catalog equally well, and why is written down in `config/sources.php`.
      *
-     * @return list<Fuente>
+     * @return list<Source>
      */
-    protected function fuentes(string $clave = 'fuentes.orden'): array
+    protected function sources(string $key = 'sources.order'): array
     {
-        $timeout = (int) config('fuentes.timeout', 10);
+        $timeout = (int) config('sources.timeout', 10);
 
-        $fuentes = [];
+        $sources = [];
 
-        /** @var list<string> $orden */
-        $orden = config($clave, []);
+        /** @var list<string> $order */
+        $order = config($key, []);
 
-        foreach ($orden as $clave) {
-            $fuentes[] = match ($clave) {
+        foreach ($order as $name) {
+            $sources[] = match ($name) {
                 'open_library' => new OpenLibrary(
-                    url: (string) config('fuentes.open_library.url'),
-                    portadasUrl: (string) config('fuentes.open_library.portadas_url'),
+                    url: (string) config('sources.open_library.url'),
+                    coversUrl: (string) config('sources.open_library.covers_url'),
                     timeout: $timeout,
                 ),
                 'google_books' => new GoogleBooks(
-                    url: (string) config('fuentes.google_books.url'),
-                    llave: config('fuentes.google_books.llave') === null
+                    url: (string) config('sources.google_books.url'),
+                    key: config('sources.google_books.key') === null
                         ? null
-                        : (string) config('fuentes.google_books.llave'),
+                        : (string) config('sources.google_books.key'),
                     timeout: $timeout,
                 ),
-                default => throw new InvalidArgumentException("«{$clave}» no es una Fuente conocida; revisá config/fuentes.php."),
+                default => throw new InvalidArgumentException("«{$name}» is not a known Source; check config/sources.php."),
             };
         }
 
-        return $fuentes;
+        return $sources;
     }
 
     /**

@@ -25,14 +25,14 @@ exactamente igual en pantalla, y no valen lo mismo.
 
 ## Decisión
 
-La Descripción se guarda **con su procedencia**: `fuente`, `ia` o `mía`.
+La Descripción se guarda **con su procedencia**: `source`, `ai` u `owner`.
 
 - Se pide a la IA **sólo si ninguna Fuente la trajo**. La Descripción de la Fuente no se
   pisa nunca.
 - **En la Vitrina, una Descripción escrita por IA se marca como tal.** Quien la lee sabe
   que no es la contraportada.
 - Editarla a mano la vuelve **mía**, y a partir de ahí ninguna regeneración la toca.
-- **Regenerar Descripciones sólo alcanza a las de procedencia `ia`.**
+- **Regenerar Descripciones sólo alcanza a las de procedencia `ai`.**
 
 ## Consecuencias
 
@@ -42,7 +42,7 @@ La Descripción se guarda **con su procedencia**: `fuente`, `ia` o `mía`.
 - **Un resumen de IA puede estar equivocado** —confundir dos libros del mismo título,
   inventar una trama— y va a estar en la cara pública del sistema. Marcarlo no lo hace
   correcto, pero cambia lo que el lector supone al leerlo, y deja claro qué corregir.
-- **La regla de regenerar sólo lo `ia` es lo que hace segura la regeneración masiva.** Sin
+- **La regla de regenerar sólo lo `ai` es lo que hace segura la regeneración masiva.** Sin
   ella, regenerar doscientos Libros borraría cada Descripción que escribí a mano.
 - Para Open Library hay que seguir el enlace a la obra: **una petición más por Libro**, y
   hay que decidir si vale la pena en el momento del registro o al pedirle Categorías.

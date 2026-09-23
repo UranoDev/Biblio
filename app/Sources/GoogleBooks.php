@@ -1,0 +1,351 @@
+<?php
+
+namespace App\Sources;
+
+use App\Domain\InvalidIsbn;
+use App\Domain\Isbn;
+use App\Enums;
+use Illuminate\Support\Facades\Http;
+use Throwable;
+
+/**
+ * The fallback of the ISBN cascade and the first one in the TitleLookup
+ * (ADR-002), and the only one of the two that brings the Description in the
+ * same request.
+ *
+ * The key is read from the environment. Without a key the adapter still works,
+ * but it is exposed to the shared quota; when that one runs out Google answers
+ * HTTP 429, and that translates into "the Source could not answer", never into
+ * "it does not know it".
+ */
+final class GoogleBooks implements Source
+{
+    /** How many editions are asked for in a TitleLookup. */
+    private const MAX_CANDIDATES = 20;
+
+    public function __construct(
+        private readonly string $url,
+        private readonly ?string $key,
+        private readonly int $timeout,
+    ) {}
+
+    public function identifier(): Enums\Source
+    {
+        return Enums\Source::GoogleBooks;
+    }
+
+    public function byIsbn(Isbn $isbn): LookupResult
+    {
+        try {
+            $body = $this->query(['q' => "isbn:{$isbn->value()}"]);
+        } catch (SourceUnavailable $failure) {
+            return LookupResult::unavailable($failure->getMessage());
+        }
+
+        $info = $this->info($this->firstVolume($body));
+        $title = $info === null ? null : $this->title($info);
+
+        if ($info === null || $title === null) {
+            return LookupResult::withoutRecord();
+        }
+
+        return LookupResult::withRecord(new Record(
+            isbn: $isbn,
+            title: $title,
+            authors: $this->authors($info),
+            publisher: $this->text($info['publisher'] ?? null),
+            year: $this->year($info['publishedDate'] ?? null),
+            // Google Books does not publish the name of the edition.
+            edition: null,
+            coverUrl: $this->cover($info),
+            description: $this->description($info),
+            source: $this->identifier(),
+        ));
+    }
+
+    /**
+     * `intitle:` and `inauthor:` pin each term to its field. Without that, the
+     * author ends up bringing in everything that mentions them in the
+     * Description, which is pure noise when the point is to pick an edition.
+     */
+    public function byTitle(string $title, ?string $author = null): Candidates
+    {
+        $title = trim($title);
+
+        if ($title === '') {
+            return Candidates::none();
+        }
+
+        $query = 'intitle:'.$this->quoted($title);
+        $author = $author === null ? '' : trim($author);
+
+        if ($author !== '') {
+            $query .= ' inauthor:'.$this->quoted($author);
+        }
+
+        try {
+            $body = $this->query([
+                'q' => $query,
+                'maxResults' => self::MAX_CANDIDATES,
+                'printType' => 'books',
+            ]);
+        } catch (SourceUnavailable $failure) {
+            return Candidates::unavailable($failure->getMessage());
+        }
+
+        $items = $body['items'] ?? null;
+
+        if (! is_array($items) || $items === []) {
+            return Candidates::none();
+        }
+
+        $candidates = [];
+
+        foreach ($items as $item) {
+            $candidate = is_array($item) ? $this->candidate($item) : null;
+
+            if ($candidate !== null) {
+                $candidates[] = $candidate;
+            }
+        }
+
+        return $candidates === [] ? Candidates::none() : Candidates::of($candidates);
+    }
+
+    /**
+     * Each Google volume is an edition, with its own publisher, year and
+     * identifiers: exactly what is needed to tell two Candidates of the same
+     * title apart.
+     *
+     * @param  array<string, mixed>  $volume
+     */
+    private function candidate(array $volume): ?Candidate
+    {
+        $info = $this->info($volume);
+        $title = $info === null ? null : $this->title($info);
+
+        if ($info === null || $title === null) {
+            return null;
+        }
+
+        return new Candidate(
+            isbn: $this->isbn($info),
+            title: $title,
+            authors: $this->authors($info),
+            publisher: $this->text($info['publisher'] ?? null),
+            year: $this->year($info['publishedDate'] ?? null),
+            edition: null,
+            coverUrl: $this->cover($info),
+            description: $this->description($info),
+            source: $this->identifier(),
+            reference: $this->text($volume['id'] ?? null),
+        );
+    }
+
+    /**
+     * The ISBN of a volume, or null when it publishes none or the one it
+     * publishes does not add up. Google puts everything into
+     * `industryIdentifiers` —ISSN, internal keys, ISBNs with a wrong check
+     * digit— and a Candidate without an ISBN is valid: better that than storing
+     * a number that identifies nothing.
+     *
+     * @param  array<string, mixed>  $info
+     */
+    private function isbn(array $info): ?Isbn
+    {
+        $identifiers = is_array($info['industryIdentifiers'] ?? null)
+            ? $info['industryIdentifiers']
+            : [];
+
+        // The thirteen-digit one first: that is the one stored normalized.
+        foreach (['ISBN_13', 'ISBN_10'] as $type) {
+            foreach ($identifiers as $identifier) {
+                if (! is_array($identifier) || ($identifier['type'] ?? null) !== $type) {
+                    continue;
+                }
+
+                $value = $this->text($identifier['identifier'] ?? null);
+
+                if ($value === null) {
+                    continue;
+                }
+
+                try {
+                    return Isbn::from($value);
+                } catch (InvalidIsbn) {
+                    continue;
+                }
+            }
+        }
+
+        return null;
+    }
+
+    /**
+     * @param  array<string, mixed>  $parameters
+     * @return array<mixed>
+     *
+     * @throws SourceUnavailable
+     */
+    private function query(array $parameters): array
+    {
+        if ($this->hasKey()) {
+            $parameters['key'] = $this->key;
+        }
+
+        try {
+            $response = Http::acceptJson()
+                ->timeout($this->timeout)
+                ->get("{$this->url}/books/v1/volumes", $parameters);
+        } catch (Throwable $failure) {
+            throw new SourceUnavailable('Google Books did not answer: '.$failure->getMessage(), previous: $failure);
+        }
+
+        if ($response->status() === 429) {
+            throw new SourceUnavailable($this->hasKey()
+                ? 'Google Books ran out of quota on the configured key (HTTP 429).'
+                : 'Google Books ran out of the shared quota (HTTP 429); no key is configured.');
+        }
+
+        if (! $response->successful()) {
+            throw new SourceUnavailable("Google Books answered HTTP {$response->status()}.");
+        }
+
+        $body = $response->json();
+
+        if (! is_array($body)) {
+            throw new SourceUnavailable('Google Books answered something that is not JSON.');
+        }
+
+        return $body;
+    }
+
+    /**
+     * @param  array<mixed>  $body
+     * @return array<string, mixed>|null
+     */
+    private function firstVolume(array $body): ?array
+    {
+        $items = $body['items'] ?? null;
+
+        if (! is_array($items) || $items === []) {
+            return null;
+        }
+
+        $first = reset($items);
+
+        return is_array($first) ? $first : null;
+    }
+
+    /**
+     * @param  array<string, mixed>|null  $volume
+     * @return array<string, mixed>|null
+     */
+    private function info(?array $volume): ?array
+    {
+        $info = $volume === null ? null : ($volume['volumeInfo'] ?? null);
+
+        return is_array($info) ? $info : null;
+    }
+
+    /** @param  array<string, mixed>  $info */
+    private function title(array $info): ?string
+    {
+        $title = $this->text($info['title'] ?? null);
+        $subtitle = $this->text($info['subtitle'] ?? null);
+
+        if ($title === null) {
+            return null;
+        }
+
+        return $subtitle === null ? $title : "{$title}: {$subtitle}";
+    }
+
+    /**
+     * @param  array<string, mixed>  $info
+     * @return list<string>
+     */
+    private function authors(array $info): array
+    {
+        $credited = is_array($info['authors'] ?? null) ? $info['authors'] : [];
+        $authors = [];
+
+        foreach ($credited as $one) {
+            $name = $this->text($one);
+
+            if ($name !== null) {
+                $authors[] = $name;
+            }
+        }
+
+        return $authors;
+    }
+
+    /**
+     * Google delivers the description with HTML tags. The Record stores text, so
+     * it is cleaned up here and not on every screen that shows it.
+     *
+     * @param  array<string, mixed>  $info
+     */
+    private function description(array $info): ?string
+    {
+        $description = $this->text($info['description'] ?? null);
+
+        if ($description === null) {
+            return null;
+        }
+
+        $text = strip_tags(str_replace(['<br>', '<br/>', '<br />', '</p>'], "\n", $description));
+
+        return $this->text(html_entity_decode($text, ENT_QUOTES | ENT_HTML5));
+    }
+
+    /** @param  array<string, mixed>  $info */
+    private function cover(array $info): ?string
+    {
+        $images = is_array($info['imageLinks'] ?? null) ? $info['imageLinks'] : [];
+
+        foreach (['extraLarge', 'large', 'medium', 'small', 'thumbnail', 'smallThumbnail'] as $size) {
+            $url = $this->text($images[$size] ?? null);
+
+            if ($url !== null) {
+                return str_replace('http://', 'https://', $url);
+            }
+        }
+
+        return null;
+    }
+
+    private function year(mixed $published): ?int
+    {
+        $text = $this->text($published);
+
+        if ($text === null || preg_match('/\b(\d{4})\b/', $text, $match) !== 1) {
+            return null;
+        }
+
+        return (int) $match[1];
+    }
+
+    /** The quotes keep the phrase together; the ones the text carries are in the way. */
+    private function quoted(string $term): string
+    {
+        return '"'.str_replace('"', '', $term).'"';
+    }
+
+    private function hasKey(): bool
+    {
+        return $this->key !== null && trim($this->key) !== '';
+    }
+
+    private function text(mixed $value): ?string
+    {
+        if (! is_string($value)) {
+            return null;
+        }
+
+        $clean = trim($value);
+
+        return $clean === '' ? null : $clean;
+    }
+}

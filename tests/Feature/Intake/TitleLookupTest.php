@@ -1,0 +1,277 @@
+<?php
+
+use App\Enums\Status;
+use App\Jobs\DownloadCover;
+use App\Models\Book;
+use App\Models\User;
+use App\Sources\Candidates;
+use Illuminate\Support\Facades\Queue;
+use Illuminate\Support\Facades\Route;
+use Livewire\Features\SupportTesting\Testable;
+use Livewire\Livewire;
+
+beforeEach(function () {
+    Queue::fake();
+
+    $this->actingAs(User::factory()->create());
+});
+
+/** Typing the title and asking the Source for its editions. */
+function lookUp(string $title = 'Pedro Páramo', ?string $author = null): Testable
+{
+    $screen = Livewire::test('pages::title-lookup')->set('title', $title);
+
+    if ($author !== null) {
+        $screen->set('author', $author);
+    }
+
+    return $screen->call('lookUp');
+}
+
+/** The key the screen points at the Candidate of that position with. */
+function candidateKey(Testable $screen, int $position = 0): string
+{
+    return $screen->get('candidates')[$position]['key'];
+}
+
+/** The usual two editions: same title, different publisher and different year. */
+function twoEditions(): Candidates
+{
+    return Candidates::of([
+        candidateOf(
+            isbn: '9788437604176',
+            publisher: 'Cátedra',
+            year: 1997,
+            coverUrl: 'https://covers.example/catedra.jpg',
+            reference: 'catedra-1997',
+        ),
+        candidateOf(
+            isbn: '9786074454635',
+            publisher: 'Editorial RM',
+            year: 2005,
+            coverUrl: 'https://covers.example/rm.jpg',
+            reference: 'rm-2005',
+        ),
+    ]);
+}
+
+it('pide sesión', function () {
+    auth()->logout();
+
+    $this->get(route('title-lookup'))->assertRedirect(route('login'));
+});
+
+it('se abre con la Situación en Por comprar', function () {
+    $this->get(route('title-lookup'))->assertOk();
+
+    Livewire::test('pages::title-lookup')
+        ->assertSet('status', Status::Wanted->value);
+});
+
+it('muestra los Candidatos con Portada, autores, editorial y año', function () {
+    sourcesReturn(twoEditions());
+
+    lookUp()
+        ->assertCount('candidates', 2)
+        ->assertSee('Juan Rulfo')
+        ->assertSee('Cátedra')
+        ->assertSee('1997')
+        ->assertSee('https://covers.example/catedra.jpg', false);
+});
+
+it('distingue dos ediciones del mismo título por editorial, año e ISBN', function () {
+    sourcesReturn(twoEditions());
+
+    lookUp()
+        ->assertSee('Cátedra')
+        ->assertSee('Editorial RM')
+        ->assertSee('1997')
+        ->assertSee('2005')
+        ->assertSee('9788437604176')
+        ->assertSee('9786074454635');
+});
+
+it('le manda el Autor a la Fuente para acotar', function () {
+    $received = [];
+
+    sourcesReturn(function (string $title, ?string $author) use (&$received): Candidates {
+        $received = [$title, $author];
+
+        return twoEditions();
+    });
+
+    lookUp('Pedro Páramo', 'Juan Rulfo');
+
+    expect($received)->toBe(['Pedro Páramo', 'Juan Rulfo']);
+});
+
+it('consulta sin Autor cuando no se escribió ninguno', function () {
+    $received = ['', 'sin pasar'];
+
+    sourcesReturn(function (string $title, ?string $author) use (&$received): Candidates {
+        $received = [$title, $author];
+
+        return twoEditions();
+    });
+
+    lookUp('Pedro Páramo');
+
+    expect($received)->toBe(['Pedro Páramo', null]);
+});
+
+it('no consulta nada sin título', function () {
+    sourcesReturn(twoEditions());
+
+    Livewire::test('pages::title-lookup')
+        ->set('title', '  ')
+        ->call('lookUp')
+        ->assertHasErrors('title')
+        ->assertCount('candidates', 0);
+});
+
+it('registra el Libro con la Situación elegida al elegir el Candidato', function () {
+    sourcesReturn(twoEditions());
+
+    $screen = lookUp()->set('status', Status::Owned->value);
+
+    $screen->call('choose', candidateKey($screen, 1));
+
+    $book = Book::sole();
+
+    expect($book->isbn)->toBe('9786074454635')
+        ->and($book->publisher)->toBe('Editorial RM')
+        ->and($book->year)->toBe(2005)
+        ->and($book->status)->toBe(Status::Owned);
+
+    $screen->assertSet('registered', $book->getKey())->assertSee('quedó registrado');
+});
+
+it('registra Por comprar cuando no se cambia la Situación', function () {
+    sourcesReturn(twoEditions());
+
+    $screen = lookUp();
+
+    $screen->call('choose', candidateKey($screen));
+
+    expect(Book::sole()->status)->toBe(Status::Wanted);
+});
+
+it('encola la Portada del Candidato que se eligió', function () {
+    sourcesReturn(twoEditions());
+
+    $screen = lookUp();
+
+    $screen->call('choose', candidateKey($screen));
+
+    Queue::assertPushed(DownloadCover::class);
+
+    expect(Book::sole()->cover_source_url)->toBe('https://covers.example/catedra.jpg');
+});
+
+it('registra el Candidato que no trae ISBN', function () {
+    sourcesReturn(Candidates::of([
+        candidateOf(isbn: null, title: 'El llano en llamas', reference: 'sin-isbn'),
+    ]));
+
+    $screen = lookUp('El llano en llamas');
+
+    $screen->assertSee('no trae ISBN')
+        ->call('choose', candidateKey($screen));
+
+    $book = Book::sole();
+
+    expect($book->title)->toBe('El llano en llamas')
+        ->and($book->isbn)->toBeNull();
+});
+
+it('avisa cuál es el Libro que ya tenía ese ISBN, en vez de duplicarlo', function () {
+    Book::factory()->create(['isbn' => '9788437604176', 'title' => 'Pedro Páramo']);
+
+    sourcesReturn(twoEditions());
+
+    $screen = lookUp();
+
+    $screen->call('choose', candidateKey($screen))
+        ->assertSet('registered', null)
+        ->assertSee('ya está registrado con ese ISBN');
+
+    expect(Book::count())->toBe(1);
+});
+
+it('ofrece ir al Libro que ya estaba, en cuanto exista su ficha', function () {
+    // The Book sheet arrives with BIB-14. Until then there is nowhere to send
+    // the person, and the notice just says which Book it is.
+    Route::middleware('web')->get('books/{book}', fn () => '')->name('book');
+
+    Book::factory()->create(['isbn' => '9788437604176', 'title' => 'Pedro Páramo']);
+
+    sourcesReturn(twoEditions());
+
+    $screen = lookUp();
+
+    $screen->call('choose', candidateKey($screen))
+        ->assertSee('Ir a «Pedro Páramo»');
+});
+
+it('deja elegir otra edición después de avisar que una ya estaba', function () {
+    Book::factory()->create(['isbn' => '9788437604176']);
+
+    sourcesReturn(twoEditions());
+
+    $screen = lookUp();
+
+    $screen->call('choose', candidateKey($screen))
+        ->assertCount('candidates', 2)
+        ->call('choose', candidateKey($screen, 1));
+
+    expect(Book::count())->toBe(2)
+        ->and(Book::query()->where('isbn', '9786074454635')->exists())->toBeTrue();
+});
+
+it('ofrece Captura manual cuando ninguna Fuente tiene ese título, conservando lo escrito', function () {
+    sourcesReturn(Candidates::none());
+
+    lookUp('Un título que nadie tiene', 'Quien sea')
+        ->assertSet('withoutEditions', true)
+        ->assertSee('Ninguna Fuente tiene ediciones')
+        ->assertSee(route('manual-entry', [
+            'title' => 'Un título que nadie tiene',
+            'author' => 'Quien sea',
+        ]));
+});
+
+it('la Fuente que no pudo contestar pide reintentar y no ofrece Captura manual', function () {
+    sourcesReturn(Candidates::unavailable('HTTP 429'));
+
+    lookUp()
+        ->assertSet('withoutEditions', false)
+        ->assertSee('no pudieron contestar')
+        ->assertSee('Vuelve a intentarlo')
+        ->assertDontSee('Capturar a mano');
+});
+
+it('deja la pantalla lista para el Libro siguiente', function () {
+    sourcesReturn(twoEditions());
+
+    $screen = lookUp();
+
+    $screen->call('choose', candidateKey($screen))
+        ->call('another')
+        ->assertSet('title', '')
+        ->assertSet('author', '')
+        ->assertSet('registered', null)
+        ->assertSet('status', Status::Wanted->value)
+        ->assertCount('candidates', 0);
+});
+
+it('no usa la palabra «búsqueda»: aquí se consulta la Fuente', function () {
+    sourcesReturn(twoEditions());
+
+    $screen = lookUp();
+
+    foreach (['úsqueda', 'uscar', 'usca ', 'uscador'] as $forbidden) {
+        $screen->assertDontSee($forbidden);
+    }
+
+    $screen->assertSee('Consultar la Fuente');
+});

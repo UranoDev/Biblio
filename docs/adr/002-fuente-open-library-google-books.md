@@ -51,7 +51,7 @@ acabe; a partir de ahí avisa que la Fuente no pudo responder, en vez de mentir.
 ## Ampliación del 2026-09-23 — El Alta por título consulta al revés
 
 La cascada por ISBN y la del Alta por título **no son la misma**, y cada una vive en su
-propia lista en `config/fuentes.php`.
+propia lista en `config/sources.php`.
 
 Un Candidato es una edición (ADR-005) y tiene que traer Portada, autores, editorial y
 año, porque sin eso no hay forma de distinguir la de bolsillo de la del 2015. Comprobado
