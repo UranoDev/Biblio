@@ -202,6 +202,13 @@ regenerar cuando se cambia. **Se llama `AiModel` y no `Model`**, porque en Larav
 Model es otra cosa y confundirlos no tiene arreglo después.
 _Avoid_: Model a secas, Engine, Llm; IA (es la categoría general, no cuál)
 
+**ImageRenderer** · en la interfaz: no se nombra:
+Lo que convierte la tarjeta de una Quote en una imagen para compartir. Hoy es un servicio
+externo —html2img— detrás de una interfaz; mañana puede ser un navegador propio, sin que
+cambie nada más (ADR-009).
+_Avoid_: Screenshot, Snapshot, Rasterizer; «el servicio» a secas, que ya significa otra
+cosa en este glosario
+
 **Provider** · en la interfaz: «proveedor»:
 La empresa o el servidor detrás del AiModel — Gemini, DeepSeek, Ollama. Su llave de API
 vive en el entorno, nunca en la base.
@@ -211,8 +218,8 @@ _Avoid_: Vendor, Service; Source (Source es el catálogo de libros)
 
 **Marginalia.** Un libro leído deja marcas en los márgenes, y el sistema se trata como
 ese cuaderno: papel, letra de máquina para lo que se cita, mucho silencio alrededor, y la
-portada asomándose apenas —recortada por el borde e inclinada unos grados, como un lomo
-que sobresale del librero.
+portada asomándose apenas —recortada por el borde e inclinada **6 grados en contra del
+reloj**, como un lomo que sobresale del librero.
 
 La regla que manda sobre todas: **las portadas son el color.** Doscientos libros traen su
 propio caos cromático y no se controla, así que el sistema es un escenario neutro. Por eso
@@ -257,7 +264,9 @@ la cita, se perdió el efecto.
 
 ### El Cover
 
-Se muestra **recortado por el borde e inclinado** unos pocos grados, con sombra suave. Lo
+Se muestra **recortado por el borde e inclinado 6 grados en contra del reloj**, con
+sombra suave. Esos seis grados están medidos de la pieza que originó la dirección: lo
+suficiente para que se lea como un objeto y no como un rectángulo pegado. Lo
 que se ve es un fragmento grande, nunca la portada completa encogida: ésa es la diferencia
 entre verse editorial y verse como ficha de catálogo.
 
@@ -270,7 +279,7 @@ ISBN y sacado de esta misma paleta.
 
 ## Decisiones tomadas
 
-Las ocho primeras tienen ADR en `docs/adr/`, porque son las costosas de revertir.
+Las nueve primeras tienen ADR en `docs/adr/`, porque son las costosas de revertir.
 
 1. **El Scanner es un lector USB que se comporta como teclado** — ADR-001. La pantalla de
    captura es un campo de ISBN siempre enfocado que acepta una línea terminada en Enter.
@@ -290,41 +299,45 @@ Las ocho primeras tienen ADR en `docs/adr/`, porque son las costosas de revertir
    cuatro ISBN reales, ninguno dio un Cover utilizable. El generado es tipográfico, su
    color se deriva del ISBN, y su Origin lo distingue del real — con eso, «los Covers
    generados» son la cola de lo que falta fotografiar.
-8. **La Description lleva su Origin, y la escrita por IA se marca** — ADR-007. Se le pide a
+8. **La imagen de una Quote es la misma tarjeta, rasterizada fuera** — ADR-009. La
+   genera un servicio externo detrás de un seam, los dos formatos al guardar y en la cola,
+   y se regenera cuando cambia cualquier cosa que aparece en ella — incluida la Cover, que
+   es lo que vuelve cara la sustitución gradual por fotos propias.
+9. **La Description lleva su Origin, y la escrita por IA se marca** — ADR-007. Se le pide a
    la IA sólo si ninguna Source la trajo; editarla la vuelve `owner`, y desde entonces
    ninguna regeneración la toca.
-9. **El Book es la edición, no la obra.** No hay concepto de Work: el original y su
+10. **El Book es la edición, no la obra.** No hay concepto de Work: el original y su
    traducción son dos Books sin relación entre sí.
-10. **El Reading distingue tres estados, no dos:** sin leer, leído sin fecha, y leído con
+11. **El Reading distingue tres estados, no dos:** sin leer, leído sin fecha, y leído con
    fecha. Cualquier interfaz que sólo ofrezca una casilla de «leído» pierde el de en medio.
-11. **Shelf y Wanted son la misma entidad con distinto Status**, no dos listas separadas.
+12. **Shelf y Wanted son la misma entidad con distinto Status**, no dos listas separadas.
     Al escanear un Book que estaba Wanted, pasa a `owned` solo, con deshacer.
-12. **Las Quotes son del Book; las Notes son mías.** No se mezclan en la misma superficie
+13. **Las Quotes son del Book; las Notes son mías.** No se mezclan en la misma superficie
     ni en la misma tabla, porque no se buscan igual.
-13. **Una Note por Book**, libre y editable en su lugar. Partir una en varias después es
+14. **Una Note por Book**, libre y editable en su lugar. Partir una en varias después es
     trivial; colapsar varias en una pierde información.
-14. **El préstamo es un campo, no una entidad**: `lent_to` en texto libre y `lent_on`. Sin
+15. **El préstamo es un campo, no una entidad**: `lent_to` en texto libre y `lent_on`. Sin
     tabla de personas, sin estados, sin recordatorios.
-15. **Una sola pantalla de TitleLookup** sirve para los Books que están Wanted y para los
+16. **Una sola pantalla de TitleLookup** sirve para los Books que están Wanted y para los
     que no traen código de barras. Lo único que cambia es el Status con el que nace.
-16. **Los doscientos libros del acervo entran escaneando, sin importador.** Un importador
+17. **Los doscientos libros del acervo entran escaneando, sin importador.** Un importador
     corre una sola vez en la vida del sistema y compite con lo que se usa siempre.
-17. **Google Books se consulta con llave propia**, leída del entorno. Sin llave, la cuota
+18. **Google Books se consulta con llave propia**, leída del entorno. Sin llave, la cuota
     es compartida y devuelve 429 — que no puede tratarse como «no lo conoce».
-18. **No hay límite de Quotes públicas por Book.** Un Book puede tener ninguna o muchas, y
+19. **No hay límite de Quotes públicas por Book.** Un Book puede tener ninguna o muchas, y
     todas se muestran en el Showcase.
-19. **El TitleLookup consulta las Sources al revés que el Scan.** Google Books primero,
+20. **El TitleLookup consulta las Sources al revés que el Scan.** Google Books primero,
     Open Library de respaldo, porque la búsqueda de Open Library devuelve obras y de cada
     una entrega una sola edición elegida por ella. Medido de los dos lados el 2026-09-23;
     ver la ampliación del ADR-002.
-20. **El código va en inglés y la interfaz en español**, con cada término fijando las dos
+21. **El código va en inglés y la interfaz en español**, con cada término fijando las dos
     formas (ver § El idioma). El sistema se renombró completo al tomar esta decisión,
     antes de tener datos: dos idiomas conviviendo era peor que cualquiera de los dos.
-21. **La dirección visual es Marginalia** (ver § Dirección visual): papel en vez de
+22. **La dirección visual es Marginalia** (ver § Dirección visual): papel en vez de
     blanco, Plex Mono para las Quotes, Instrument Sans para el resto, Cover recortado e
     inclinado con su filo, y **sin color de acento en la interfaz** — el acento son las
     portadas.
-22. **Las pruebas no usan respuestas inventadas.** Lo que se guarda en `tests/Fixtures` es
+23. **Las pruebas no usan respuestas inventadas.** Lo que se guarda en `tests/Fixtures` es
     una grabación real del catálogo, sin recortar, y hay pruebas de contrato aparte que
     verifican que la Source sigue respondiendo como el día que se grabó.
 
