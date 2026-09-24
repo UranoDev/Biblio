@@ -334,3 +334,29 @@ it('no deja marca de fallo cuando la cola va a reintentar sola', function () {
 
     expect($book->fresh()->coverDownloadHasFailed())->toBeFalse();
 });
+
+/*
+ * La marca de la descarga que se rindió es sobre una dirección, no sobre el
+ * Libro: otra dirección es otro intento (BIB-52, BIB-57).
+ */
+
+it('una dirección nueva borra la marca de la descarga que se rindió', function () {
+    Queue::fake();
+
+    $book = Book::factory()->coverDownloadFailed()->create();
+
+    DownloadCover::forBook($book, 'https://books.google.com/portada.jpg');
+
+    expect($book->fresh()->coverDownloadHasFailed())->toBeFalse()
+        ->and($book->fresh()->cover_failure)->toBeNull();
+});
+
+it('la misma dirección conserva su marca: preguntarle otra vez contesta lo mismo', function () {
+    Queue::fake();
+
+    $book = Book::factory()->coverDownloadFailed()->create();
+
+    DownloadCover::forBook($book, (string) $book->cover_source_url);
+
+    expect($book->fresh()->coverDownloadHasFailed())->toBeTrue();
+});

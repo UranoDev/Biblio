@@ -348,3 +348,66 @@ it('usa Open Library de respaldo cuando Google Books agotó la cuota', function 
     expect($candidates->hasCandidates())->toBeTrue()
         ->and($candidates->candidates[0]->source)->toBe(Enums\Source::OpenLibrary);
 });
+
+/*
+ * La misma cascada, preguntada sola: el Libro ya está registrado y lo único
+ * que se le debe es la portada (BIB-57).
+ */
+
+it('pide la portada sin Record y se queda con la de la primera Fuente que la tenga', function () {
+    $first = sourceThat(
+        LookupResult::withRecord(fakeRecord(Enums\Source::OpenLibrary)),
+        Enums\Source::OpenLibrary,
+    );
+    $second = sourceThat(
+        LookupResult::withRecord(fakeRecord(Enums\Source::GoogleBooks, 'https://books.google.com/portada.jpg')),
+        Enums\Source::GoogleBooks,
+    );
+
+    $coverUrl = (new SourceResolver([$first, $second]))->coverUrl(Isbn::from('9788437604176'));
+
+    expect($coverUrl)->toBe('https://books.google.com/portada.jpg');
+});
+
+it('no le pregunta a la segunda cuando la primera trae portada', function () {
+    $first = sourceThat(
+        LookupResult::withRecord(fakeRecord(Enums\Source::OpenLibrary, 'https://covers.openlibrary.org/b/id/1-L.jpg')),
+        Enums\Source::OpenLibrary,
+    );
+    $second = sourceThat(LookupResult::withoutRecord(), Enums\Source::GoogleBooks);
+
+    $coverUrl = (new SourceResolver([$first, $second]))->coverUrl(Isbn::from('9788437604176'));
+
+    expect($coverUrl)->toBe('https://covers.openlibrary.org/b/id/1-L.jpg')
+        ->and($second->lookups)->toBe(0);
+});
+
+it('se salta la dirección que ya se había rendido y sigue con la siguiente', function () {
+    $refused = 'https://covers.openlibrary.org/b/id/1-L.jpg';
+
+    $first = sourceThat(
+        LookupResult::withRecord(fakeRecord(Enums\Source::OpenLibrary, $refused)),
+        Enums\Source::OpenLibrary,
+    );
+    $second = sourceThat(
+        LookupResult::withRecord(fakeRecord(Enums\Source::GoogleBooks, 'https://books.google.com/portada.jpg')),
+        Enums\Source::GoogleBooks,
+    );
+
+    $coverUrl = (new SourceResolver([$first, $second]))->coverUrl(Isbn::from('9788437604176'), $refused);
+
+    expect($coverUrl)->toBe('https://books.google.com/portada.jpg');
+});
+
+it('sin portada en ninguna Fuente contesta que no hay, y eso no es un error', function () {
+    $first = sourceThat(
+        LookupResult::withRecord(fakeRecord(Enums\Source::OpenLibrary)),
+        Enums\Source::OpenLibrary,
+    );
+    $second = sourceThat(LookupResult::withoutRecord(), Enums\Source::GoogleBooks);
+
+    $coverUrl = (new SourceResolver([$first, $second]))->coverUrl(Isbn::from('9788437604176'));
+
+    expect($coverUrl)->toBeNull()
+        ->and($second->lookups)->toBe(1);
+});

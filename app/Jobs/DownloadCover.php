@@ -39,6 +39,11 @@ class DownloadCover implements ShouldQueue
      * Writes down the Cover URL and queues the download. Without a URL there is
      * nothing to download and the Book keeps its generated Cover, which is a
      * Cover like any other (ADR-008).
+     *
+     * A URL that is not the one on record clears the mark of the download that
+     * gave up (BIB-52): that verdict was about the other address and says
+     * nothing about this one. The same URL keeps its mark, because asking the
+     * same place again gets the same answer.
      */
     public static function forBook(Book $book, ?string $url): void
     {
@@ -46,7 +51,16 @@ class DownloadCover implements ShouldQueue
             return;
         }
 
-        $book->forceFill(['cover_source_url' => trim($url)])->save();
+        $url = trim($url);
+
+        $attributes = ['cover_source_url' => $url];
+
+        if ($url !== $book->cover_source_url) {
+            $attributes['cover_failed_at'] = null;
+            $attributes['cover_failure'] = null;
+        }
+
+        $book->forceFill($attributes)->save();
 
         self::dispatch($book);
     }

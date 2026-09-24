@@ -87,15 +87,50 @@ final class SourceResolver
             return $result;
         }
 
-        foreach (array_slice($this->sources, $position + 1) as $source) {
+        $coverUrl = $this->firstCoverUrl(array_slice($this->sources, $position + 1), $isbn);
+
+        return $coverUrl === null
+            ? $result
+            : LookupResult::withRecord($record->withCover($coverUrl));
+    }
+
+    /**
+     * The Cover the Sources have of that ISBN, asked for on its own (BIB-57).
+     *
+     * It is the same cascade the intake walks when the catalog that answered
+     * brought no image, reachable without a Record: the Book is already
+     * registered and the only field owed is this one. Nothing else of what the
+     * Sources answer is read, so what comes back either replaces the generated
+     * piece or leaves it alone.
+     *
+     * A URL that already gave up is skipped —the same address answers the same
+     * thing— and the cascade keeps going to the next catalog. That is what
+     * makes asking again worth a request: without it the Book would be handed
+     * back the marker it was refused.
+     *
+     * @param  string|null  $except  an address already known not to work
+     */
+    public function coverUrl(Isbn $isbn, ?string $except = null): ?string
+    {
+        return $this->firstCoverUrl($this->sources, $isbn, $except);
+    }
+
+    /**
+     * The first Cover any of those Sources has of that ISBN.
+     *
+     * @param  list<Source>  $sources  in the order they get asked
+     */
+    private function firstCoverUrl(array $sources, Isbn $isbn, ?string $except = null): ?string
+    {
+        foreach ($sources as $source) {
             $coverUrl = $source->byIsbn($isbn)->record?->coverUrl;
 
-            if ($coverUrl !== null) {
-                return LookupResult::withRecord($record->withCover($coverUrl));
+            if ($coverUrl !== null && $coverUrl !== $except) {
+                return $coverUrl;
             }
         }
 
-        return $result;
+        return null;
     }
 
     /**

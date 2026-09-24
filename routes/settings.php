@@ -28,6 +28,12 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::livewire('settings/quote-images', 'pages::settings.quote-images')->name('quote-images');
 
     /*
+     * The Covers still owed an image (BIB-57). It counts the Books showing the
+     * generated piece that a Source can still be asked about, and asks.
+     */
+    Route::livewire('settings/covers', 'pages::settings.covers')->name('covers');
+
+    /*
      * The jobs the queue gave up on (BIB-40). The Dashboard prints how many
      * there are and this is the list behind that number.
      */
