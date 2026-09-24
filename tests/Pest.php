@@ -67,6 +67,55 @@ function something()
 }
 
 /**
+ * The value a token holds in resources/css/app.css.
+ *
+ * The Marginalia tokens are the single source of the visual direction, so the
+ * tests read them out of the stylesheet instead of repeating their values.
+ */
+function designToken(string $name): string
+{
+    static $css = null;
+
+    $css ??= (string) file_get_contents(dirname(__DIR__).'/resources/css/app.css');
+
+    preg_match('/--'.preg_quote($name, '/').':\s*([^;]+);/', $css, $matches);
+
+    return trim($matches[1] ?? '');
+}
+
+/**
+ * The relative luminance of a colour, as WCAG 2.1 defines it.
+ */
+function relativeLuminance(string $hex): float
+{
+    /** @var list<float> $channels */
+    $channels = array_map(
+        fn (string $pair): float => (int) hexdec($pair) / 255,
+        str_split(ltrim($hex, '#'), 2),
+    );
+
+    $linear = array_map(
+        fn (float $channel): float => $channel <= 0.04045
+            ? $channel / 12.92
+            : (($channel + 0.055) / 1.055) ** 2.4,
+        $channels,
+    );
+
+    return 0.2126 * $linear[0] + 0.7152 * $linear[1] + 0.0722 * $linear[2];
+}
+
+/**
+ * The contrast between two colours, from 1:1 to 21:1.
+ */
+function contrastRatio(string $first, string $second): float
+{
+    $lighter = max(relativeLuminance($first), relativeLuminance($second));
+    $darker = min(relativeLuminance($first), relativeLuminance($second));
+
+    return ($lighter + 0.05) / ($darker + 0.05);
+}
+
+/**
  * A recorded response from a Source. The adapter tests run against these files
  * and never go out to the internet.
  */

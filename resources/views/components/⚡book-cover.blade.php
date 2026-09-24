@@ -3,6 +3,7 @@
 use App\Covers\CoverNotStored;
 use App\Covers\CoverStore;
 use App\Covers\InvalidImage;
+use App\Enums\CoverOrigin;
 use App\Jobs\DownloadCover;
 use App\Models\Book;
 use Livewire\Component;
@@ -11,6 +12,11 @@ use Livewire\WithFileUploads;
 /**
  * The Cover of a Book, with the two paths that do not depend on the Source:
  * uploading one by hand and retrying the download (ADR-004).
+ *
+ * Uploading is no longer the emergency exit it was when this screen was
+ * written. Of four real ISBN, none gave back a usable image (ADR-008), so this
+ * is the way most of the good Covers are going to come in, one book at a time
+ * and over months. That is why it is the part of the block that reads first.
  */
 new class extends Component
 {
@@ -65,35 +71,40 @@ new class extends Component
     <div class="flex flex-col gap-3">
         <flux:heading size="sm">Portada</flux:heading>
 
-        @unless ($book->hasCover())
-            <flux:text>
-                @if ($book->canRetryCover())
-                    La descarga de la Portada no se completó.
-                @else
-                    Este Libro no tiene Portada.
-                @endif
-            </flux:text>
-
-            @if ($book->canRetryCover())
-                <flux:button wire:click="retry" variant="subtle" class="self-start">
-                    Reintentar la descarga
-                </flux:button>
-            @endif
-        @endunless
-
-        @if ($notice)
-            <flux:text>{{ $notice }}</flux:text>
-        @endif
+        {{-- Which of the three Portadas this is. The Origin is not named on
+             screen; what it says is shown. --}}
+        <flux:text data-test="cover-origin">
+            @switch ($book->coverOrigin())
+                @case (CoverOrigin::Owner)
+                    Es tu foto. Los reintentos contra la Fuente no la reemplazan.
+                    @break
+                @case (CoverOrigin::Source)
+                    Vino de la Fuente.
+                    @break
+                @default
+                    Está generada con el título y los autores.
+            @endswitch
+        </flux:text>
 
         <form wire:submit="save" class="flex flex-col gap-3">
             <flux:input
                 type="file"
                 wire:model="file"
                 accept="image/*"
-                :label="$book->hasCover() ? 'Reemplazar la Portada' : 'Subir una Portada'"
+                :label="$book->hasGeneratedCover() ? 'Subir tu foto de la Portada' : 'Reemplazar la Portada'"
             />
 
             <flux:button type="submit" variant="primary" class="self-start">Guardar</flux:button>
         </form>
+
+        @if ($book->canRetryCover())
+            <flux:button wire:click="retry" variant="subtle" class="self-start">
+                Reintentar la descarga
+            </flux:button>
+        @endif
+
+        @if ($notice)
+            <flux:text>{{ $notice }}</flux:text>
+        @endif
     </div>
 </div>

@@ -4,6 +4,7 @@ namespace App\Jobs;
 
 use App\Covers\CoverStore;
 use App\Covers\InvalidImage;
+use App\Enums\CoverOrigin;
 use App\Models\Book;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Queue\Queueable;
@@ -16,9 +17,9 @@ use RuntimeException;
  *
  * It is queued because capturing happens in bursts: the image takes longer than
  * the Record and the Book has to end up registered without waiting for it. If
- * the download fails, the Book is left without a Cover and with its
- * `cover_source_url` intact, which is what makes it possible to retry later or
- * to upload one by hand.
+ * the download fails, the Book keeps the generated Cover it was born with
+ * (ADR-008) and its `cover_source_url` intact, which is what makes it possible
+ * to retry later or to upload one by hand.
  */
 class DownloadCover implements ShouldQueue
 {
@@ -36,8 +37,8 @@ class DownloadCover implements ShouldQueue
 
     /**
      * Writes down the Cover URL and queues the download. Without a URL there is
-     * nothing to download and the Book is left without a Cover, which is a valid
-     * state.
+     * nothing to download and the Book keeps its generated Cover, which is a
+     * Cover like any other (ADR-008).
      */
     public static function forBook(Book $book, ?string $url): void
     {
@@ -52,12 +53,17 @@ class DownloadCover implements ShouldQueue
 
     /**
      * Queues the download again. Returns false when there is nowhere to download
-     * it from —ManualEntry, or a Source that brought no image—: there the only
-     * way is to upload it by hand.
+     * it from —ManualEntry, or a Source that brought no image— and when the
+     * Cover the Book has is the owner's own photograph: there the only way is to
+     * upload another one by hand.
      */
     public static function retry(Book $book): bool
     {
         if ($book->cover_source_url === null || trim($book->cover_source_url) === '') {
+            return false;
+        }
+
+        if (! $book->acceptsCoverFromSource()) {
             return false;
         }
 
@@ -71,6 +77,13 @@ class DownloadCover implements ShouldQueue
         $url = $this->book->cover_source_url;
 
         if ($url === null || trim($url) === '') {
+            return;
+        }
+
+        // The Book already shows the photograph its owner took, and nothing a
+        // catalog has is going to beat it (ADR-008). The store refuses the
+        // replacement anyway; asking here saves the download.
+        if (! $this->book->acceptsCoverFromSource()) {
             return;
         }
 
@@ -93,7 +106,7 @@ class DownloadCover implements ShouldQueue
         try {
             // If the disk fails, CoverNotStored goes out of here uncaught: that
             // one does get better by retrying.
-            $store->store($this->book, $response->body());
+            $store->store($this->book, $response->body(), CoverOrigin::Source);
         } catch (InvalidImage $failure) {
             $this->refused($failure->getMessage());
         }
@@ -101,8 +114,8 @@ class DownloadCover implements ShouldQueue
 
     /**
      * The download is not going to go better by retrying it on its own. The Book
-     * is left without a Cover and the URL stays stored, so the manual retry and
-     * the upload are still available.
+     * keeps its generated Cover and the URL stays stored, so the manual retry
+     * and the upload are still available.
      */
     private function giveUp(string $reason): void
     {
@@ -121,8 +134,8 @@ class DownloadCover implements ShouldQueue
      * because a run of these is what tells you a catalog started answering that
      * way.
      *
-     * The Book is left the same as a failed download: without a Cover, with its
-     * `cover_source_url` intact.
+     * The Book is left the same as a failed download: with its generated Cover
+     * and its `cover_source_url` intact.
      */
     private function refused(string $reason): void
     {

@@ -7,51 +7,8 @@
 
 $root = dirname(__DIR__, 3);
 
-/**
- * The value a token holds in resources/css/app.css.
- */
-function designToken(string $name): string
-{
-    static $css = null;
-
-    $css ??= (string) file_get_contents(dirname(__DIR__, 3).'/resources/css/app.css');
-
-    preg_match('/--'.preg_quote($name, '/').':\s*([^;]+);/', $css, $matches);
-
-    return trim($matches[1] ?? '');
-}
-
-/**
- * The relative luminance of a colour, as WCAG 2.1 defines it.
- */
-function relativeLuminance(string $hex): float
-{
-    /** @var list<float> $channels */
-    $channels = array_map(
-        fn (string $pair): float => (int) hexdec($pair) / 255,
-        str_split(ltrim($hex, '#'), 2),
-    );
-
-    $linear = array_map(
-        fn (float $channel): float => $channel <= 0.04045
-            ? $channel / 12.92
-            : (($channel + 0.055) / 1.055) ** 2.4,
-        $channels,
-    );
-
-    return 0.2126 * $linear[0] + 0.7152 * $linear[1] + 0.0722 * $linear[2];
-}
-
-/**
- * The contrast between two colours, from 1:1 to 21:1.
- */
-function contrastRatio(string $first, string $second): float
-{
-    $lighter = max(relativeLuminance($first), relativeLuminance($second));
-    $darker = min(relativeLuminance($first), relativeLuminance($second));
-
-    return ($lighter + 0.05) / ($darker + 0.05);
-}
+// designToken(), relativeLuminance() and contrastRatio() live in tests/Pest.php:
+// the generated Cover measures its fields against these same tokens.
 
 it('guarda cada color de la dirección como token', function (string $name) {
     expect(designToken($name))->not->toBe('');

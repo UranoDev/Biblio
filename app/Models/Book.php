@@ -3,6 +3,9 @@
 namespace App\Models;
 
 use App\Ai\AiModel;
+use App\Covers\GeneratedCover;
+use App\Enums\CoverOrigin;
+use App\Enums\CoverSize;
 use App\Enums\GenerationStatus;
 use App\Enums\Origin;
 use App\Enums\ReadingStatus;
@@ -17,7 +20,6 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Support\Carbon;
-use Illuminate\Support\Facades\Storage;
 
 /**
  * A concrete edition, identified by its ISBN: the unit that gets registered,
@@ -36,6 +38,7 @@ use Illuminate\Support\Facades\Storage;
  * @property string|null $cover_path
  * @property string|null $cover_source_url
  * @property string|null $cover_thumbnail_path
+ * @property CoverOrigin $cover_origin
  * @property Status $status
  * @property bool $is_read
  * @property Carbon|null $read_on
@@ -62,6 +65,18 @@ class Book extends Model
     protected $guarded = ['id'];
 
     /**
+     * A Book is born with the generated Cover, whichever path it came in
+     * through (ADR-008): there is no moment in its life when it has none. The
+     * column carries the same default, so a row written outside Eloquent lands
+     * the same way.
+     *
+     * @var array<string, mixed>
+     */
+    protected $attributes = [
+        'cover_origin' => CoverOrigin::Generated->value,
+    ];
+
+    /**
      * Get the attributes that should be cast.
      *
      * @return array<string, string>
@@ -71,6 +86,7 @@ class Book extends Model
         return [
             'authors' => 'array',
             'description_origin' => Origin::class,
+            'cover_origin' => CoverOrigin::class,
             'source' => Source::class,
             'status' => Status::class,
             'is_read' => 'boolean',
@@ -270,33 +286,96 @@ class Book extends Model
     }
 
     /**
-     * The Cover is stored on the configured disk, it is not linked to the Source
-     * (ADR-004). A Book without a Cover is a normal state: the download may have
-     * failed, or there may never have been an image to download.
+     * Whether the Cover of the Book is a stored image.
+     *
+     * It is not the same question as whether it has a Cover: every Book has one
+     * (ADR-008), and the ones with no file show the generated piece. This is
+     * what the screens ask before building a URL.
      */
     public function hasCover(): bool
     {
         return $this->cover_path !== null;
     }
 
-    /** The Cover at original size, for the Book sheet. */
-    public function coverUrl(): ?string
+    /**
+     * The typographic piece that stands in for the image, built on the fly and
+     * never written to disk (ADR-008).
+     */
+    public function generatedCover(): GeneratedCover
     {
-        return $this->cover_path === null
-            ? null
-            : Storage::disk()->url($this->cover_path);
+        return GeneratedCover::for($this);
     }
 
     /**
-     * The scaled-down version, for the Shelf and Showcase grids. If for some
-     * reason it was not stored, it falls back to the original rather than to
-     * nothing.
+     * Where the Cover the Book shows came from.
+     *
+     * A Book read back with only some of its columns —a `select` that left this
+     * one out— answers the generated piece, which is the state a Book with no
+     * stored image is in.
+     */
+    public function coverOrigin(): CoverOrigin
+    {
+        return $this->cover_origin ?? CoverOrigin::Generated;
+    }
+
+    /** Whether what the Book shows is the generated piece and not a photograph. */
+    public function hasGeneratedCover(): bool
+    {
+        return $this->coverOrigin() === CoverOrigin::Generated;
+    }
+
+    /**
+     * Whether a Cover arriving from a Source may take the place of the one the
+     * Book has now (ADR-008).
+     *
+     * It may when the one there was generated, and when it came from a Source
+     * itself. It never may over the photo I took: that one is replaced by
+     * uploading another one, by hand and on purpose.
+     */
+    public function acceptsCoverFromSource(): bool
+    {
+        return CoverOrigin::Source->mayReplace($this->coverOrigin());
+    }
+
+    /** The Cover at original size, for the Book sheet. */
+    public function coverUrl(): ?string
+    {
+        return $this->coverUrlFor(CoverSize::Full);
+    }
+
+    /**
+     * The scaled-down version, for the Shelf and Showcase grids. It has an
+     * address of its own even when it was not stored: what gets served then is
+     * the original, which is better than a hole in the grid.
      */
     public function coverThumbnailUrl(): ?string
     {
-        return $this->cover_thumbnail_path === null
-            ? $this->coverUrl()
-            : Storage::disk()->url($this->cover_thumbnail_path);
+        return $this->coverUrlFor(CoverSize::Thumbnail);
+    }
+
+    /**
+     * Where the Cover is served from: a route of the application, never the URL
+     * of the disk.
+     *
+     * The disk is private and answers nothing to a request without a signature,
+     * so `Storage::url()` builds an address that has never worked (BIB-32). And
+     * the application is the only place that knows whether the Book is Hidden,
+     * which its Cover has to obey too (ADR-003).
+     */
+    public function coverUrlFor(CoverSize $size): ?string
+    {
+        return $this->coverPathFor($size) === null
+            ? null
+            : route('cover', ['book' => $this, 'size' => $size]);
+    }
+
+    /** The file on the disk each version of the Cover is stored at. */
+    public function coverPathFor(CoverSize $size): ?string
+    {
+        return match ($size) {
+            CoverSize::Full => $this->cover_path,
+            CoverSize::Thumbnail => $this->cover_thumbnail_path ?? $this->cover_path,
+        };
     }
 
     /**
@@ -306,7 +385,9 @@ class Book extends Model
      */
     public function canRetryCover(): bool
     {
-        return ! $this->hasCover() && $this->cover_source_url !== null;
+        return ! $this->hasCover()
+            && $this->cover_source_url !== null
+            && $this->acceptsCoverFromSource();
     }
 
     /**
@@ -346,14 +427,19 @@ class Book extends Model
     }
 
     /**
-     * The Books that are missing their Cover.
+     * The Books whose Cover is the generated piece: the queue of what is left
+     * to photograph (ADR-008).
+     *
+     * That queue is the other half of what the Origin is for. Replacing the
+     * generated Covers with my own photographs is going to take months, book by
+     * book, and without this there would be no way to say how many are left.
      *
      * @param  Builder<$this>  $query
      */
     #[Scope]
-    protected function withoutCover(Builder $query): void
+    protected function coverGenerated(Builder $query): void
     {
-        $query->whereNull('cover_path');
+        $query->where('cover_origin', CoverOrigin::Generated);
     }
 
     /**

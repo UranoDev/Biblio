@@ -1,6 +1,7 @@
 <?php
 
 use App\Covers\CoverStore;
+use App\Enums\CoverOrigin;
 use App\Jobs\DownloadCover;
 use App\Models\Book;
 use Illuminate\Http\Client\ConnectionException;
@@ -22,7 +23,7 @@ function download(Book $book): void
 it('deja anotada la URL del Cover y pone la descarga en cola', function () {
     Queue::fake();
 
-    $book = Book::factory()->withoutCover()->create();
+    $book = Book::factory()->coverGenerated()->create();
 
     DownloadCover::forBook($book, 'https://covers.openlibrary.org/b/id/42-L.jpg');
 
@@ -34,7 +35,7 @@ it('deja anotada la URL del Cover y pone la descarga en cola', function () {
 it('no pone nada en cola cuando la Source no trajo Cover', function () {
     Queue::fake();
 
-    $book = Book::factory()->withoutCover()->create();
+    $book = Book::factory()->coverGenerated()->create();
 
     DownloadCover::forBook($book, null);
 
@@ -58,7 +59,7 @@ it('descargal Cover y la guarda en el disco configurado', function () {
     Storage::disk()->assertExists($book->fresh()->cover_thumbnail_path);
 });
 
-it('dejal Book sin Cover cuando la imagen ya no está, y conserva de dónde bajarla', function () {
+it('dejal Book con su Cover generado cuando la imagen ya no está, y conserva de dónde bajarla', function () {
     Http::fake(['covers.openlibrary.org/*' => Http::response('', 404)]);
 
     $book = Book::factory()->coverPending()->create([
@@ -74,7 +75,7 @@ it('dejal Book sin Cover cuando la imagen ya no está, y conserva de dónde baja
         ->and($book->canRetryCover())->toBeTrue();
 });
 
-it('dejal Book sin Cover cuando lo que llega no es una imagen', function () {
+it('dejal Book con su Cover generado cuando lo que llega no es una imagen', function () {
     Http::fake(['covers.openlibrary.org/*' => Http::response('<html>quota exceeded</html>', 200)]);
 
     $book = Book::factory()->coverPending()->create([
@@ -113,7 +114,7 @@ it('falla para que la cola reintente cuando la descarga tarda de más', function
 it('reemplazal Cover que ya teníal Book', function () {
     Http::fake(['covers.openlibrary.org/*' => Http::response(testImage(400, 600), 200)]);
 
-    $book = Book::factory()->withoutCover()->create([
+    $book = Book::factory()->coverGenerated()->create([
         'cover_source_url' => 'https://covers.openlibrary.org/b/id/42-L.jpg',
     ]);
 
@@ -140,14 +141,14 @@ it('se puede reintentar mientras quede de dónde bajarla', function () {
 it('no reintenta un Book que no tiene de dónde bajar el Cover', function () {
     Queue::fake();
 
-    $book = Book::factory()->withoutCover()->create();
+    $book = Book::factory()->coverGenerated()->create();
 
     expect(DownloadCover::retry($book))->toBeFalse();
 
     Queue::assertNothingPushed();
 });
 
-it('dejal Book sin Cover cuando Open Library devuelve su pixel de 1×1', function () {
+it('dejal Book con su Cover generado cuando Open Library devuelve su pixel de 1×1', function () {
     Http::fake([
         'covers.openlibrary.org/*' => Http::response(recordedCover('open-library-no-cover.gif'), 200, ['Content-Type' => 'image/gif']),
     ]);
@@ -166,7 +167,7 @@ it('dejal Book sin Cover cuando Open Library devuelve su pixel de 1×1', functio
         ->and(Storage::disk()->allFiles())->toBeEmpty();
 });
 
-it('dejal Book sin Cover cuando Google Books devuelve su «image not available»', function (string $file) {
+it('dejal Book con su Cover generado cuando Google Books devuelve su «image not available»', function (string $file) {
     Http::fake(['books.google.com/*' => Http::response(recordedCover($file), 200, ['Content-Type' => 'image/png'])]);
 
     $book = Book::factory()->coverPending()->create([
@@ -219,4 +220,58 @@ it('no confunde una descarga que falló con un marcador', function () {
     Log::shouldHaveReceived('warning')
         ->once()
         ->withArgs(fn (string $message): bool => $message === 'The Cover could not be downloaded.');
+});
+
+it('anota que el Cover vino de la Fuente', function () {
+    Http::fake(['covers.openlibrary.org/*' => Http::response(testImage(800, 1200), 200)]);
+
+    $book = Book::factory()->coverPending()->create([
+        'cover_source_url' => 'https://covers.openlibrary.org/b/id/42-L.jpg',
+    ]);
+
+    download($book);
+
+    expect($book->fresh()->cover_origin)->toBe(CoverOrigin::Source);
+});
+
+it('un reintento que trae un Cover bueno reemplaza al generado', function () {
+    Http::fake(['covers.openlibrary.org/*' => Http::response(testImage(800, 1200), 200)]);
+
+    $book = Book::factory()->coverGenerated()->create([
+        'cover_source_url' => 'https://covers.openlibrary.org/b/id/42-L.jpg',
+    ]);
+
+    download($book);
+
+    expect($book->fresh()->hasGeneratedCover())->toBeFalse()
+        ->and($book->fresh()->hasCover())->toBeTrue();
+});
+
+it('no toca la foto que tomó el dueño, por bueno que sea lo que traiga la Fuente', function () {
+    Http::fake(['covers.openlibrary.org/*' => Http::response(testImage(1200, 1800), 200)]);
+
+    $book = Book::factory()->coverFromOwner()->create([
+        'cover_source_url' => 'https://covers.openlibrary.org/b/id/42-L.jpg',
+    ]);
+
+    $mine = $book->cover_path;
+
+    download($book);
+
+    expect($book->fresh()->cover_path)->toBe($mine)
+        ->and($book->fresh()->cover_origin)->toBe(CoverOrigin::Owner);
+
+    Http::assertNothingSent();
+});
+
+it('no vuelve a poner en cola la descarga de un Book que ya tiene mi foto', function () {
+    Queue::fake();
+
+    $book = Book::factory()->coverFromOwner()->create([
+        'cover_source_url' => 'https://covers.openlibrary.org/b/id/42-L.jpg',
+    ]);
+
+    expect(DownloadCover::retry($book))->toBeFalse();
+
+    Queue::assertNothingPushed();
 });

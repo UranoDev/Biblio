@@ -1,5 +1,6 @@
 <?php
 
+use App\Enums\CoverOrigin;
 use App\Jobs\DownloadCover;
 use App\Models\Book;
 use Illuminate\Http\UploadedFile;
@@ -12,7 +13,7 @@ beforeEach(function () {
 });
 
 it('sube un Cover a mano', function () {
-    $book = Book::factory()->withoutCover()->create();
+    $book = Book::factory()->coverGenerated()->create();
 
     Livewire::test('book-cover', ['book' => $book])
         ->set('file', UploadedFile::fake()->createWithContent('portada.jpg', testImage(400, 600)))
@@ -28,7 +29,7 @@ it('sube un Cover a mano', function () {
 });
 
 it('reemplazal Cover que ya tenía', function () {
-    $book = Book::factory()->withoutCover()->create();
+    $book = Book::factory()->coverGenerated()->create();
 
     Livewire::test('book-cover', ['book' => $book])
         ->set('file', UploadedFile::fake()->createWithContent('primera.jpg', testImage(400, 600)))
@@ -46,7 +47,7 @@ it('reemplazal Cover que ya tenía', function () {
 });
 
 it('no acepta un archivo que no es imagen', function () {
-    $book = Book::factory()->withoutCover()->create();
+    $book = Book::factory()->coverGenerated()->create();
 
     Livewire::test('book-cover', ['book' => $book])
         ->set('file', UploadedFile::fake()->create('contrato.pdf', 12, 'application/pdf'))
@@ -71,7 +72,7 @@ it('pone la descarga en cola otra vez cuando falló', function () {
 it('avisa que no hay de dónde bajar el Cover', function () {
     Queue::fake();
 
-    $book = Book::factory()->withoutCover()->create();
+    $book = Book::factory()->coverGenerated()->create();
 
     Livewire::test('book-cover', ['book' => $book])
         ->call('retry')
@@ -83,19 +84,43 @@ it('avisa que no hay de dónde bajar el Cover', function () {
 it('ofrece reintentar sólo cuando la descarga puede repetirse', function () {
     Livewire::test('book-cover', ['book' => Book::factory()->coverPending()->create()])
         ->assertSee('Reintentar la descarga')
-        ->assertSee('Subir una Portada');
+        ->assertSee('Subir tu foto de la Portada');
 
-    Livewire::test('book-cover', ['book' => Book::factory()->withoutCover()->create()])
+    Livewire::test('book-cover', ['book' => Book::factory()->coverGenerated()->create()])
         ->assertDontSee('Reintentar la descarga')
-        ->assertSee('Este Libro no tiene Portada');
+        ->assertSee('Está generada con el título y los autores');
 });
 
-it('muestral título del Book en lugar de una imagen rota', function () {
-    $book = Book::factory()->withoutCover()->create(['title' => 'El coronel no tiene quien le escriba']);
+it('dice cuál de las tres Portadas es la que tiene el Book', function () {
+    Livewire::test('book-cover', ['book' => Book::factory()->create()])
+        ->assertSee('Vino de la Fuente')
+        ->assertSee('Reemplazar la Portada');
+
+    Livewire::test('book-cover', ['book' => Book::factory()->coverFromOwner()->create()])
+        ->assertSee('Es tu foto')
+        ->assertDontSee('Reintentar la descarga');
+});
+
+it('muestra la pieza generada en lugar de un hueco', function () {
+    $book = Book::factory()->coverGenerated()->create(['title' => 'El coronel no tiene quien le escriba']);
 
     $this->blade('<x-cover :book="$book" />', ['book' => $book])
-        ->assertSee('El coronel no tiene quien le escriba')
-        ->assertDontSee('<img', false);
+        ->assertSee('El coronel no tiene')
+        ->assertSee('<svg', false)
+        ->assertDontSee('<img', false)
+        ->assertDontSee('sin Portada');
+});
+
+it('la foto que sube el dueño queda marcada como suya', function () {
+    $book = Book::factory()->coverPending()->create();
+
+    Livewire::test('book-cover', ['book' => $book])
+        ->set('file', UploadedFile::fake()->createWithContent('portada.jpg', testImage(400, 600)))
+        ->call('save')
+        ->assertHasNoErrors();
+
+    expect($book->fresh()->cover_origin)->toBe(CoverOrigin::Owner)
+        ->and($book->fresh()->canRetryCover())->toBeFalse();
 });
 
 it('muestra la miniatura cuando el Book tiene Cover', function () {
@@ -105,14 +130,14 @@ it('muestra la miniatura cuando el Book tiene Cover', function () {
     ]);
 
     $this->blade('<x-cover :book="$book" />', ['book' => $book])
-        ->assertSee('abc-thumbnail.jpg', false);
+        ->assertSee($book->coverThumbnailUrl(), false);
 
     $this->blade('<x-cover :book="$book" size="full" />', ['book' => $book])
-        ->assertSee('covers/9/abc.jpg', false);
+        ->assertSee($book->coverUrl(), false);
 });
 
 it('no acepta a mano el marcador que devuelve un catálogo', function () {
-    $book = Book::factory()->withoutCover()->create();
+    $book = Book::factory()->coverGenerated()->create();
 
     Livewire::test('book-cover', ['book' => $book])
         ->set('file', UploadedFile::fake()->createWithContent('portada.png', recordedCover('google-books-not-available.png')))
@@ -123,7 +148,7 @@ it('no acepta a mano el marcador que devuelve un catálogo', function () {
 });
 
 it('dice por qué no sirve la imagen, en vez de decir que no se pudo leer', function () {
-    $book = Book::factory()->withoutCover()->create();
+    $book = Book::factory()->coverGenerated()->create();
 
     Livewire::test('book-cover', ['book' => $book])
         ->set('file', UploadedFile::fake()->createWithContent('miniatura.jpg', testImage(162, 198)))

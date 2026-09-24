@@ -277,6 +277,14 @@ Y como el Cover siempre existe (ADR-008), la retícula nunca tiene huecos: lo qu
 era un espacio punteado ahora es una pieza tipográfica generada, con el color derivado del
 ISBN y sacado de esta misma paleta.
 
+El campo de esa pieza son diez tonos de tela y cartón —`#C8B99C`, `#D2C2A7`, `#BFA88F`,
+`#BDB9A6`, `#D3B9A3`, `#B9A492`, `#CABBAB`, `#AD9C86`, `#C9AE8C`, `#B8AE9A`—, todos
+corridos al cálido como el resto de los neutros y todos lo bastante claros para que la
+Tinta se lea encima. No son acentos: el acento sigue siendo la portada real que llegue, y
+estos tonos tienen que poder estar a su lado sin pelearse. Viven en `GeneratedCover`
+porque el dibujo se arma en el servidor; lo que los ata a esta paleta es la prueba, que
+los mide contra los tokens de la hoja de estilo.
+
 ## Decisiones tomadas
 
 Las nueve primeras tienen ADR en `docs/adr/`, porque son las costosas de revertir.

@@ -2,6 +2,7 @@
 
 use App\Covers\CoverStore;
 use App\Covers\InvalidImage;
+use App\Enums\CoverOrigin;
 use App\Models\Book;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\Storage;
@@ -21,7 +22,7 @@ function coverStore(): CoverStore
 }
 
 it('guarda la original y la versión reducida, y el Book apunta a las dos', function () {
-    $book = Book::factory()->withoutCover()->create();
+    $book = Book::factory()->coverGenerated()->create();
 
     $this->store->store($book, testImage(800, 1200));
 
@@ -39,7 +40,7 @@ it('guarda la original y la versión reducida, y el Book apunta a las dos', func
 it('reduce la miniatura al ancho configurado y deja la original como llegó', function () {
     config()->set('covers.thumbnail_width', 300);
 
-    $book = Book::factory()->withoutCover()->create();
+    $book = Book::factory()->coverGenerated()->create();
 
     coverStore()->store($book, testImage(900, 1350));
 
@@ -52,7 +53,7 @@ it('reduce la miniatura al ancho configurado y deja la original como llegó', fu
 });
 
 it('guarda la original en el formato en el que llegó', function () {
-    $book = Book::factory()->withoutCover()->create();
+    $book = Book::factory()->coverGenerated()->create();
 
     $this->store->store($book, testImage(300, 450, 'png'));
 
@@ -61,7 +62,7 @@ it('guarda la original en el formato en el que llegó', function () {
 });
 
 it('reemplazal Cover anterior y borra sus archivos', function () {
-    $book = Book::factory()->withoutCover()->create();
+    $book = Book::factory()->coverGenerated()->create();
 
     $this->store->store($book, testImage(400, 600));
 
@@ -78,7 +79,7 @@ it('reemplazal Cover anterior y borra sus archivos', function () {
 });
 
 it('guardal Cover que se sube a mano', function () {
-    $book = Book::factory()->withoutCover()->create();
+    $book = Book::factory()->coverGenerated()->create();
 
     $file = UploadedFile::fake()->createWithContent('portada.jpg', testImage(400, 600));
 
@@ -90,7 +91,7 @@ it('guardal Cover que se sube a mano', function () {
 });
 
 it('rechaza lo que no es una imagen', function () {
-    $book = Book::factory()->withoutCover()->create();
+    $book = Book::factory()->coverGenerated()->create();
 
     expect(fn () => $this->store->store($book, 'esto no es una imagen'))
         ->toThrow(InvalidImage::class);
@@ -101,14 +102,14 @@ it('rechaza lo que no es una imagen', function () {
 it('rechaza la imagen que pesa de más', function () {
     config()->set('covers.max_weight', 1024);
 
-    $book = Book::factory()->withoutCover()->create();
+    $book = Book::factory()->coverGenerated()->create();
 
     expect(fn () => coverStore()->store($book, testImage(800, 1200)))
         ->toThrow(InvalidImage::class);
 });
 
-it('deja al Book sin Cover y borra sus archivos', function () {
-    $book = Book::factory()->withoutCover()->create();
+it('devuelve al Book a su Cover generado y borra los archivos', function () {
+    $book = Book::factory()->coverGenerated()->create();
 
     $this->store->store($book, testImage(400, 600));
 
@@ -118,7 +119,8 @@ it('deja al Book sin Cover y borra sus archivos', function () {
     $this->store->delete($book);
 
     expect($book->hasCover())->toBeFalse()
-        ->and($book->fresh()->cover_thumbnail_path)->toBeNull();
+        ->and($book->fresh()->cover_thumbnail_path)->toBeNull()
+        ->and($book->fresh()->cover_origin)->toBe(CoverOrigin::Generated);
 
     Storage::disk()->assertMissing($path);
     Storage::disk()->assertMissing($thumbnail);
@@ -130,7 +132,7 @@ it('escribe en el disco que diga FILESYSTEM_DISK, sin tocar el código', functio
 
     Storage::fake('otro');
 
-    $book = Book::factory()->withoutCover()->create();
+    $book = Book::factory()->coverGenerated()->create();
 
     coverStore()->store($book, testImage(400, 600));
 
@@ -140,7 +142,7 @@ it('escribe en el disco que diga FILESYSTEM_DISK, sin tocar el código', functio
 it('respetal directorio configurado', function () {
     config()->set('covers.directory', 'cubiertas');
 
-    $book = Book::factory()->withoutCover()->create();
+    $book = Book::factory()->coverGenerated()->create();
 
     coverStore()->store($book, testImage(300, 450));
 
@@ -148,7 +150,7 @@ it('respetal directorio configurado', function () {
 });
 
 it('no guarda el pixel de 1×1 que Open Library devuelve cuando no tiene Cover', function () {
-    $book = Book::factory()->withoutCover()->create();
+    $book = Book::factory()->coverGenerated()->create();
 
     expect(fn () => $this->store->store($book, recordedCover('open-library-no-cover.gif')))
         ->toThrow(InvalidImage::class);
@@ -158,7 +160,7 @@ it('no guarda el pixel de 1×1 que Open Library devuelve cuando no tiene Cover',
 });
 
 it('no guarda el marcador «image not available» de Google Books', function (string $file) {
-    $book = Book::factory()->withoutCover()->create();
+    $book = Book::factory()->coverGenerated()->create();
 
     expect(fn () => $this->store->store($book, recordedCover($file)))
         ->toThrow(InvalidImage::class);
@@ -172,7 +174,7 @@ it('no guarda el marcador «image not available» de Google Books', function (st
 ]);
 
 it('no guarda una imagen más chica que el mínimo, aunque sea una portada de verdad', function () {
-    $book = Book::factory()->withoutCover()->create();
+    $book = Book::factory()->coverGenerated()->create();
 
     expect(fn () => $this->store->store($book, testImage(162, 198)))
         ->toThrow(InvalidImage::class, 'La imagen mide 162 px de lado corto y el mínimo es 300.');
@@ -181,7 +183,7 @@ it('no guarda una imagen más chica que el mínimo, aunque sea una portada de ve
 });
 
 it('mide el lado corto, no el largo', function () {
-    $book = Book::factory()->withoutCover()->create();
+    $book = Book::factory()->coverGenerated()->create();
 
     expect(fn () => $this->store->store($book, testImage(90, 1200)))
         ->toThrow(InvalidImage::class);
@@ -190,14 +192,14 @@ it('mide el lado corto, no el largo', function () {
 it('sube el mínimo sin tocar código', function () {
     config()->set('covers.minimum_side', 600);
 
-    $book = Book::factory()->withoutCover()->create();
+    $book = Book::factory()->coverGenerated()->create();
 
     expect(fn () => coverStore()->store($book, testImage(400, 600)))
         ->toThrow(InvalidImage::class);
 });
 
 it('no guarda una imagen de un solo color plano, aunque mida lo suficiente', function () {
-    $book = Book::factory()->withoutCover()->create();
+    $book = Book::factory()->coverGenerated()->create();
 
     $canvas = imagecreatetruecolor(600, 900);
     imagefilledrectangle($canvas, 0, 0, 600, 900, (int) imagecolorallocate($canvas, 250, 250, 250));
@@ -213,7 +215,7 @@ it('no guarda una imagen de un solo color plano, aunque mida lo suficiente', fun
 });
 
 it('conserval Cover que ya teníal Book cuando lo que llega es un marcador', function () {
-    $book = Book::factory()->withoutCover()->create();
+    $book = Book::factory()->coverGenerated()->create();
 
     $this->store->store($book, testImage(400, 600));
     $path = $book->cover_path;
@@ -224,4 +226,53 @@ it('conserval Cover que ya teníal Book cuando lo que llega es un marcador', fun
     expect($book->fresh()->cover_path)->toBe($path);
 
     Storage::disk()->assertExists($path);
+});
+
+it('anota de dónde vino cada Cover que guarda', function () {
+    $fromSource = Book::factory()->coverGenerated()->create();
+    $mine = Book::factory()->coverGenerated()->create();
+
+    $this->store->store($fromSource, testImage(400, 600), CoverOrigin::Source);
+    $this->store->store($mine, testImage(400, 600), CoverOrigin::Owner);
+
+    expect($fromSource->cover_origin)->toBe(CoverOrigin::Source)
+        ->and($mine->cover_origin)->toBe(CoverOrigin::Owner);
+});
+
+it('lo que trae una Fuente reemplaza al Cover generado', function () {
+    $book = Book::factory()->coverGenerated()->create();
+
+    $this->store->store($book, testImage(400, 600), CoverOrigin::Source);
+
+    expect($book->hasGeneratedCover())->toBeFalse()
+        ->and($book->hasCover())->toBeTrue();
+});
+
+it('lo que trae una Fuente no reemplaza la foto que tomó el dueño', function () {
+    $book = Book::factory()->coverGenerated()->create();
+
+    $this->store->store($book, testImage(400, 600), CoverOrigin::Owner);
+
+    $mine = $book->cover_path;
+
+    $this->store->store($book, testImage(1200, 1800), CoverOrigin::Source);
+
+    expect($book->fresh()->cover_path)->toBe($mine)
+        ->and($book->fresh()->cover_origin)->toBe(CoverOrigin::Owner);
+
+    Storage::disk()->assertExists($mine);
+});
+
+it('otra foto del dueño sí reemplaza a la suya', function () {
+    $book = Book::factory()->coverGenerated()->create();
+
+    $this->store->store($book, testImage(400, 600), CoverOrigin::Owner);
+    $first = $book->cover_path;
+
+    $this->store->store($book, testImage(500, 750), CoverOrigin::Owner);
+
+    expect($book->fresh()->cover_path)->not->toBe($first)
+        ->and($book->fresh()->cover_origin)->toBe(CoverOrigin::Owner);
+
+    Storage::disk()->assertMissing($first);
 });

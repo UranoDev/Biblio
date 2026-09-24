@@ -2,6 +2,7 @@
 
 namespace Database\Factories;
 
+use App\Enums\CoverOrigin;
 use App\Enums\Origin;
 use App\Enums\Source;
 use App\Enums\Status;
@@ -34,6 +35,7 @@ class BookFactory extends Factory
             'cover_path' => 'covers/'.fake()->uuid().'.jpg',
             'cover_source_url' => 'https://covers.openlibrary.org/b/id/'.fake()->numberBetween(1, 999999).'-L.jpg',
             'cover_thumbnail_path' => 'covers/'.fake()->uuid().'-thumbnail.jpg',
+            'cover_origin' => CoverOrigin::Source,
             'status' => Status::Owned,
             'is_read' => false,
             'read_on' => null,
@@ -197,12 +199,13 @@ class BookFactory extends Factory
             'cover_path' => null,
             'cover_source_url' => null,
             'cover_thumbnail_path' => null,
+            'cover_origin' => CoverOrigin::Generated,
         ]);
     }
 
     /**
-     * Without a Cover, but with somewhere to download it from: the download
-     * failed and can be retried.
+     * With the generated Cover and somewhere to download an image from: the
+     * download failed, or has not run yet, and can be retried.
      */
     public function coverPending(): static
     {
@@ -210,18 +213,34 @@ class BookFactory extends Factory
             'cover_path' => null,
             'cover_thumbnail_path' => null,
             'cover_source_url' => 'https://covers.openlibrary.org/b/id/'.fake()->numberBetween(1, 999999).'-L.jpg',
+            'cover_origin' => CoverOrigin::Generated,
         ]);
     }
 
     /**
-     * Without a Cover and with nowhere to download it from.
+     * With the generated Cover and nowhere to download an image from: the queue
+     * of what is left to photograph (ADR-008).
      */
-    public function withoutCover(): static
+    public function coverGenerated(): static
     {
         return $this->state(fn (array $attributes) => [
             'cover_path' => null,
             'cover_thumbnail_path' => null,
             'cover_source_url' => null,
+            'cover_origin' => CoverOrigin::Generated,
+        ]);
+    }
+
+    /**
+     * With the photograph the owner took. No retry against the Sources
+     * replaces it.
+     */
+    public function coverFromOwner(): static
+    {
+        return $this->state(fn (array $attributes) => [
+            'cover_path' => 'covers/'.fake()->uuid().'.jpg',
+            'cover_thumbnail_path' => 'covers/'.fake()->uuid().'-thumbnail.jpg',
+            'cover_origin' => CoverOrigin::Owner,
         ]);
     }
 }

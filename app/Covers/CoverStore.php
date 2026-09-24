@@ -2,6 +2,7 @@
 
 namespace App\Covers;
 
+use App\Enums\CoverOrigin;
 use App\Models\Book;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\Storage;
@@ -29,10 +30,19 @@ final readonly class CoverStore
      * the scaled-down version for the grids. If the Book already had a Cover,
      * the previous one is deleted only once the new one is written.
      *
+     * The Origin travels with the image because this is the single door every
+     * Cover comes in through, and it is here that the replacement rule of
+     * ADR-008 is enforced: what a Source brings replaces a generated Cover and
+     * never the photograph the owner took.
+     *
      * @throws InvalidImage|CoverNotStored
      */
-    public function store(Book $book, string $binary): void
+    public function store(Book $book, string $binary, CoverOrigin $origin = CoverOrigin::Source): void
     {
+        if (! $origin->mayReplace($book->coverOrigin())) {
+            return;
+        }
+
         $weight = strlen($binary);
 
         if ($weight > $this->maximumWeight) {
@@ -55,14 +65,16 @@ final readonly class CoverStore
         $book->forceFill([
             'cover_path' => $path,
             'cover_thumbnail_path' => $thumbnail,
+            'cover_origin' => $origin,
         ])->save();
 
         $this->deleteFiles($previous);
     }
 
     /**
-     * The Cover uploaded by hand. It replaces whatever there was: ManualEntry
-     * brings none and some Sources return useless thumbnails.
+     * The Cover uploaded by hand: my own photograph of the book. It replaces
+     * whatever there was —a generated piece, or an image from a Source— and
+     * from then on no retry against the Sources touches it (ADR-008).
      *
      * @throws InvalidImage|CoverNotStored
      */
@@ -74,10 +86,14 @@ final readonly class CoverStore
             throw InvalidImage::notAnImage();
         }
 
-        $this->store($book, $binary);
+        $this->store($book, $binary, CoverOrigin::Owner);
     }
 
-    /** Leaves the Book without a Cover and deletes its files. */
+    /**
+     * Deletes the stored image and its files. The Book is not left without a
+     * Cover —there is no such state (ADR-008)—: it goes back to the generated
+     * piece, and back into the queue of what is left to photograph.
+     */
     public function delete(Book $book): void
     {
         $files = array_filter([$book->cover_path, $book->cover_thumbnail_path]);
@@ -85,6 +101,7 @@ final readonly class CoverStore
         $book->forceFill([
             'cover_path' => null,
             'cover_thumbnail_path' => null,
+            'cover_origin' => CoverOrigin::Generated,
         ])->save();
 
         $this->deleteFiles($files);
