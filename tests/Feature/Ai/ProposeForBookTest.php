@@ -61,7 +61,9 @@ function refusedWith(int $status, string $message = 'Rate limit exceeded'): Requ
 it('devuelve el job a la cola ante un 429, sin fallar ni escribir nada', function () {
     BookAgent::fake(fn () => throw RateLimitedException::forProvider('gemini', 429));
 
-    $book = Book::factory()->withoutDescription()->create([
+    // Encolado como lo encola Proposals: la marca de la cola es lo único en
+    // que se sostiene que el Book esté esperando (BIB-46).
+    $book = Book::factory()->generationQueued()->withoutDescription()->create([
         'categories_ai_model' => null,
         'categories_provider' => null,
     ]);

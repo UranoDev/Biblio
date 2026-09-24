@@ -54,6 +54,27 @@ it('no marca la descripción que trajo la Fuente ni la que escribió el dueño',
         ->assertDontSee('generada por IA');
 })->with(['descriptionFromSource', 'descriptionFromOwner']);
 
+/**
+ * La tercera marca dice otra cosa que las otras dos: el contenido es el del
+ * catálogo y el español lo escribió una máquina (BIB-45). Quien lee tiene que
+ * poder distinguir eso de un resumen inventado por una IA.
+ */
+it('marca como traducida la descripción del catálogo que pasó por una IA', function () {
+    $book = Book::factory()->descriptionTranslated()->create();
+
+    $this->get(route('showcase.book', $book))
+        ->assertSee('Descripción del catálogo, traducida al español por una IA')
+        ->assertDontSee('Descripción generada por IA');
+});
+
+it('la descripción escrita por IA no se confunde con una traducida', function () {
+    $book = Book::factory()->descriptionFromAi()->create();
+
+    $this->get(route('showcase.book', $book))
+        ->assertSee('Descripción generada por IA')
+        ->assertDontSee('traducida al español');
+});
+
 it('sin descripción no deja hueco ni texto de relleno', function () {
     $book = Book::factory()->withoutDescription()->create(['title' => 'Sin contraportada']);
 

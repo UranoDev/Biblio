@@ -19,6 +19,10 @@ use Laravel\Ai\Responses\AgentResponse;
  * Book and writing its Categories are therefore two moments, and in between the
  * Book is a Book without Categories — which the Shelf has to be able to tell
  * apart from one that was never going to get any.
+ *
+ * A Book whose catalogue Description came in another language is asked for a
+ * second thing in the same pass: its translation into Spanish (BIB-45). It is a
+ * request of its own, and only the Books that need it pay for it.
  */
 final class Proposals
 {
@@ -44,8 +48,10 @@ final class Proposals
         }
 
         // The Book is waiting its turn, and its sheet has to say so from this
-        // moment and not once the answer arrives.
-        $book->generationQueued();
+        // moment and not once the answer arrives. It also records which AiModel
+        // it is waiting for, which is the one it was queued with and not the one
+        // that happens to be chosen when somebody reads the sheet (BIB-46).
+        $book->generationQueued($chosen->provider, $chosen->name);
 
         ProposeForBook::dispatch($book, $chosen->provider, $chosen->name, $target);
 
@@ -77,6 +83,87 @@ final class Proposals
             ->prompt($this->promptFor($book, $withDescription), provider: $provider, model: $aiModel);
 
         $this->store($book, $response, $target);
+
+        if ($target->includesDescriptions()) {
+            $this->translate($book, $provider, $aiModel);
+        }
+    }
+
+    /**
+     * Puts the Description of the catalogue into Spanish, when it is not in
+     * Spanish already (BIB-45).
+     *
+     * It is a second request and it is asked for after the first, not instead
+     * of it, because what makes a translation sound like the trade are the
+     * Categories of the Book — and on a Book that has just been registered they
+     * did not exist a moment ago. Asking in this order means the translation
+     * reads the ones the same run just wrote.
+     *
+     * Nothing is asked for when the Description already reads as Spanish: that
+     * is what the language of the text is stored for, and the request that does
+     * not happen is the one that neither costs quota nor risks coming back
+     * different from what the catalogue said.
+     */
+    private function translate(Book $book, string $provider, string $aiModel): void
+    {
+        $book->refresh();
+
+        if (! $book->descriptionAwaitsTranslation()) {
+            return;
+        }
+
+        $original = $book->descriptionToTranslate();
+
+        if ($original === null) {
+            return;
+        }
+
+        $response = (new TranslationAgent)
+            ->prompt($this->translationPromptFor($book, $original), provider: $provider, model: $aiModel);
+
+        $translation = Translation::from($response);
+
+        if (! $translation instanceof Translation) {
+            throw UnusableAnswer::for($book, (string) $response);
+        }
+
+        // Asked again, with the answer already in hand: in between, somebody
+        // may have written the Description by hand, and mine is never
+        // overwritten (ADR-007). What gets written is that reading of the Book
+        // and not the one from before the request.
+        $current = $book->fresh();
+
+        if (! $current instanceof Book || ! $current->descriptionAwaitsTranslation()) {
+            return;
+        }
+
+        $current->writeTranslatedDescription($translation->description, $translation->provider, $translation->aiModel);
+    }
+
+    /**
+     * What is asked to translate one Description: the text, and what the Book
+     * is about so that the words come out in the vocabulary of the trade.
+     */
+    private function translationPromptFor(Book $book, string $original): string
+    {
+        $lines = ['Title: '.$book->title];
+
+        if ($book->authors !== []) {
+            $lines[] = 'Authors: '.implode(', ', $book->authors);
+        }
+
+        /** @var list<string> $subjects */
+        $subjects = $book->categories->pluck('name')->all();
+
+        $lines[] = $subjects === []
+            ? 'No subjects are recorded for this book, so translate it in plain, unmarked Spanish.'
+            : 'Subjects of the book, use the vocabulary of these fields: '.implode(', ', $subjects);
+
+        $lines[] = '';
+        $lines[] = 'Description to translate:';
+        $lines[] = $original;
+
+        return implode(PHP_EOL, $lines);
     }
 
     /**
@@ -96,8 +183,14 @@ final class Proposals
 
         DB::transaction(function () use ($book, $proposal, $target): void {
             // The answer arrived: the Book is no longer waiting its turn,
-            // whichever half of it was asked for (BIB-22).
-            $attributes = ['generation_queued_at' => null];
+            // whichever half of it was asked for (BIB-22). The pair it was
+            // waiting for goes with the wait: from here on what was asked of
+            // whom is written on the Categories and on the Description.
+            $attributes = [
+                'generation_queued_at' => null,
+                'generation_provider' => null,
+                'generation_ai_model' => null,
+            ];
 
             // A regeneration of Descriptions alone leaves the Categories where
             // they were. The answer carries them anyway —the agent always

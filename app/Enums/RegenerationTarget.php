@@ -64,6 +64,20 @@ enum RegenerationTarget: string
     }
 
     /**
+     * The same clause when what is going to happen to the Description is a
+     * translation and not a rewrite (BIB-45). What the Source brought stays
+     * what the Source said; what changes is the language.
+     */
+    public function translatedOnOneBook(): string
+    {
+        return match ($this) {
+            self::Categories => 'sus categorías se van a escribir otra vez',
+            self::Descriptions => 'su descripción se va a traducir al español',
+            self::Both => 'sus categorías se van a escribir otra vez y su descripción se va a traducir al español',
+        };
+    }
+
+    /**
      * How the running regeneration says what it is asking for, in a sentence
      * that goes after «Se están pidiendo».
      */

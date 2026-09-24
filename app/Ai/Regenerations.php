@@ -34,6 +34,9 @@ final class Regenerations
             $target->includesDescriptions()
                 ? Book::query()->descriptionKept()->count()
                 : 0,
+            $target->includesDescriptions()
+                ? $this->books($target, $onlyPrevious)->descriptionAwaitingTranslation()->count()
+                : 0,
         );
     }
 
@@ -164,6 +167,8 @@ final class Regenerations
                 'generation_queued_at' => now(),
                 'generation_failed_at' => null,
                 'generation_failure' => null,
+                'generation_provider' => $chosen->provider,
+                'generation_ai_model' => $chosen->name,
             ]);
 
         $batch = Bus::batch(array_map(

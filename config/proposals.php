@@ -38,4 +38,23 @@ return [
 
     'give_up_after' => env('AI_GIVE_UP_AFTER', 6),
 
+    /*
+    |--------------------------------------------------------------------------
+    | How long the mark of the queue is believed
+    |--------------------------------------------------------------------------
+    |
+    | A Book is marked as waiting its turn when its request is queued, and the
+    | mark is cleared when the answer arrives or when the job gives up. A worker
+    | that is killed, a flushed queue or a deploy in the middle clears nothing,
+    | and the mark is left claiming a wait that ended hours ago (BIB-46).
+    |
+    | Past this many hours the mark is not believed any more: the job cannot
+    | still be alive, because `give_up_after` is its own cap. It is set to twice
+    | that cap so that the queue has as long again to reach a Book at the back
+    | of two hundred before its wait stops being read as one.
+    |
+    */
+
+    'queue_mark_lasts' => env('AI_QUEUE_MARK_LASTS', 12),
+
 ];

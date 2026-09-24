@@ -157,6 +157,11 @@ final class Workload
      */
     private static function countBooks(): array
     {
+        // A mark of the queue older than the cap is not a wait any more but a
+        // request that did not get through, and each of the two counters has to
+        // read it the way the sheet does (BIB-46).
+        $expires = Book::queueMarkExpiresBefore();
+
         $row = Book::query()->toBase()->selectRaw(<<<'SQL'
             count(*) as total,
             sum(case when status = ? then 1 else 0 end) as owned,
@@ -164,8 +169,8 @@ final class Workload
             sum(case when status = ? and is_read = 0 then 1 else 0 end) as unread,
             sum(case when status = ? and is_read = 1 then 1 else 0 end) as finished,
             sum(case when cover_origin = ? then 1 else 0 end) as cover_generated,
-            sum(case when generation_queued_at is not null then 1 else 0 end) as generation_queued,
-            sum(case when generation_failed_at is not null then 1 else 0 end) as generation_failed,
+            sum(case when generation_queued_at is not null and generation_queued_at >= ? then 1 else 0 end) as generation_queued,
+            sum(case when generation_failed_at is not null or generation_queued_at < ? then 1 else 0 end) as generation_failed,
             sum(case when not exists (
                 select 1 from quotes where quotes.book_id = books.id
             ) then 1 else 0 end) as without_quotes
@@ -175,6 +180,8 @@ final class Workload
             Status::Owned->value,
             Status::Owned->value,
             CoverOrigin::Generated->value,
+            $expires,
+            $expires,
         ])->first();
 
         if ($row === null) {

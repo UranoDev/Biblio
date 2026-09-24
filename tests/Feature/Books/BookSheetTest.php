@@ -198,6 +198,57 @@ it('al editar la Description queda como mía', function () {
         ->and($book->acceptsAiDescription())->toBeFalse();
 });
 
+// La Description en otro idioma, y su traducción (BIB-45).
+
+/**
+ * El texto viejo decía «Ninguna regeneración la toca» de toda Description de la
+ * Fuente, y eso dejó de ser cierto: la que vino en otro idioma sí se toca.
+ */
+it('distingue la Description de la Fuente que se queda de la que se va a traducir', function () {
+    AiSetting::choose('gemini', 'gemini-2.5-flash');
+
+    $spanish = Book::factory()->descriptionFromSource()->create([
+        'description' => 'La historia de Comala, contada por sus muertos, en una novela breve.',
+    ]);
+    $english = Book::factory()->descriptionInAnotherLanguage()->create();
+
+    sheetOf($spanish)
+        ->assertSee('La trajo Open Library. Ninguna regeneración la toca.');
+
+    sheetOf($english)
+        ->assertSee('en otro idioma')
+        ->assertSee('gemini-2.5-flash')
+        ->assertDontSee('Ninguna regeneración la toca');
+});
+
+it('sin modelo elegido dice que falta elegirlo para traducirla', function () {
+    $book = Book::factory()->descriptionInAnotherLanguage()->create();
+
+    sheetOf($book)
+        ->assertSee('Falta elegir el modelo para traducirla')
+        ->assertDontSee('Ninguna regeneración la toca');
+});
+
+it('dice quién tradujo la Description, y que se vuelve a traducir desde el original', function () {
+    $book = Book::factory()->descriptionTranslated('gemini', 'gemini-3.1-flash-lite')->create();
+
+    sheetOf($book)
+        ->assertSee('la tradujo gemini-3.1-flash-lite')
+        ->assertSee('siempre desde el original');
+});
+
+it('enseña el texto original de una Description traducida', function () {
+    $book = Book::factory()->descriptionTranslated()->create();
+
+    sheetOf($book)->assertSee((string) $book->description_original);
+});
+
+it('no enseña ningún original cuando no hay traducción', function () {
+    $book = Book::factory()->descriptionFromSource()->create();
+
+    sheetOf($book)->assertDontSee('Ver el texto original');
+});
+
 it('borrar la Description la deja sin Origin', function () {
     $book = Book::factory()->descriptionFromOwner()->create();
 
@@ -411,20 +462,38 @@ it('dice con qué AiModel se generaron las Categories', function () {
     sheetOf($book)->assertSee('gemini-2.5-flash');
 });
 
-it('dice que las Categories están en la cola cuando hay AiModel elegido', function () {
+it('dice que las Categories están en la cola, y nombra el AiModel con el que se encolaron', function () {
+    // Otro modelo es el elegido ahora: lo que la ficha nombra es el que viaja
+    // con la petición, no el de hoy (BIB-46).
+    AiSetting::choose('gemini', 'gemini-2.5-flash');
+
+    $book = Book::factory()->generationQueued('deepseek', 'deepseek-v4-flash')
+        ->create(['categories_ai_model' => null, 'categories_provider' => null]);
+
+    sheetOf($book)
+        ->assertSet('categoriesStatus', GenerationStatus::Pending)
+        // El modelo elegido hoy sí aparece en el botón de regenerar, que es lo
+        // que se le va a pedir ahora; lo que no aparece es en la frase del
+        // estado, que habla de la petición que ya está en la cola.
+        ->assertSee('Están en la cola de deepseek-v4-flash');
+});
+
+it('el Book que nunca se le pidió a la IA no dice que está en la cola', function () {
     AiSetting::choose('gemini', 'gemini-2.5-flash');
 
     $book = Book::factory()->create(['categories_ai_model' => null, 'categories_provider' => null]);
 
     sheetOf($book)
-        ->assertSet('categoriesStatus', GenerationStatus::Pending)
-        ->assertSee('Están en la cola');
+        ->assertSet('categoriesStatus', GenerationStatus::NotAsked)
+        ->assertSee('Todavía no se le han pedido a la IA')
+        ->assertDontSee('Están en la cola');
 });
 
 it('distingue al Book que espera turno del que falló', function () {
     AiSetting::choose('gemini', 'gemini-2.5-flash');
 
-    $waiting = Book::factory()->create(['categories_ai_model' => null, 'categories_provider' => null]);
+    $waiting = Book::factory()->generationQueued()
+        ->create(['categories_ai_model' => null, 'categories_provider' => null]);
     $failed = Book::factory()->generationFailed('gemini-3.6-flash is currently experiencing high demand')
         ->create(['categories_ai_model' => null, 'categories_provider' => null]);
 

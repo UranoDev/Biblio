@@ -165,6 +165,40 @@ it('dice que no la toca, y no encola nada, cuando se pide sólo esa Description'
     Queue::assertNothingPushed();
 });
 
+/**
+ * La Description que la Fuente trajo en otro idioma sí se pide, y lo que se
+ * dice de ella es lo otro: se traduce, no se reescribe (BIB-45).
+ */
+it('encola la Description que vino en otro idioma y dice que se va a traducir', function () {
+    Queue::fake();
+    AiSetting::choose('gemini', 'gemini-2.5-flash');
+
+    $book = Book::factory()->descriptionInAnotherLanguage()->create(['title' => 'Code complete']);
+
+    theSheetOf($book)
+        ->call('regenerate', $book->getKey(), 'descriptions')
+        ->assertSee('se va a traducir al español')
+        ->assertDontSee('no la escribió la IA');
+
+    Queue::assertPushed(ProposeForBook::class, 1);
+});
+
+it('pidiendo las dos de un Book en otro idioma, no avisa que la Description se queda', function () {
+    Queue::fake();
+    AiSetting::choose('gemini', 'gemini-2.5-flash');
+
+    $book = Book::factory()->descriptionInAnotherLanguage()->create();
+
+    theSheetOf($book)
+        ->call('regenerate', $book->getKey(), 'both')
+        ->assertSee('su descripción se va a traducir al español')
+        ->assertDontSee('se queda como está');
+
+    Queue::assertPushed(
+        fn (ProposeForBook $job): bool => $job->target === RegenerationTarget::Both
+    );
+});
+
 it('pidiendo las dos, encola las Categories y avisa que la Description se queda', function () {
     Queue::fake();
     AiSetting::choose('gemini', 'gemini-2.5-flash');

@@ -96,11 +96,18 @@ new #[Title('Ficha del Libro')] class extends Component
         $this->fillFromBook();
     }
 
-    /** Which of the four situations the Categories of this Book are in. */
+    /** Which of the situations the Categories of this Book are in. */
     #[Computed]
     public function categoriesStatus(): GenerationStatus
     {
         return $this->book->categoriesStatus();
+    }
+
+    /** And the same about its Description, which is the other half the AI writes. */
+    #[Computed]
+    public function descriptionStatus(): GenerationStatus
+    {
+        return $this->book->descriptionStatus();
     }
 
     public function addAuthor(): void
@@ -340,6 +347,19 @@ new #[Title('Ficha del Libro')] class extends Component
         $this->regenerate((int) $this->book->getKey(), RegenerationTarget::Categories->value);
     }
 
+    /**
+     * The same, for the Description alone: the section that says the request
+     * failed is the section that asks for it again (BIB-46).
+     *
+     * Reaching for it in the Categories section several blocks down is what made
+     * a Book announce a problem and send whoever read it to look for the way out
+     * somewhere else.
+     */
+    public function regenerateDescription(): void
+    {
+        $this->regenerate((int) $this->book->getKey(), RegenerationTarget::Descriptions->value);
+    }
+
     /** The sheet asks about its own Book and about no other. */
     protected function bookToRegenerate(int $id): ?Book
     {
@@ -482,7 +502,7 @@ new #[Title('Ficha del Libro')] class extends Component
         $this->status = $this->book->status->value;
         $this->isHidden = $this->book->is_hidden;
 
-        unset($this->categoriesStatus);
+        unset($this->categoriesStatus, $this->descriptionStatus);
     }
 
     /**
@@ -657,20 +677,69 @@ new #[Title('Ficha del Libro')] class extends Component
 
             <flux:text data-test="description-origin">
                 @if (! $book->hasDescription())
-                    @if ($this->aiModel)
-                        Ninguna Fuente trajo descripción. Está en la cola de {{ $this->aiModel->name }}.
-                    @else
-                        Ninguna Fuente trajo descripción, y falta elegir el modelo para que la IA la escriba.
-                    @endif
+                    Ninguna Fuente trajo descripción.
+                    <x-generation-state :book="$book" :status="$this->descriptionStatus" what="escribirla" />
                 @elseif ($book->description_origin === \App\Enums\Origin::Owner)
                     La escribiste tú. Ninguna regeneración la toca.
                 @elseif ($book->description_origin === \App\Enums\Origin::Source)
-                    La trajo {{ $book->source?->label() ?? 'la Fuente' }}. Ninguna regeneración la toca.
+                    @if ($book->descriptionAwaitsTranslation())
+                        La trajo {{ $book->source?->label() ?? 'la Fuente' }}, en otro idioma, y se conserva el original.
+                        <x-generation-state :book="$book" :status="$this->descriptionStatus" what="traducirla" />
+                    @else
+                        La trajo {{ $book->source?->label() ?? 'la Fuente' }}. Ninguna regeneración la toca.
+                    @endif
                 @elseif ($book->description_origin === \App\Enums\Origin::Ai)
                     La escribió {{ $book->description_ai_model }}. Una regeneración la reescribe.
+                    <x-generation-state :book="$book" :status="$this->descriptionStatus" what="escribirla otra vez" />
+                @elseif ($book->description_origin === \App\Enums\Origin::Translated)
+                    La trajo {{ $book->source?->label() ?? 'la Fuente' }} en otro idioma y la tradujo {{ $book->description_ai_model }}. Una regeneración la vuelve a traducir, siempre desde el original.
+                    <x-generation-state :book="$book" :status="$this->descriptionStatus" what="traducirla otra vez" />
                 @endif
             </flux:text>
         </div>
+
+        {{--
+            Where the problem is announced, the way out is offered (BIB-46). A
+            Description the queue gave up on, or that nobody ever asked for, is
+            asked for again from here and not from the Categories section several
+            blocks down, which is where the only button used to be.
+        --}}
+        @if (in_array($this->descriptionStatus, [GenerationStatus::Failed, GenerationStatus::NotAsked], true))
+            <flux:button
+                size="sm"
+                variant="subtle"
+                icon="arrow-path"
+                class="self-start"
+                wire:click="regenerateDescription"
+                data-test="regenerate-description"
+            >
+                Volver a pedir la descripción
+            </flux:button>
+        @elseif ($this->descriptionStatus === GenerationStatus::Off)
+            <flux:button
+                size="sm"
+                variant="subtle"
+                icon="sparkles"
+                class="self-start"
+                :href="route('ai-model.edit')"
+                wire:navigate
+                data-test="description-choose-ai-model"
+            >
+                Elegir el modelo
+            </flux:button>
+        @endif
+
+        {{-- El original, cuando lo hay: es la única forma de juzgar si la
+             traducción está bien, y cuesta poco enseñarlo (BIB-45). --}}
+        @if ($book->description_original !== null)
+            <details class="flex flex-col gap-2" data-test="description-original">
+                <summary class="cursor-pointer text-sm text-zinc-500 dark:text-zinc-400">
+                    Ver el texto original
+                </summary>
+
+                <flux:text class="mt-2 whitespace-pre-line">{{ $book->description_original }}</flux:text>
+            </details>
+        @endif
 
         <form wire:submit="saveDescription" class="flex flex-col gap-3">
             <flux:textarea
@@ -699,16 +768,16 @@ new #[Title('Ficha del Libro')] class extends Component
                         Las escribió {{ $book->categories_ai_model }}, del proveedor {{ $book->categories_provider }}.
                         @break
                     @case(\App\Enums\GenerationStatus::Pending)
-                        Están en la cola de {{ $this->aiModel?->name }}.
+                        Están en la cola de {{ $book->generation_ai_model ?? $this->aiModel?->name }}.
                         @break
                     @case(\App\Enums\GenerationStatus::Failed)
-                        La IA dejó de intentar con este Libro.
-                        @if ($book->generation_failure !== null)
-                            Lo último que contestó el proveedor: «{{ $book->generation_failure }}».
-                        @endif
+                        <x-generation-state :book="$book" :status="$this->categoriesStatus" what="proponerlas" />
                         @if ($book->categories_ai_model !== null && $book->categories->isNotEmpty())
                             Las que se ven las escribió {{ $book->categories_ai_model }}.
                         @endif
+                        @break
+                    @case(\App\Enums\GenerationStatus::NotAsked)
+                        Todavía no se le han pedido a la IA.
                         @break
                     @case(\App\Enums\GenerationStatus::Off)
                         Falta elegir el modelo para que la IA las proponga.

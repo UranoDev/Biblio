@@ -16,12 +16,14 @@ final readonly class RegenerationPlan
     /**
      * @param  int  $books  how many Books the run would ask the AI about
      * @param  int  $kept  how many Descriptions it would leave untouched because of their Origin
+     * @param  int  $translated  how many of them it would translate instead of rewrite (BIB-45)
      */
     public function __construct(
         public RegenerationTarget $target,
         public bool $onlyPrevious,
         public int $books,
         public int $kept,
+        public int $translated = 0,
     ) {}
 
     /** Whether there is anything to ask for. */

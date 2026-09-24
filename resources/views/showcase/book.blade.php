@@ -77,6 +77,17 @@
                              trama, y quien lo lee tiene que saber que no es la
                              contraportada (ADR-007). --}}
                         <x-ai-badge label="Descripción generada por IA" text="IA" data-test="description-by-ai" class="align-middle" />
+                    @elseif ($book->description_origin === Origin::Translated)
+                        {{-- La otra marca, y dice otra cosa: el contenido es el del
+                             catálogo y el español lo escribió una máquina. Una
+                             traducción puede errarle al matiz, no al hecho, y quien
+                             lee debería poder notar la diferencia (BIB-45). --}}
+                        <x-ai-badge
+                            label="Descripción del catálogo, traducida al español por una IA"
+                            text="Traducción de IA"
+                            data-test="description-translated"
+                            class="align-middle"
+                        />
                     @endif</p>
             </section>
         @endif

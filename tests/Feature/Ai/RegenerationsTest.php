@@ -2,6 +2,7 @@
 
 use App\Ai\BookAgent;
 use App\Ai\Regenerations;
+use App\Ai\TranslationAgent;
 use App\Enums\Origin;
 use App\Enums\RegenerationTarget;
 use App\Jobs\ProposeForBook;
@@ -193,6 +194,86 @@ it('no cuenta Descriptions fuera cuando sólo se regeneran las Categories', func
     Book::factory()->descriptionFromSource()->create();
 
     expect(regenerations()->plan(RegenerationTarget::Categories, onlyPrevious: false)->kept)->toBe(0);
+});
+
+// Las Descriptions en otro idioma, que la corrida sí alcanza (BIB-45).
+
+/**
+ * La que vino de la Fuente en otro idioma no se cuenta como una que se queda:
+ * es justo la que la corrida va a tocar.
+ */
+it('no cuenta como Description que se queda la que la Fuente trajo en otro idioma', function () {
+    Book::factory()->descriptionInAnotherLanguage()->create();
+    Book::factory()->descriptionFromOwner()->create();
+    Book::factory()->descriptionFromSource()->create([
+        'description' => 'La historia de Comala, contada por sus muertos, en una novela breve.',
+    ]);
+
+    $plan = regenerations()->plan(RegenerationTarget::Both, onlyPrevious: false);
+
+    expect($plan->kept)->toBe(2)
+        ->and($plan->translated)->toBe(1);
+});
+
+it('una corrida de sólo descripciones alcanza la que vino en otro idioma', function () {
+    Queue::fake();
+
+    $english = Book::factory()->descriptionInAnotherLanguage()->create();
+    $spanish = Book::factory()->descriptionFromSource()->create([
+        'description' => 'La historia de Comala, contada por sus muertos, en una novela breve.',
+    ]);
+    $mine = Book::factory()->descriptionFromOwner()->create();
+
+    $plan = regenerations()->plan(RegenerationTarget::Descriptions, onlyPrevious: false);
+
+    expect($plan->books)->toBe(1)
+        ->and($plan->translated)->toBe(1);
+
+    regenerations()->start(RegenerationTarget::Descriptions, onlyPrevious: false);
+
+    Queue::assertPushed(ProposeForBook::class, 1);
+    Queue::assertPushed(
+        fn (ProposeForBook $job): bool => (int) $job->book->getKey() === (int) $english->getKey()
+    );
+
+    expect($spanish->fresh()->generation_queued_at)->toBeNull()
+        ->and($mine->fresh()->generation_queued_at)->toBeNull();
+});
+
+it('una corrida de sólo descripciones vuelve a traducir la ya traducida', function () {
+    Queue::fake();
+
+    Book::factory()->descriptionTranslated()->create();
+
+    expect(regenerations()->plan(RegenerationTarget::Descriptions, onlyPrevious: false)->books)->toBe(1);
+
+    regenerations()->start(RegenerationTarget::Descriptions, onlyPrevious: false);
+
+    Queue::assertPushed(ProposeForBook::class, 1);
+});
+
+/**
+ * Los tres Books que hoy están en inglés en producción: al correr la
+ * regeneración quedan en español, con su original guardado.
+ */
+it('deja en español las Descriptions que hoy están en otro idioma', function () {
+    BookAgent::fake(fn (): array => ['categories' => ['Programación']]);
+    TranslationAgent::fake(fn (): array => ['description' => 'La traducción al español.']);
+
+    $english = Book::factory()->count(3)->descriptionInAnotherLanguage()->create();
+    $spanish = Book::factory()->descriptionFromSource()->create([
+        'description' => 'La historia de Comala, contada por sus muertos, en una novela breve.',
+    ]);
+
+    regenerations()->start(RegenerationTarget::Descriptions, onlyPrevious: false);
+
+    foreach ($english as $book) {
+        expect($book->fresh()->description)->toBe('La traducción al español.')
+            ->and($book->fresh()->description_origin)->toBe(Origin::Translated)
+            ->and($book->fresh()->description_original)->not->toBeNull();
+    }
+
+    expect($spanish->fresh()->description_origin)->toBe(Origin::Source);
 });
 
 // El avance, que se lee de la cola y no del navegador.

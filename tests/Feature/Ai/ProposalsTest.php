@@ -180,16 +180,21 @@ it('se puede volver a encolar después de una respuesta inservible', function ()
     expect($book->fresh()->categories->pluck('name')->all())->toBe(['Novela mexicana']);
 });
 
-it('distingue el Book generado, el que está en la cola y el que espera un AiModel', function () {
+it('distingue el Book generado, el que está en la cola, el que nunca se le pidió y el que espera un AiModel', function () {
     $generated = Book::factory()->categoriesGenerated()->create();
-    $pending = Book::factory()->create();
+    $queued = Book::factory()->generationQueued()->create();
+    $neverAsked = Book::factory()->create();
 
     expect($generated->categoriesStatus())->toBe(GenerationStatus::Generated)
-        ->and($pending->categoriesStatus())->toBe(GenerationStatus::Pending);
+        ->and($queued->categoriesStatus())->toBe(GenerationStatus::Pending)
+        // Nada se ha encolado para este Book, así que no está esperando nada:
+        // haberlo dado por encolado porque hay modelo elegido es lo que dejaba
+        // a un Libro anunciando una cola que nadie había empezado (BIB-46).
+        ->and($neverAsked->categoriesStatus())->toBe(GenerationStatus::NotAsked);
 
     AiSetting::query()->delete();
 
-    expect($pending->fresh()->categoriesStatus())->toBe(GenerationStatus::Off)
+    expect($neverAsked->fresh()->categoriesStatus())->toBe(GenerationStatus::Off)
         ->and($generated->fresh()->categoriesStatus())->toBe(GenerationStatus::Generated);
 });
 

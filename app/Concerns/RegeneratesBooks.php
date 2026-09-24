@@ -124,10 +124,18 @@ trait RegeneratesBooks
      * on its own it is refused, and inside «both» it is left out of the
      * sentence, because promising in the present that it is going to be
      * rewritten is promising something ADR-007 forbids.
+     *
+     * The one from the Source in another language is the exception, and it is
+     * not an exception to that rule: it is not rewritten either, it is
+     * translated (BIB-45). So it is asked for, and the sentence says the other
+     * thing.
      */
     private function queueRegeneration(Book $book, RegenerationTarget $target): void
     {
-        $keepsDescription = $target->includesDescriptions() && ! $book->acceptsAiDescription();
+        $translates = $target->includesDescriptions() && $book->descriptionAwaitsTranslation();
+        $keepsDescription = $target->includesDescriptions()
+            && ! $translates
+            && ! $book->acceptsAiDescription();
 
         if ($keepsDescription && ! $target->includesCategories()) {
             $this->regenerationNotice = 'La descripción de «'.$book->title
@@ -145,7 +153,7 @@ trait RegeneratesBooks
         }
 
         $this->regenerationNotice = '«'.$book->title.'» volvió a la cola: '
-            .$reaches->queuedOnOneBook().'.'
+            .($translates ? $reaches->translatedOnOneBook() : $reaches->queuedOnOneBook()).'.'
             .($keepsDescription ? ' Su descripción se queda como está: no la escribió la IA.' : '');
 
         unset($this->aiModel);

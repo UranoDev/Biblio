@@ -58,6 +58,26 @@ it('dice cuántos Books va a tocar y cuántas Descriptions deja fuera', function
         ->assertSee('descripción se queda como está');
 });
 
+it('dice cuántas descripciones va a traducir en vez de escribir', function () {
+    Book::factory()->count(2)->descriptionInAnotherLanguage()->create();
+    Book::factory()->withoutDescription()->create();
+
+    $screen = regenerateScreen()->set('onlyPrevious', false);
+
+    expect($screen->get('plan')->translated)->toBe(2);
+
+    $screen->assertSee('2 descripciones no se van a escribir de nuevo')
+        ->assertSee('se van a traducir al español');
+});
+
+it('no habla de traducciones cuando no hay ninguna que traducir', function () {
+    Book::factory()->count(2)->withoutDescription()->create();
+
+    regenerateScreen()
+        ->set('onlyPrevious', false)
+        ->assertDontSee('se van a traducir al español');
+});
+
 it('vuelve a contar al cambiar la selección', function () {
     Book::factory()->descriptionFromAi('gemini', 'gemini-2.5-flash')->create();
     Book::factory()->descriptionFromAi('gemini', 'gemini-3.6-flash')->create();

@@ -120,8 +120,13 @@ class ProposeForBook implements ShouldQueue
             return;
         }
 
+        // The provider and the AiModel are the ones this job travelled with
+        // and not the ones chosen by now: hours may have gone by, and the
+        // sheet has to name the provider that actually refused (BIB-46).
         $this->book->generationFailed(
-            $failure instanceof Throwable ? $failure->getMessage() : 'The queue gave up on it.'
+            $failure instanceof Throwable ? $failure->getMessage() : 'The queue gave up on it.',
+            $this->provider,
+            $this->aiModel,
         );
     }
 

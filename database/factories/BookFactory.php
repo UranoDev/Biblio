@@ -127,6 +127,36 @@ class BookFactory extends Factory
     }
 
     /**
+     * With the Description the Source brought, in a language that is not
+     * Spanish: the one BIB-45 translates.
+     */
+    public function descriptionInAnotherLanguage(?string $text = null): static
+    {
+        return $this->state(fn (array $attributes) => [
+            'description' => $text ?? 'A practical handbook about the craft of writing software, and about what the people who do it have learned from one another over the years.',
+            'description_origin' => Origin::Source,
+            'description_original' => null,
+            'description_provider' => null,
+            'description_ai_model' => null,
+        ]);
+    }
+
+    /**
+     * With the Description of the Source already translated, and with the
+     * original kept beside it (BIB-45).
+     */
+    public function descriptionTranslated(string $provider = 'gemini', string $model = 'gemini-2.5-flash'): static
+    {
+        return $this->state(fn (array $attributes) => [
+            'description' => 'Un manual práctico sobre el oficio de escribir software, y sobre lo que quienes lo ejercen han aprendido unos de otros con los años.',
+            'description_original' => 'A practical handbook about the craft of writing software, and about what the people who do it have learned from one another over the years.',
+            'description_origin' => Origin::Translated,
+            'description_provider' => $provider,
+            'description_ai_model' => $model,
+        ]);
+    }
+
+    /**
      * With the Description the AI wrote, and with which AiModel it wrote it.
      */
     public function descriptionFromAi(string $provider = 'gemini', string $model = 'gemini-2.5-flash'): static
@@ -181,12 +211,26 @@ class BookFactory extends Factory
      * Waiting its turn in the queue: the button was pressed and the answer has
      * not arrived (BIB-22).
      */
-    public function generationQueued(): static
+    public function generationQueued(string $provider = 'gemini', string $aiModel = 'gemini-2.5-flash'): static
     {
         return $this->state(fn (array $attributes) => [
             'generation_queued_at' => now(),
             'generation_failed_at' => null,
             'generation_failure' => null,
+            'generation_provider' => $provider,
+            'generation_ai_model' => $aiModel,
+        ]);
+    }
+
+    /**
+     * Marked as waiting its turn for longer than a job can live: the worker was
+     * killed, the queue was flushed, a deploy landed in the middle, and nothing
+     * ever cleared the mark (BIB-46).
+     */
+    public function generationAbandoned(string $provider = 'gemini', string $aiModel = 'gemini-3.6-flash'): static
+    {
+        return $this->generationQueued($provider, $aiModel)->state(fn (array $attributes) => [
+            'generation_queued_at' => Book::queueMarkExpiresBefore()->subHour(),
         ]);
     }
 
@@ -205,11 +249,17 @@ class BookFactory extends Factory
      * With the generation given up on: the queue tried for hours and the
      * provider never got through (BIB-33).
      */
-    public function generationFailed(string $reason = 'AI provider [gemini] is overloaded.'): static
-    {
+    public function generationFailed(
+        string $reason = 'AI provider [gemini] is overloaded.',
+        ?string $provider = 'gemini',
+        ?string $aiModel = 'gemini-3.6-flash',
+    ): static {
         return $this->state(fn (array $attributes) => [
+            'generation_queued_at' => null,
             'generation_failed_at' => now(),
             'generation_failure' => $reason,
+            'generation_provider' => $provider,
+            'generation_ai_model' => $aiModel,
         ]);
     }
 

@@ -87,16 +87,19 @@ carátula, tapa
 
 **Description** · en la interfaz: «descripción»:
 El texto que cuenta de qué va el Book, como el de la contraportada. Puede venir de la
-Source, haberla escrito la IA o haberla escrito yo, y **siempre se guarda de cuál de las
-tres viene** (ver Origin).
+Source, haberla escrito la IA, haberla escrito yo, o ser la de la Source **traducida** al
+español por la IA, y **siempre se guarda de cuál de las cuatro viene** (ver Origin). La
+que vino de la Source en otro idioma guarda también su texto original.
 _Avoid_: Summary, Synopsis, Blurb; sinopsis, resumen (el resumen de lo que a mí me dejó
 es la Note), contraportada
 
 **Origin** · en la interfaz: no se nombra, se muestra:
 De dónde salió algo que puede venir de varias partes. La Description lo lleva —`source`,
-`ai` u `owner`— y el Cover también —`source`, `generated` u `owner`—. Es lo que permite
-que regenerar nunca pise lo que escribí yo ni lo que dijo el editor, y lo que convierte
-«los Covers generados» en la lista de lo que falta fotografiar.
+`ai`, `owner` o `translated`— y el Cover también —`source`, `generated` u `owner`—. Es lo
+que permite que regenerar nunca pise lo que escribí yo ni lo que dijo el editor, y lo que
+convierte «los Covers generados» en la lista de lo que falta fotografiar. `translated` no
+es un matiz de los otros tres: dice que el contenido es del catálogo y que el español lo
+escribió una máquina.
 _Avoid_: Provenance, Kind; procedencia como nombre de columna
 
 **Author** · en la interfaz: «autor»:
@@ -410,6 +413,13 @@ Las nueve primeras tienen ADR en `docs/adr/`, porque son las costosas de reverti
     `29` o `xiv` en un solo campo y se guarda como se escribió; al guardar se derivan dos
     columnas —si es preliminar y cuánto vale— y de ésas sale el orden, nunca de la
     etiqueta. Una preliminar va antes de la página 1, no entre la 13 y la 15.
+26. **La Description que la Source trajo en otro idioma se traduce, no se reescribe** —
+    BIB-45, ampliación del ADR-007. El idioma se decide contando palabras funcionales
+    antes de pedir nada, así que una que ya está en español no cuesta una llamada. La
+    traducción se le pide con las Categories del Book como vocabulario de la materia,
+    **el texto original se conserva**, y rehacerla parte siempre de ese original y nunca
+    de la traducción anterior. Su Origin es `translated`, que la Vitrina marca distinto
+    de la escrita por IA.
 
 Cuando aparezca una decisión que no se pueda tomar sobre la marcha, se abre otra vez una
 sección de lo que sigue abierto al final de este archivo, y la tarea que dependa de ella

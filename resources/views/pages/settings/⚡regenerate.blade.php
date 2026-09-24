@@ -220,6 +220,14 @@ new #[Title('Regenerar')] class extends Component
                                 : 'Se le va a pedir a la IA lo de '.$this->plan->books.' libros.' }}
                         </flux:text>
 
+                        @if ($this->plan->translated)
+                            <flux:text data-test="plan-translated">
+                                {{ $this->plan->translated === 1
+                                    ? 'De ellos, una descripción no se va a escribir de nuevo: viene de la fuente en otro idioma y se va a traducir al español.'
+                                    : 'De ellos, '.$this->plan->translated.' descripciones no se van a escribir de nuevo: vienen de la fuente en otro idioma y se van a traducir al español.' }}
+                            </flux:text>
+                        @endif
+
                         @if ($this->plan->kept)
                             <flux:text data-test="plan-kept">
                                 {{ $this->plan->kept === 1

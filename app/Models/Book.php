@@ -4,13 +4,16 @@ namespace App\Models;
 
 use App\Ai\AiModel;
 use App\Covers\GeneratedCover;
+use App\Descriptions\TextLanguage;
 use App\Enums\CoverOrigin;
 use App\Enums\CoverSize;
+use App\Enums\DescriptionLanguage;
 use App\Enums\GenerationStatus;
 use App\Enums\Origin;
 use App\Enums\ReadingStatus;
 use App\Enums\Source;
 use App\Enums\Status;
+use Carbon\CarbonInterface;
 use Database\Factories\BookFactory;
 use Illuminate\Database\Eloquent\Attributes\Scope;
 use Illuminate\Database\Eloquent\Builder;
@@ -35,6 +38,8 @@ use Illuminate\Support\Str;
  * @property string|null $edition
  * @property string|null $description
  * @property Origin|null $description_origin
+ * @property DescriptionLanguage|null $description_language
+ * @property string|null $description_original
  * @property Source|null $source
  * @property string|null $cover_path
  * @property string|null $cover_source_url
@@ -55,6 +60,8 @@ use Illuminate\Support\Str;
  * @property Carbon|null $generation_queued_at
  * @property Carbon|null $generation_failed_at
  * @property string|null $generation_failure
+ * @property string|null $generation_provider
+ * @property string|null $generation_ai_model
  * @property Carbon|null $created_at
  * @property Carbon|null $updated_at
  * @property-read Collection<int, Quote> $quotes
@@ -91,6 +98,7 @@ class Book extends Model
         return [
             'authors' => 'array',
             'description_origin' => Origin::class,
+            'description_language' => DescriptionLanguage::class,
             'cover_origin' => CoverOrigin::class,
             'source' => Source::class,
             'status' => Status::class,
@@ -117,6 +125,20 @@ class Book extends Model
      */
     protected static function booted(): void
     {
+        // Which language the Description is in is derived from the text on
+        // every write, whoever wrote it: the intake, a regeneration, the sheet
+        // (BIB-45). Deriving it here and not at each of those three places is
+        // what keeps the column from drifting away from the text it describes.
+        static::saving(function (Book $book): void {
+            if (! $book->isDirty('description')) {
+                return;
+            }
+
+            $book->description_language = $book->hasDescription()
+                ? TextLanguage::of($book->description)
+                : null;
+        });
+
         static::updated(function (Book $book): void {
             if (! $book->wasChanged(['title', 'authors', 'cover_path'])) {
                 return;
@@ -190,6 +212,71 @@ class Book extends Model
     }
 
     /**
+     * Whether the Description that is published has to be translated (BIB-45).
+     *
+     * The catalogues bring the description of an edition in the language it was
+     * published in, so ADR-007 —ask the AI only when no Source brought one—
+     * leaves a technical shelf half in English, with descriptions that are
+     * perfectly valid and that no regeneration was ever going to reach.
+     *
+     * Two cases, and only two. The one the Source brought that does not read as
+     * Spanish, which gets translated for the first time; and the one already
+     * translated, which gets translated again from the original that is kept
+     * beside it — that is what «a translation can be made again» means. Mine is
+     * never touched, in any language, and the one the AI wrote was asked for in
+     * Spanish to begin with.
+     */
+    public function descriptionAwaitsTranslation(): bool
+    {
+        if (! $this->hasDescription()) {
+            return false;
+        }
+
+        return match ($this->description_origin) {
+            Origin::Source => $this->description_language === DescriptionLanguage::Other,
+            Origin::Translated => $this->description_original !== null,
+            default => false,
+        };
+    }
+
+    /**
+     * The text a translation starts from: the original the Source brought when
+     * there is one, and the Description itself the first time round.
+     */
+    public function descriptionToTranslate(): ?string
+    {
+        $original = $this->description_original ?? $this->description;
+
+        return $original === null || trim($original) === '' ? null : $original;
+    }
+
+    /**
+     * The Description of the Source, in Spanish, with the original kept and
+     * with which AiModel translated it (BIB-45).
+     *
+     * The original is written once and never again: the second translation
+     * starts from the same text as the first, not from the Spanish of the
+     * previous run. Otherwise every regeneration would be a translation of a
+     * translation, and the catalogue would be further away each time.
+     */
+    public function writeTranslatedDescription(string $translation, string $provider, string $aiModel): void
+    {
+        $original = $this->descriptionToTranslate();
+
+        if ($original === null || trim($translation) === '') {
+            return;
+        }
+
+        $this->forceFill([
+            'description' => trim($translation),
+            'description_original' => $original,
+            'description_origin' => Origin::Translated,
+            'description_provider' => $provider,
+            'description_ai_model' => $aiModel,
+        ])->save();
+    }
+
+    /**
      * Which of the four situations the Categories of the Book are in (ADR-006).
      *
      * A Book without Categories is not one thing but three: one waiting its
@@ -203,16 +290,14 @@ class Book extends Model
      */
     public function categoriesStatus(): GenerationStatus
     {
-        if ($this->generation_failed_at !== null) {
-            return GenerationStatus::Failed;
-        }
-
         // Waiting its turn comes before what it already has: a Book whose
         // Categories were written months ago and that was queued again is in
         // the queue, and the sheet has to say so from the moment the button was
         // pressed and not once the answer arrives (BIB-22).
-        if ($this->generation_queued_at !== null) {
-            return GenerationStatus::Pending;
+        $attempt = $this->generationAttempt();
+
+        if ($attempt instanceof GenerationStatus) {
+            return $attempt;
         }
 
         if ($this->categories_ai_model !== null) {
@@ -220,14 +305,119 @@ class Book extends Model
         }
 
         return AiModel::chosen() instanceof AiModel
-            ? GenerationStatus::Pending
+            ? GenerationStatus::NotAsked
             : GenerationStatus::Off;
+    }
+
+    /**
+     * Which of the situations the Description of the Book is in, as far as the
+     * AI is concerned (ADR-007).
+     *
+     * `Generated` here means there is nothing the AI owes: the Description that
+     * is published stays, whether the AI wrote it, the Source brought it in
+     * Spanish or I wrote it myself. The other four are a Description that is
+     * missing or waiting for its translation, and they are the ones the sheet
+     * has to tell apart — a wait, a failure, a request nobody ever made, and
+     * generation being off.
+     */
+    public function descriptionStatus(): GenerationStatus
+    {
+        // Mine, and the one the Source brought in Spanish: no regeneration
+        // touches them (ADR-007), so nothing the AI did or failed to do says
+        // anything about this Description. A request that failed on its way to
+        // the Categories is the Categories' business and not this section's.
+        if ($this->hasDescription() && ! $this->acceptsAiDescription() && ! $this->descriptionAwaitsTranslation()) {
+            return GenerationStatus::Generated;
+        }
+
+        $attempt = $this->generationAttempt();
+
+        if ($attempt instanceof GenerationStatus) {
+            return $attempt;
+        }
+
+        // What is still owed: a Description that does not exist, and the one the
+        // Source brought in another language and that has never been translated.
+        // The one already translated is not owed anything: it can be translated
+        // again, which is what a regeneration does, but it is not waiting.
+        $owed = ! $this->hasDescription()
+            || ($this->description_origin === Origin::Source && $this->descriptionAwaitsTranslation());
+
+        if (! $owed) {
+            return GenerationStatus::Generated;
+        }
+
+        return AiModel::chosen() instanceof AiModel
+            ? GenerationStatus::NotAsked
+            : GenerationStatus::Off;
+    }
+
+    /**
+     * What the last request to the AI for this Book came to, or null when there
+     * is no request to speak of: it got through, or none was ever made.
+     *
+     * The failure comes first, even over Categories written earlier: what it
+     * describes is the last thing that happened with the AI for this Book, and
+     * that is a regeneration that did not get through.
+     *
+     * A mark of the queue that nobody cleared counts as a failure and not as a
+     * wait (BIB-46). The job it stands for cannot still be alive —its own cap
+     * is `proposals.give_up_after`— so what is left is a Book announcing a wait
+     * that ended hours ago, which sends whoever reads it to wait instead of to
+     * press the button again.
+     */
+    public function generationAttempt(): ?GenerationStatus
+    {
+        if ($this->generation_failed_at !== null) {
+            return GenerationStatus::Failed;
+        }
+
+        if ($this->generation_queued_at === null) {
+            return null;
+        }
+
+        return $this->generation_queued_at->lessThan(self::queueMarkExpiresBefore())
+            ? GenerationStatus::Failed
+            : GenerationStatus::Pending;
     }
 
     /** Whether the Book is in the queue waiting for what the AI writes for it. */
     public function isGenerationQueued(): bool
     {
-        return $this->generation_queued_at !== null;
+        return $this->generationAttempt() === GenerationStatus::Pending;
+    }
+
+    /**
+     * Whether the queue went quiet on this Book: it was marked as waiting and
+     * nothing ever came back, neither an answer nor a failure (BIB-46).
+     *
+     * It is the one failure with no message from the provider, so the sheet
+     * says something else about it: what there is to show is the moment it was
+     * queued and the AiModel it was queued with, and there is nothing to quote.
+     */
+    public function generationWasAbandoned(): bool
+    {
+        return $this->generation_failed_at === null
+            && $this->generationAttempt() === GenerationStatus::Failed;
+    }
+
+    /** When the failure —or the abandoned wait— happened. */
+    public function generationFailedAt(): ?CarbonInterface
+    {
+        if ($this->generation_failed_at !== null) {
+            return $this->generation_failed_at;
+        }
+
+        return $this->generationWasAbandoned() ? $this->generation_queued_at : null;
+    }
+
+    /**
+     * The moment a mark of the queue stops being believed. Anything older than
+     * this was written by a job that is gone.
+     */
+    public static function queueMarkExpiresBefore(): CarbonInterface
+    {
+        return now()->subHours((int) config('proposals.queue_mark_lasts', 12));
     }
 
     /**
@@ -259,12 +449,17 @@ class Book extends Model
      * arrives, because between the two there are two hundred Books ahead of it
      * and the screen cannot stay silent for that long (BIB-22).
      */
-    public function generationQueued(): void
+    public function generationQueued(?string $provider = null, ?string $aiModel = null): void
     {
         $this->forceFill([
             'generation_queued_at' => now(),
             'generation_failed_at' => null,
             'generation_failure' => null,
+            // The pair the request travels with, so that a screen looking at
+            // this Book later names the AiModel it was actually asked of and
+            // not whichever one happens to be chosen by then (BIB-46).
+            'generation_provider' => $provider,
+            'generation_ai_model' => $aiModel,
         ])->save();
     }
 
@@ -272,13 +467,19 @@ class Book extends Model
      * The queue gave up on what the AI writes for this Book, and this is what
      * the provider said last. It is written down so that the sheet can tell it
      * apart from a Book that is still in line (BIB-33).
+     *
+     * The provider and the AiModel are the ones the job carried, and they stay
+     * on the Book after it failed: naming the chosen one instead would point at
+     * a provider that never saw this request (BIB-46).
      */
-    public function generationFailed(string $reason): void
+    public function generationFailed(string $reason, ?string $provider = null, ?string $aiModel = null): void
     {
         $this->forceFill([
             'generation_queued_at' => null,
             'generation_failed_at' => now(),
             'generation_failure' => Str::limit(Str::squish($reason), 250),
+            'generation_provider' => $provider ?? $this->generation_provider,
+            'generation_ai_model' => $aiModel ?? $this->generation_ai_model,
         ])->save();
     }
 
@@ -551,12 +752,20 @@ class Book extends Model
      * The Books waiting their turn in the queue (BIB-22). The grid asks so that
      * it only keeps looking while there is something on its way.
      *
+     * A mark older than the cap is left out, because the job behind it is gone
+     * (BIB-46): counting it as a wait is what kept the grid polling for an
+     * answer that was never coming and the Dashboard announcing a queue that
+     * was empty. It is the query form of isGenerationQueued(), and the two have
+     * to agree or the Acervo and the sheet say different things about the same
+     * Book.
+     *
      * @param  Builder<$this>  $query
      */
     #[Scope]
     protected function awaitingGeneration(Builder $query): void
     {
-        $query->whereNotNull('generation_queued_at');
+        $query->whereNotNull('generation_queued_at')
+            ->where('generation_queued_at', '>=', self::queueMarkExpiresBefore());
     }
 
     /**
@@ -575,8 +784,38 @@ class Book extends Model
         $query->where(function (Builder $query): void {
             $query->whereNull('description')
                 ->orWhere('description', '')
-                ->orWhere('description_origin', Origin::Ai);
+                ->orWhere('description_origin', Origin::Ai)
+                // The one from the Source in another language is reached too,
+                // and what happens to it is a translation and not a rewrite
+                // (BIB-45). Leaving it out is what left half the shelf in
+                // English with nothing that would ever come back for it.
+                ->orWhere(fn (Builder $query) => $query->descriptionAwaitingTranslation());
         });
+    }
+
+    /**
+     * The Books whose Description has to be translated (BIB-45).
+     *
+     * It is the query form of descriptionAwaitsTranslation(), and it is the
+     * reason the language of the text lives in a column: the run that picks two
+     * hundred Books cannot read every one of them in PHP to find out.
+     *
+     * @param  Builder<$this>  $query
+     */
+    #[Scope]
+    protected function descriptionAwaitingTranslation(Builder $query): void
+    {
+        $query->where(function (Builder $query): void {
+            $query->where(function (Builder $query): void {
+                $query->where('description_origin', Origin::Source)
+                    ->where('description_language', DescriptionLanguage::Other);
+            })->orWhere(function (Builder $query): void {
+                $query->where('description_origin', Origin::Translated)
+                    ->whereNotNull('description_original');
+            });
+        })
+            ->whereNotNull('description')
+            ->where('description', '!=', '');
     }
 
     /**
@@ -593,19 +832,41 @@ class Book extends Model
     {
         $query->whereNotNull('description')
             ->where('description', '!=', '')
-            ->whereIn('description_origin', [Origin::Source, Origin::Owner]);
+            ->where(function (Builder $query): void {
+                // Mine, whatever language I wrote it in, and the one from the
+                // Source that already reads as Spanish. The one from the Source
+                // in another language is not kept: it gets translated (BIB-45).
+                $query->where('description_origin', Origin::Owner)
+                    ->orWhere(function (Builder $query): void {
+                        $query->where('description_origin', Origin::Source)
+                            ->where(function (Builder $query): void {
+                                $query->whereNull('description_language')
+                                    ->orWhere('description_language', DescriptionLanguage::Spanish);
+                            });
+                    });
+            });
     }
 
     /**
      * The Books the queue gave up on. They are the ones a regeneration can be
      * thrown at again without touching the rest (BIB-33).
      *
+     * The ones the queue went quiet on come in here too (BIB-46): a mark of the
+     * queue that nobody cleared for longer than a job can live is a request
+     * that did not get through, and the only difference is that there is no
+     * message from the provider to show. Leaving them out is what made them
+     * invisible on every surface — neither waiting nor failed, and nothing that
+     * would ever come back for them.
+     *
      * @param  Builder<$this>  $query
      */
     #[Scope]
     protected function withFailedGeneration(Builder $query): void
     {
-        $query->whereNotNull('generation_failed_at');
+        $query->where(function (Builder $query): void {
+            $query->whereNotNull('generation_failed_at')
+                ->orWhere('generation_queued_at', '<', self::queueMarkExpiresBefore());
+        });
     }
 
     /**
