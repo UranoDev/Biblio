@@ -258,9 +258,20 @@ la cita, se perdió el efecto.
 | Rol | Tipografía | Tamaño y forma |
 | --- | --- | --- |
 | Quote | Plex Mono 400 | 19 px / 1.78, con regla vertical a la izquierda |
+| Quote corta | Plex Mono 400 | 24 px / 1.7 |
+| Quote larga | Plex Mono 400 | 16 px / 1.82 |
 | Título de Book | Instrument Sans 700 | 17 px, tracking `-0.01em` |
 | Authors | Instrument Sans 400 | 11 px, mayúsculas, tracking `0.2em` |
 | Encabezado de sección | Instrument Sans 400 | 10 px, mayúsculas, tracking `0.34em` |
+
+**La Quote tiene tres tamaños, y no los elige la pantalla.** Una cita de seis palabras y
+una de cuarenta van en la misma tarjeta: la corta puesta en 19 px flota en medio del
+papel, y la larga en 19 px empuja al Libro fuera del cuadro. El tamaño se lee de la cita
+—`App\Quotes\QuoteCard` cuenta los renglones, contando los que la cita trae por su
+cuenta, que es lo que hace que un poema no se componga en tamaño de epigrama—. **La cita
+larga baja de escalón; no se recorta nunca**: recortarla es recortar lo único que la
+tarjeta existe para mostrar, y además la tarjeta se comparte como imagen (ADR-009), donde
+un «leer completa» no lleva a ninguna parte.
 
 ### El Cover
 
@@ -276,6 +287,12 @@ modo de encontrar un libro entre doscientos, y ahí reconocerla pide verla enter
 recortar un 15 % por lado muerde los márgenes de la pieza generada y se come su título. El
 fragmento grande es de las superficies donde el Cover sí es la imagen —la ficha, la
 tarjeta de una Quote—.
+
+**Lo que se recorta es la fotografía, no la pieza generada.** En la tarjeta de una Quote
+el Cover guardado se sale por el borde derecho y por abajo; la pieza generada va entera,
+con su inclinación y su sombra. Es la misma razón por la que la retícula no la recorta:
+recortar una fotografía se ve editorial y recortar tipografía nada más parte palabras, y
+las que parte son el título que el pie de la tarjeta ya dice.
 
 **Todo Cover lleva un filo de un píxel.** No es adorno: las portadas claras —y son
 comunes— se disuelven en el papel sin él. Comprobado con portadas reales.
@@ -301,8 +318,10 @@ Las nueve primeras tienen ADR en `docs/adr/`, porque son las costosas de reverti
    El foco es requisito funcional: si se pierde, el Scanner teclea al vacío.
 2. **El Record se arma con Open Library primero y Google Books de respaldo** — ADR-002. Si
    ninguna Source conoce el ISBN, se ofrece ManualEntry en vez de fallar.
-3. **El Showcase es público, de sólo lectura y sin indexar** — ADR-003. Qué sale y qué no
-   es una regla global por tipo de dato, más el interruptor Hidden por Book.
+3. **El Showcase es público, de sólo lectura y se indexa** — ADR-003 y su ampliación del
+   2026-09-24. Es la raíz del sitio. Qué sale y qué no es una regla global por tipo de
+   dato, más el interruptor Hidden por Book; ninguna pantalla pública escribe su propia
+   consulta, todas salen de `App\Showcase\Showcase`, que empieza por `visible`.
 4. **El Cover se guarda; el disco es configurable** — ADR-004. Local hoy, S3 el día que se
    prenda, sin tocar el código.
 5. **Un ISBN es único y no se modelan ejemplares** — ADR-005. Nada de lo que se guarda es

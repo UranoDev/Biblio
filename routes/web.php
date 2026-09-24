@@ -1,9 +1,23 @@
 <?php
 
 use App\Http\Controllers\ServeCover;
+use App\Http\Controllers\ShowShowcase;
+use App\Http\Controllers\ShowShowcaseBook;
 use Illuminate\Support\Facades\Route;
 
-Route::view('/', 'welcome')->name('home');
+/*
+ * The Showcase is the front door of the site (BIB-18). Opening the address
+ * without a session shows the collection, not a welcome and not the login.
+ *
+ * The public page of a Book is `book/{id}` and the back office one is
+ * `books/{id}`: they are one letter apart, so `robots.txt` says out loud which
+ * of the two it is letting through.
+ */
+Route::get('/', ShowShowcase::class)->name('showcase');
+
+Route::get('book/{book}', ShowShowcaseBook::class)
+    ->whereNumber('book')
+    ->name('showcase.book');
 
 /*
  * The Covers are served by the application and not by the disk (BIB-32). The

@@ -1,7 +1,10 @@
 @use('App\Covers\CoverAttributes')
 @use('App\Covers\GeneratedCover')
 
-@props(['piece'])
+@props([
+    'piece',
+    'decorative' => false,
+])
 
 {{--
     The Cover of a Book no Source gave one for (ADR-008): the title and the
@@ -17,8 +20,14 @@
 <svg
     xmlns="http://www.w3.org/2000/svg"
     viewBox="0 0 {{ GeneratedCover::WIDTH }} {{ GeneratedCover::HEIGHT }}"
-    role="img"
-    aria-label="{{ $piece->label() }}"
+    @if ($decorative)
+        {{-- The title is drawn on the piece, so a page that already names the
+             Book next to it would be heard saying it twice. --}}
+        aria-hidden="true"
+    @else
+        role="img"
+        aria-label="{{ $piece->label() }}"
+    @endif
     {{ $attributes->class(CoverAttributes::classes($attributes, 'cover-edge aspect-2/3 rounded-lg')) }}
 >
     <rect width="{{ GeneratedCover::WIDTH }}" height="{{ GeneratedCover::HEIGHT }}" fill="{{ $piece->field() }}" />

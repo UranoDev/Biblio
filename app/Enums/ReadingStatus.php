@@ -24,6 +24,19 @@ enum ReadingStatus: string
         };
     }
 
+    /**
+     * The Reading as the Showcase says it.
+     *
+     * Out there the read date does not exist -- it is one of the things that
+     * never leaves the back office (ADR-003) -- so the two read states say the
+     * same thing. Announcing «leído, sin fecha» to a visitor names a field they
+     * are not being shown.
+     */
+    public function publicLabel(): string
+    {
+        return $this->isRead() ? 'Leído' : 'No leído';
+    }
+
     public function isRead(): bool
     {
         return $this !== self::Unread;

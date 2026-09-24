@@ -36,6 +36,18 @@
      */
     --text-quote: 19px;
     --text-quote--line-height: 1.78;
+
+    /*
+     * The same Quote face at the two ends of the range, for the card that has
+     * to hold a Quote of six words and one of forty. A short Quote set at the
+     * regular size floats in the middle of the paper; a long one set there
+     * pushes the Book out of the frame. Which of the three a Quote gets is read
+     * off the Quote by App\Quotes\QuoteCard, never written by hand on a screen.
+     */
+    --text-quote-large: 24px;
+    --text-quote-large--line-height: 1.7;
+    --text-quote-small: 16px;
+    --text-quote-small--line-height: 1.82;
     --text-book-title: 17px;
     --text-book-title--line-height: 1.3;
     --text-book-title--letter-spacing: -0.01em;
@@ -136,6 +148,30 @@
     font-weight: 400;
     font-size: var(--text-quote);
     line-height: var(--text-quote--line-height);
+    border-left: 1px solid var(--color-rule);
+    padding-left: --spacing(5);
+}
+
+/*
+ * The two ends of the same Quote. Each one is written out whole instead of
+ * layering a size over `type-quote`: two utilities on one element are decided
+ * by their order in the compiled stylesheet, and an element that reads one size
+ * in the markup and another on the screen is not worth the four lines saved.
+ */
+@utility type-quote-large {
+    font-family: var(--font-mono);
+    font-weight: 400;
+    font-size: var(--text-quote-large);
+    line-height: var(--text-quote-large--line-height);
+    border-left: 1px solid var(--color-rule);
+    padding-left: --spacing(6);
+}
+
+@utility type-quote-small {
+    font-family: var(--font-mono);
+    font-weight: 400;
+    font-size: var(--text-quote-small);
+    line-height: var(--text-quote-small--line-height);
     border-left: 1px solid var(--color-rule);
     padding-left: --spacing(5);
 }

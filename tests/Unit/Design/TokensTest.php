@@ -28,6 +28,10 @@ it('guarda la escala tipográfica como tokens, no como medidas sueltas', functio
 })->with([
     'text-quote',
     'text-quote--line-height',
+    'text-quote-large',
+    'text-quote-large--line-height',
+    'text-quote-small',
+    'text-quote-small--line-height',
     'text-book-title',
     'text-book-title--letter-spacing',
     'text-authors',
