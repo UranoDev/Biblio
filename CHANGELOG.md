@@ -1,5 +1,11 @@
 # Changelog
 
+## [2026.09.24.1] - 2026 sep 24
+### Fix / Bugs
+- **BIB-54**: Reanudar tras quedarse sin créditos no alcanza la tarjeta de un Libro
+### Features
+- **BIB-55**: Si la Fuente del registro no trae portada, no se le pregunta a la siguiente
+
 ## [2026.09.24] - 2026 sep 24
 ### Fix / Bugs
 - **BIB-53**: isFlat() rechaza una portada real de fondo minimalista como si fuera un marcador
