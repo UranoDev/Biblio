@@ -168,6 +168,85 @@ class Book extends Model
     }
 
     /**
+     * The Book is read, with the date when it is known.
+     *
+     * Without a date it stays read: a Book read years ago, without knowing
+     * when, is not the same thing as an unread one, and losing that difference
+     * is what a plain checkbox does.
+     *
+     * @param  Carbon|string|null  $on  the read date, or null when it is not known
+     */
+    public function markAsRead(Carbon|string|null $on = null): void
+    {
+        $this->forceFill(['is_read' => true, 'read_on' => $on])->save();
+    }
+
+    /** The Book goes back to unread, and the date it had goes with it. */
+    public function markAsUnread(): void
+    {
+        $this->forceFill(['is_read' => false, 'read_on' => null])->save();
+    }
+
+    /**
+     * The Book was lent out, in free text and with the date it left.
+     *
+     * @param  Carbon|string|null  $on  the date it left, or null when it was not written down
+     */
+    public function lendTo(string $who, Carbon|string|null $on = null): void
+    {
+        $this->forceFill(['lent_to' => $who, 'lent_on' => $on])->save();
+    }
+
+    /**
+     * The Book came back. Nothing is kept: there is no history of who had it,
+     * because the lending is a field and not an entity.
+     */
+    public function returned(): void
+    {
+        $this->forceFill(['lent_to' => null, 'lent_on' => null])->save();
+    }
+
+    /**
+     * The Description I wrote myself, which from here on no regeneration
+     * touches (ADR-007).
+     *
+     * The AiModel that wrote the previous one stops being recorded: there is no
+     * longer anything of the AI's in this Description, and leaving the stamp
+     * would put the Book in the queue of what is left on the old AiModel.
+     */
+    public function writeDescription(?string $text): void
+    {
+        $written = $text === null || trim($text) === '' ? null : trim($text);
+
+        $this->forceFill([
+            'description' => $written,
+            'description_origin' => $written === null ? null : Origin::Owner,
+            'description_provider' => null,
+            'description_ai_model' => null,
+        ])->save();
+    }
+
+    /** The Note: mine, one per Book, and out of the Showcase. */
+    public function writeNote(?string $text): void
+    {
+        $written = $text === null || trim($text) === '' ? null : trim($text);
+
+        $this->forceFill(['note' => $written])->save();
+    }
+
+    /** Takes the Book out of the Showcase, and its Quotes with it (ADR-003). */
+    public function hide(): void
+    {
+        $this->forceFill(['is_hidden' => true])->save();
+    }
+
+    /** Puts the Book back in the Showcase. */
+    public function show(): void
+    {
+        $this->forceFill(['is_hidden' => false])->save();
+    }
+
+    /**
      * The Cover is stored on the configured disk, it is not linked to the Source
      * (ADR-004). A Book without a Cover is a normal state: the download may have
      * failed, or there may never have been an image to download.

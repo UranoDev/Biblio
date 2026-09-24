@@ -202,6 +202,10 @@ new #[Title('Captura manual')] class extends Component
             <div class="flex gap-3">
                 <flux:button wire:click="another" variant="primary">Capturar otro Libro</flux:button>
 
+                <flux:button :href="route('book', $this->book)" variant="subtle" wire:navigate>
+                    Ver la ficha
+                </flux:button>
+
                 <flux:button :href="route('scan')" variant="subtle" wire:navigate>
                     Ir al Escaneo
                 </flux:button>

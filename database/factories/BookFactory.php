@@ -22,7 +22,7 @@ class BookFactory extends Factory
     public function definition(): array
     {
         return [
-            'isbn' => (string) fake()->unique()->numerify('978##########'),
+            'isbn' => self::anIsbn(),
             'title' => Str::title(rtrim(fake()->sentence(3), '.')),
             'authors' => [fake()->name()],
             'publisher' => fake()->company(),
@@ -42,6 +42,24 @@ class BookFactory extends Factory
             'lent_on' => null,
             'is_hidden' => false,
         ];
+    }
+
+    /**
+     * An ISBN-13 whose check digit adds up.
+     *
+     * The digit is not decoration: `Isbn` rejects a number that does not add
+     * up, so a made-up ISBN gives a Book that the screens cannot save.
+     */
+    private static function anIsbn(): string
+    {
+        $twelve = '978'.str_pad((string) fake()->unique()->numberBetween(1, 999999999), 9, '0', STR_PAD_LEFT);
+        $sum = 0;
+
+        foreach (str_split($twelve) as $position => $digit) {
+            $sum += (int) $digit * ($position % 2 === 0 ? 1 : 3);
+        }
+
+        return $twelve.((10 - $sum % 10) % 10);
     }
 
     /**

@@ -12,6 +12,8 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::livewire('title-lookup', 'pages::title-lookup')->name('title-lookup');
 
     Route::livewire('manual-entry', 'pages::manual-entry')->name('manual-entry');
+
+    Route::livewire('books/{book}', 'pages::book')->name('book');
 });
 
 require __DIR__.'/settings.php';
