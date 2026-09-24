@@ -113,12 +113,13 @@ it('la barra lateral ya no lleva la documentación de Laravel al pie', function 
         ->assertDontSee('github.com/laravel/livewire-starter-kit');
 });
 
-it('se llega a Configuración y a Cerrar sesión desde el menú del usuario', function () {
+it('se cierra la sesión desde el menú del usuario', function () {
+    // Ajustes salió de este menú y se fue a la barra lateral (BIB-56); por
+    // dónde se entra ahora lo prueba `SettingsEntryTest`.
     $this->actingAs(User::factory()->create())
         ->get(route('dashboard'))
         ->assertOk()
         ->assertSee('data-test="user-menu-button"', escape: false)
-        ->assertSee(route('profile.edit'))
         ->assertSee('Cerrar sesión')
         ->assertSee('data-test="logout-button"', escape: false);
 });

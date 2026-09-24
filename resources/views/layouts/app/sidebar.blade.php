@@ -46,6 +46,20 @@
                     <flux:sidebar.item icon="book-open-text" :href="route('title-lookup')" :current="request()->routeIs('title-lookup')" wire:navigate>
                         Alta por título
                     </flux:sidebar.item>
+
+                    {{--
+                        Ajustes vivía en el menú del perfil, arriba a la derecha,
+                        donde costaba encontrarlo (BIB-56). Entra por Perfil,
+                        que es a donde lleva `settings`.
+
+                        El renglón se marca por la dirección y no por el nombre
+                        de la ruta: las siete subpantallas cuelgan de
+                        `settings/`, así que la siguiente que se agregue lo
+                        marca sin que haya que volver acá.
+                    --}}
+                    <flux:sidebar.item icon="cog" :href="route('profile.edit')" :current="request()->is('settings', 'settings/*')" wire:navigate>
+                        Ajustes
+                    </flux:sidebar.item>
                 </flux:sidebar.group>
             </flux:sidebar.nav>
         </flux:sidebar>

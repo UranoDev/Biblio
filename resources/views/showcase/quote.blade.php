@@ -80,7 +80,7 @@
                         {{-- Nothing was ever queued for it, or the renderer gave
                              up: either way there is no image on its way, and
                              saying «todavía» would promise one (BIB-48). What
-                             brings it back is a run from Configuración, and the
+                             brings it back is a run from Ajustes, and the
                              visitor is not the one who does that — so the page
                              says what there is, and no more. --}}
                         <p class="text-sm text-ink-muted" data-test="image-none">

@@ -236,6 +236,12 @@ La empresa o el servidor detrás del AiModel — Gemini, DeepSeek, Ollama. Su ll
 vive en el entorno, nunca en la base.
 _Avoid_: Vendor, Service; Source (Source es el catálogo de libros)
 
+**Settings** · en la interfaz: «Ajustes»:
+La pantalla del back que reúne el perfil, la seguridad, la apariencia, el AiModel,
+la regeneración, las imágenes para compartir y los trabajos fallidos. Se entra desde la
+barra lateral, y cada subpantalla conserva su propio nombre (BIB-56).
+_Avoid_: Configuration, Preferences, Options; «configuración», «preferencias», «opciones»
+
 ## Dirección visual
 
 **Marginalia.** Un libro leído deja marcas en los márgenes, y el sistema se trata como

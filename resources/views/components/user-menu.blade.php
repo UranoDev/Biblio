@@ -1,10 +1,15 @@
 {{--
-    El menú de quien administra el acervo: Configuración y Cerrar sesión.
+    El menú de quien administra el acervo: quién tiene la sesión abierta y
+    Cerrar sesión.
 
     Vive en la esquina superior derecha de la barra de arriba, en pantalla ancha
     y en pantalla angosta (BIB-39). Antes estaba al pie de la barra lateral,
     debajo de dos enlaces a la documentación de Laravel, que es donde acaba lo
     que no tenía otro lugar.
+
+    Ajustes salió de acá y se fue a la barra lateral (BIB-56): en el menú del
+    perfil costaba encontrarlo, y de la cuenta lo único que queda es cerrar la
+    sesión.
 --}}
 <flux:dropdown position="bottom" align="end">
     <flux:profile
@@ -28,23 +33,17 @@
 
         <flux:menu.separator />
 
-        <flux:menu.radio.group>
-            <flux:menu.item :href="route('profile.edit')" icon="cog" wire:navigate>
-                Configuración
+        <form method="POST" action="{{ route('logout') }}" class="w-full">
+            @csrf
+            <flux:menu.item
+                as="button"
+                type="submit"
+                icon="arrow-right-start-on-rectangle"
+                class="w-full cursor-pointer"
+                data-test="logout-button"
+            >
+                Cerrar sesión
             </flux:menu.item>
-
-            <form method="POST" action="{{ route('logout') }}" class="w-full">
-                @csrf
-                <flux:menu.item
-                    as="button"
-                    type="submit"
-                    icon="arrow-right-start-on-rectangle"
-                    class="w-full cursor-pointer"
-                    data-test="logout-button"
-                >
-                    Cerrar sesión
-                </flux:menu.item>
-            </form>
-        </flux:menu.radio.group>
+        </form>
     </flux:menu>
 </flux:dropdown>
