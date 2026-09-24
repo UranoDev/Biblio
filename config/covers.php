@@ -51,13 +51,18 @@ return [
     | pixel, a thumbnail— and stored as it comes it looks like a bad Cover
     | instead of like the mistake it is (BIB-28).
     |
-    | The bar is high on purpose. It also refuses real Covers that came too
-    | small to read in the grid, and that costs nothing: a Book without a Cover
-    | gets a generated one (ADR-008), which looks better than a 162 px scan
-    | stretched to size.
+    | Lowered from 300 to 64 on 2026-09-24, after looking at a real 128 px
+    | Google Books thumbnail on a phone: legible in the grid and the sheet,
+    | where it is small either way. It reads worse stretched into the wide
+    | share card (BIB-50), which is a trade the capture speed is worth.
+    |
+    | 64 and not lower still keeps out a 1×1 or a 16×16 icon from a catalog
+    | whose "no Cover" marker Marker::of() does not know about yet — the
+    | floor exists for exactly that case, not to judge a real Cover that
+    | happens to be small (BIB-51).
     |
     */
 
-    'minimum_side' => (int) env('COVERS_MINIMUM_SIDE', 300),
+    'minimum_side' => (int) env('COVERS_MINIMUM_SIDE', 64),
 
 ];

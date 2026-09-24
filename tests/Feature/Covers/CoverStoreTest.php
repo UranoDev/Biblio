@@ -186,8 +186,8 @@ it('no guarda el logo de Internet Archive, que es lo que Open Library sirve cuan
 it('no guarda una imagen más chica que el mínimo, aunque sea una portada de verdad', function () {
     $book = Book::factory()->coverGenerated()->create();
 
-    expect(fn () => $this->store->store($book, testImage(162, 198)))
-        ->toThrow(InvalidImage::class, 'La imagen mide 162 px de lado corto y el mínimo es 300.');
+    expect(fn () => $this->store->store($book, testImage(40, 55)))
+        ->toThrow(InvalidImage::class, 'La imagen mide 40 px de lado corto y el mínimo es 64.');
 
     expect(Storage::disk()->allFiles())->toBeEmpty();
 });
@@ -195,7 +195,7 @@ it('no guarda una imagen más chica que el mínimo, aunque sea una portada de ve
 it('mide el lado corto, no el largo', function () {
     $book = Book::factory()->coverGenerated()->create();
 
-    expect(fn () => $this->store->store($book, testImage(90, 1200)))
+    expect(fn () => $this->store->store($book, testImage(40, 1200)))
         ->toThrow(InvalidImage::class);
 });
 

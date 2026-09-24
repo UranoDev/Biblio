@@ -152,9 +152,9 @@ it('dice por qué no sirve la imagen, en vez de decir que no se pudo leer', func
     $book = Book::factory()->coverGenerated()->create();
 
     Livewire::test('book-cover', ['book' => $book])
-        ->set('file', UploadedFile::fake()->createWithContent('miniatura.jpg', testImage(162, 198)))
+        ->set('file', UploadedFile::fake()->createWithContent('miniatura.jpg', testImage(40, 55)))
         ->call('save')
-        ->assertHasErrors(['file' => 'La imagen mide 162 px de lado corto y el mínimo es 300.']);
+        ->assertHasErrors(['file' => 'La imagen mide 40 px de lado corto y el mínimo es 64.']);
 });
 
 it('quita la Portada guardada y borra sus archivos del disco', function () {

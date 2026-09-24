@@ -28,9 +28,10 @@ Tres cosas que se comprobaron bajándolas, y que no se ven en la tabla:
 
 El del templete apareció en producción el 2026-09-24, capturando de verdad: Open Library
 sirve sus portadas desde Internet Archive, y cuando el archivo ya no está devuelve el logo
-de Internet Archive con un 200. Es **apaisado**, 320×220, así que el mínimo de 300 px lo
-rechaza por su cuenta; está en la lista para que el log diga cuál de los dos motivos fue y
-para que una variante más grande no se cuele.
+de Internet Archive con un 200. Es **apaisado**, 320×220 — desde que el mínimo bajó a
+64 px (también el 2026-09-24) su tamaño ya no lo rechaza por su cuenta, así que lo único
+que lo detiene es estar en esta lista. Se queda aquí para que una variante más grande
+tampoco se cuele.
 
 `App\Covers\Marker` tiene el hash de cada uno. Para agregar el marcador de otro catálogo:
 bajarlo acá y poner su `sha256` en esa lista.
