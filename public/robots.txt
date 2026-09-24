@@ -14,7 +14,6 @@ Disallow: /shelf
 Disallow: /scan
 Disallow: /title-lookup
 Disallow: /manual-entry
-Disallow: /quote-search
 # La página pública de un libro es /book/123 y la del back office es /books/123:
 # se distinguen por una sola letra, así que la pública se declara explícita.
 Allow: /book/
@@ -23,6 +22,11 @@ Disallow: /books/
 # acervo, y /categories es la pantalla donde se renombran y se fusionan.
 Allow: /category/
 Disallow: /categories
+# Y con las citas: /quote/123 es la página pública de una cita, la herramienta
+# principal para compartir, y /quote-search es la pantalla donde se busca en lo
+# mío. Se declaran las dos porque empiezan igual.
+Allow: /quote/
+Disallow: /quote-search
 Disallow: /settings
 Disallow: /storage/
 

@@ -21,7 +21,10 @@ use Throwable;
 final class GoogleBooks implements Source
 {
     /** How many editions are asked for in a TitleLookup. */
-    private const MAX_CANDIDATES = 20;
+    public const MAX_CANDIDATES = 20;
+
+    /** Where every request of this Source is made. */
+    public const VOLUMES_PATH = '/books/v1/volumes';
 
     public function __construct(
         private readonly string $url,
@@ -34,10 +37,45 @@ final class GoogleBooks implements Source
         return Enums\Source::GoogleBooks;
     }
 
+    /**
+     * What an ISBN lookup asks for. Google has no route per ISBN: it is one
+     * more term of the same search.
+     *
+     * @return array<string, mixed>
+     */
+    public static function isbnParameters(Isbn $isbn): array
+    {
+        return ['q' => "isbn:{$isbn->value()}"];
+    }
+
+    /**
+     * What a TitleLookup sends, with the key left out —`query()` adds it. It is
+     * public and static because the recorder of `sources:record` asks for it: a
+     * recording of a request the adapter does not make is not a recording of
+     * anything.
+     *
+     * @return array<string, mixed>
+     */
+    public static function searchParameters(string $title, ?string $author = null): array
+    {
+        $query = 'intitle:'.self::quoted(trim($title));
+        $author = $author === null ? '' : trim($author);
+
+        if ($author !== '') {
+            $query .= ' inauthor:'.self::quoted($author);
+        }
+
+        return [
+            'q' => $query,
+            'maxResults' => self::MAX_CANDIDATES,
+            'printType' => 'books',
+        ];
+    }
+
     public function byIsbn(Isbn $isbn): LookupResult
     {
         try {
-            $body = $this->query(['q' => "isbn:{$isbn->value()}"]);
+            $body = $this->query(self::isbnParameters($isbn));
         } catch (SourceUnavailable $failure) {
             return LookupResult::unavailable($failure->getMessage());
         }
@@ -76,19 +114,8 @@ final class GoogleBooks implements Source
             return Candidates::none();
         }
 
-        $query = 'intitle:'.$this->quoted($title);
-        $author = $author === null ? '' : trim($author);
-
-        if ($author !== '') {
-            $query .= ' inauthor:'.$this->quoted($author);
-        }
-
         try {
-            $body = $this->query([
-                'q' => $query,
-                'maxResults' => self::MAX_CANDIDATES,
-                'printType' => 'books',
-            ]);
+            $body = $this->query(self::searchParameters($title, $author));
         } catch (SourceUnavailable $failure) {
             return Candidates::unavailable($failure->getMessage());
         }
@@ -196,7 +223,7 @@ final class GoogleBooks implements Source
         try {
             $response = Http::acceptJson()
                 ->timeout($this->timeout)
-                ->get("{$this->url}/books/v1/volumes", $parameters);
+                ->get($this->url.self::VOLUMES_PATH, $parameters);
         } catch (Throwable $failure) {
             throw new SourceUnavailable('Google Books did not answer: '.$failure->getMessage(), previous: $failure);
         }
@@ -328,7 +355,7 @@ final class GoogleBooks implements Source
     }
 
     /** The quotes keep the phrase together; the ones the text carries are in the way. */
-    private function quoted(string $term): string
+    private static function quoted(string $term): string
     {
         return '"'.str_replace('"', '', $term).'"';
     }

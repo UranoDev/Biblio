@@ -1,0 +1,1546 @@
+{
+  "kind": "books#volumes",
+  "totalItems": 300,
+  "items": [
+    {
+      "kind": "books#volume",
+      "id": "WmqyDwAAQBAJ",
+      "etag": "KUBALTxqnUY",
+      "selfLink": "https://www.googleapis.com/books/v1/volumes/WmqyDwAAQBAJ",
+      "volumeInfo": {
+        "title": "Atomic Habits (Tamil)",
+        "authors": [
+          "James Clear"
+        ],
+        "publisher": "Manjul Publishing",
+        "publishedDate": "2023-07-14",
+        "description": "நீங்கள் உங்கள் வாழ்க்கையை மாற்ற விரும்பினால், நீங்கள் பிரம்மாண்டமாக சிந்திக்க வேண்டும் என்று மக்கள் நினைக்கின்றனர். ஆனால், பழக்கங்களைப் பற்றி விரிவாக ஆய்வு செய்து அதில் உலகப் புகழ்பெற்ற நிபுணர்களில் ஒருவராகத் திகழுகின்ற ஜேம்ஸ் கிளியர் அதற்கு வேறொரு வழியைக் கண்டுபிடித்துள்ளார். தினமும் காலையில் ஐந்து நிமிடங்கள் முன்னதாகவே எழுந்திருத்தல், ஒரு பதினைந்து நிமிடங்கள் மெதுவோட்டத்தில் ஈடுபடுதல், கூடுதலாக ஒரு பக்கம் படித்தல் போன்ற நூற்றுக்கணக்கான சிறிய தீர்மானங்களின் கூட்டு விளைவிலிருந்துதான் உண்மையான மாற்றம் வருகிறது என்று அவர் கூறுகிறார்.\u003cbr\u003eஇந்தக் கடுகளவு மாற்றங்கள் எப்படி உங்கள் வாழ்க்கையைப் பெரிதும் மாற்றக்கூடிய விளைவுகளாக உருவெடுக்கின்றன என்பதை ஜேம்ஸ் இப்புத்தகத்தில் தெளிவாக வெளிப்படுத்துகிறார். அதற்கு அறிவியற்பூர்வமான விளக்கங்களையும் அவர் கொடுக்கிறார். ஒலிம்பிக்கில் தங்கப் பதக்கம் வென்றவர்கள், முன்னணி நிறுவனத் தலைவர்கள், புகழ்பெற்ற அறிவியலறிஞர்கள் ஆகியோரைப் பற்றிய உத்வேகமூட்டும் கதைகளைப் பயன்படுத்தி அவர் தன்னுடைய கோட்பாடுகளை விளக்கும் விதம் சுவாரசியமூட்டுவதாக இருக்கிறது.\u003cbr\u003eஇச்சிறு மாற்றங்கள் உங்கள் தொழில்வாழ்க்கையின்மீதும் உங்கள் உறவுகளின்மீதும் உங்கள் தனிப்பட்ட வாழ்வின்மீதும் அளப்பரிய தாக்கம் ஏற்படுத்தி அவற்றைப் பரிபூரணமாக மாற்றும் என்பது உறுதி.",
+        "industryIdentifiers": [
+          {
+            "type": "ISBN_13",
+            "identifier": "9789388241908"
+          },
+          {
+            "type": "ISBN_10",
+            "identifier": "9388241908"
+          }
+        ],
+        "readingModes": {
+          "text": true,
+          "image": true
+        },
+        "pageCount": 306,
+        "printType": "BOOK",
+        "categories": [
+          "Self-Help"
+        ],
+        "maturityRating": "NOT_MATURE",
+        "allowAnonLogging": true,
+        "contentVersion": "1.2.3.0.preview.3",
+        "panelizationSummary": {
+          "containsEpubBubbles": false,
+          "containsImageBubbles": false
+        },
+        "imageLinks": {
+          "smallThumbnail": "http://books.google.com/books/content?id=WmqyDwAAQBAJ&printsec=frontcover&img=1&zoom=5&edge=curl&source=gbs_api",
+          "thumbnail": "http://books.google.com/books/content?id=WmqyDwAAQBAJ&printsec=frontcover&img=1&zoom=1&edge=curl&source=gbs_api"
+        },
+        "language": "ta",
+        "previewLink": "http://books.google.com.mx/books?id=WmqyDwAAQBAJ&printsec=frontcover&dq=intitle:%22Atomic+Habits%22&hl=&as_pt=BOOKS&cd=1&source=gbs_api",
+        "infoLink": "https://play.google.com/store/books/details?id=WmqyDwAAQBAJ&source=gbs_api",
+        "canonicalVolumeLink": "https://play.google.com/store/books/details?id=WmqyDwAAQBAJ"
+      },
+      "saleInfo": {
+        "country": "MX",
+        "saleability": "FOR_SALE",
+        "isEbook": true,
+        "listPrice": {
+          "amount": 142.91,
+          "currencyCode": "MXN"
+        },
+        "retailPrice": {
+          "amount": 142.91,
+          "currencyCode": "MXN"
+        },
+        "buyLink": "https://play.google.com/store/books/details?id=WmqyDwAAQBAJ&rdid=book-WmqyDwAAQBAJ&rdot=1&source=gbs_api",
+        "offers": [
+          {
+            "finskyOfferType": 1,
+            "listPrice": {
+              "amountInMicros": 142910000,
+              "currencyCode": "MXN"
+            },
+            "retailPrice": {
+              "amountInMicros": 142910000,
+              "currencyCode": "MXN"
+            },
+            "giftable": true
+          }
+        ]
+      },
+      "accessInfo": {
+        "country": "MX",
+        "viewability": "PARTIAL",
+        "embeddable": true,
+        "publicDomain": false,
+        "textToSpeechPermission": "ALLOWED",
+        "epub": {
+          "isAvailable": true,
+          "acsTokenLink": "http://books.google.com.mx/books/download/Atomic_Habits_Tamil-sample-epub.acsm?id=WmqyDwAAQBAJ&format=epub&output=acs4_fulfillment_token&dl_type=sample&source=gbs_api"
+        },
+        "pdf": {
+          "isAvailable": true,
+          "acsTokenLink": "http://books.google.com.mx/books/download/Atomic_Habits_Tamil-sample-pdf.acsm?id=WmqyDwAAQBAJ&format=pdf&output=acs4_fulfillment_token&dl_type=sample&source=gbs_api"
+        },
+        "webReaderLink": "http://play.google.com/books/reader?id=WmqyDwAAQBAJ&hl=&as_pt=BOOKS&source=gbs_api",
+        "accessViewStatus": "SAMPLE",
+        "quoteSharingAllowed": false
+      },
+      "searchInfo": {
+        "textSnippet": "நீங்கள் உங்கள் வாழ்க்கையை மாற்ற விரும்பினால், நீங்கள் பிரம்மாண்டமாக சிந்திக்க வேண்டும் ..."
+      }
+    },
+    {
+      "kind": "books#volume",
+      "id": "FJ5hEQAAQBAJ",
+      "etag": "3CH9tDzJjYQ",
+      "selfLink": "https://www.googleapis.com/books/v1/volumes/FJ5hEQAAQBAJ",
+      "volumeInfo": {
+        "title": "The Atomic Habits Workbook",
+        "subtitle": "Official Companion to the #1 Worldwide Bestseller",
+        "authors": [
+          "James Clear"
+        ],
+        "publisher": "Penguin",
+        "publishedDate": "2025-12-09",
+        "description": "Simple Exercises for Building the Life You Want An interactive guide to building good habits and breaking bad ones, based on the 25-million copy #1 New York Times bestseller Atomic Habits. The official companion to the #1 worldwide bestseller is the next step in your habits toolkit. Guided journal prompts will help you engage with your habits and the forces that impact them. Thought-provoking exercises allow you to implement the Atomic Habits theories and see your life transform. This workbook takes the reader from understanding habits to living them. James Clear’s system helps good habits emerge naturally while unwanted habits fade away. What’s included: · Guided templates for easy habit tracking and habit stacking · Journaling prompts to help you assess your physical and social environments, identify forces at play, and strategize for greatest habit success · Strategies for overcoming the habit plateau and sticking with your habits, even when the going gets rough · Plans for adapting your habits to fit your ever-changing life · New ideas from Clear on the role of fun in habit formation Packed with tips, tricks, and activities, The Atomic Habits Workbook is your step-by-step guide to making small changes that will transform your habits and deliver remarkable results.",
+        "industryIdentifiers": [
+          {
+            "type": "ISBN_13",
+            "identifier": "9798217180516"
+          }
+        ],
+        "readingModes": {
+          "text": true,
+          "image": false
+        },
+        "pageCount": 321,
+        "printType": "BOOK",
+        "categories": [
+          "Business & Economics"
+        ],
+        "maturityRating": "NOT_MATURE",
+        "allowAnonLogging": true,
+        "contentVersion": "1.3.2.0.preview.2",
+        "panelizationSummary": {
+          "containsEpubBubbles": false,
+          "containsImageBubbles": false
+        },
+        "imageLinks": {
+          "smallThumbnail": "http://books.google.com/books/content?id=FJ5hEQAAQBAJ&printsec=frontcover&img=1&zoom=5&edge=curl&source=gbs_api",
+          "thumbnail": "http://books.google.com/books/content?id=FJ5hEQAAQBAJ&printsec=frontcover&img=1&zoom=1&edge=curl&source=gbs_api"
+        },
+        "language": "en",
+        "previewLink": "http://books.google.com.mx/books?id=FJ5hEQAAQBAJ&printsec=frontcover&dq=intitle:%22Atomic+Habits%22&hl=&as_pt=BOOKS&cd=2&source=gbs_api",
+        "infoLink": "https://play.google.com/store/books/details?id=FJ5hEQAAQBAJ&source=gbs_api",
+        "canonicalVolumeLink": "https://play.google.com/store/books/details?id=FJ5hEQAAQBAJ"
+      },
+      "saleInfo": {
+        "country": "MX",
+        "saleability": "FOR_SALE",
+        "isEbook": true,
+        "listPrice": {
+          "amount": 255.7,
+          "currencyCode": "MXN"
+        },
+        "retailPrice": {
+          "amount": 255.7,
+          "currencyCode": "MXN"
+        },
+        "buyLink": "https://play.google.com/store/books/details?id=FJ5hEQAAQBAJ&rdid=book-FJ5hEQAAQBAJ&rdot=1&source=gbs_api",
+        "offers": [
+          {
+            "finskyOfferType": 1,
+            "listPrice": {
+              "amountInMicros": 255700000,
+              "currencyCode": "MXN"
+            },
+            "retailPrice": {
+              "amountInMicros": 255700000,
+              "currencyCode": "MXN"
+            },
+            "giftable": true
+          }
+        ]
+      },
+      "accessInfo": {
+        "country": "MX",
+        "viewability": "PARTIAL",
+        "embeddable": true,
+        "publicDomain": false,
+        "textToSpeechPermission": "ALLOWED",
+        "epub": {
+          "isAvailable": true,
+          "acsTokenLink": "http://books.google.com.mx/books/download/The_Atomic_Habits_Workbook-sample-epub.acsm?id=FJ5hEQAAQBAJ&format=epub&output=acs4_fulfillment_token&dl_type=sample&source=gbs_api"
+        },
+        "pdf": {
+          "isAvailable": false
+        },
+        "webReaderLink": "http://play.google.com/books/reader?id=FJ5hEQAAQBAJ&hl=&as_pt=BOOKS&source=gbs_api",
+        "accessViewStatus": "SAMPLE",
+        "quoteSharingAllowed": false
+      },
+      "searchInfo": {
+        "textSnippet": "This workbook takes the reader from understanding habits to living them. James Clear’s system helps good habits emerge naturally while unwanted habits fade away."
+      }
+    },
+    {
+      "kind": "books#volume",
+      "id": "zweQzwEACAAJ",
+      "etag": "6FlDvjFxqY4",
+      "selfLink": "https://www.googleapis.com/books/v1/volumes/zweQzwEACAAJ",
+      "volumeInfo": {
+        "title": "Hábitos Atómicos / Atomic Habits (Spanish Edition)",
+        "authors": [
+          "James Clear"
+        ],
+        "publisher": "Planeta Publishing",
+        "publishedDate": "2023-03-21",
+        "description": "A menudo pensamos que para cambiar de vida tenemos que pensar en hacer cambios grandes. Nada más lejos de la realidad. Según el reconocido experto en hábitos James Clear, el cambio real proviene del resultado de cientos de pequeñas decisiones: hacer dos flexiones al día, levantarse cinco minutos antes o hacer una corta llamada telefónica. Clear llama a estas decisiones \"hábitos atómicos\" tan pequeños como una partícula, pero tan poderosos como un tsunami. En este libro innovador nos revela exactamente cómo esos cambios minúsculos pueden crecer hasta llegar a cambiar nuestra carrera profesional, nuestras relaciones y todos los aspectos de nuestra vida. «De mis libros favoritos de todos los tiempos.» ARIANNA HUFFINGTON, fundadora de The Huffington Post «Un discurso que se apoya en bases científicas, manual de instrucciones para implantar cambios a nuestro favor.» IMA SANCHÍS, La Vanguardia «Te harás fan.» CECILIA MÚZQUIZ, directora de Cosmopolitan «Demuestra que cualquier meta está al alcance de la mano, siempre y cuando empecemos desde lo más simple.» ABC Bienestar «Profundiza en todos aquellos aspectos necesarios para llevar una vida ordenada, productiva y orientada a disfrutar de los procesos, no solo de los resultados.» Xataka ENGLISH DESCRIPTION No matter your goals, Hábitos Atómicos offers a proven framework for improving--every day. James Clear, one of the world's leading experts on habit formation, reveals practical strategies that will teach you exactly how to form good habits, break bad ones, and master the tiny behaviors that lead to remarkable results. Clear is known for his ability to distill complex topics into simple behaviors that can be easily applied to daily life and work. Here, he draws on the most proven ideas from biology, psychology, and neuroscience to create an easy-to-understand guide for making good habits inevitable and bad habits impossible.",
+        "industryIdentifiers": [
+          {
+            "type": "ISBN_10",
+            "identifier": "6075694129"
+          },
+          {
+            "type": "ISBN_13",
+            "identifier": "9786075694122"
+          }
+        ],
+        "readingModes": {
+          "text": false,
+          "image": false
+        },
+        "pageCount": 0,
+        "printType": "BOOK",
+        "categories": [
+          "Business & Economics"
+        ],
+        "maturityRating": "NOT_MATURE",
+        "allowAnonLogging": false,
+        "contentVersion": "preview-1.0.0",
+        "panelizationSummary": {
+          "containsEpubBubbles": false,
+          "containsImageBubbles": false
+        },
+        "imageLinks": {
+          "smallThumbnail": "http://books.google.com/books/content?id=zweQzwEACAAJ&printsec=frontcover&img=1&zoom=5&source=gbs_api",
+          "thumbnail": "http://books.google.com/books/content?id=zweQzwEACAAJ&printsec=frontcover&img=1&zoom=1&source=gbs_api"
+        },
+        "language": "es",
+        "previewLink": "http://books.google.com.mx/books?id=zweQzwEACAAJ&dq=intitle:%22Atomic+Habits%22&hl=&as_pt=BOOKS&cd=3&source=gbs_api",
+        "infoLink": "http://books.google.com.mx/books?id=zweQzwEACAAJ&dq=intitle:%22Atomic+Habits%22&hl=&as_pt=BOOKS&source=gbs_api",
+        "canonicalVolumeLink": "https://books.google.com/books/about/H%C3%A1bitos_At%C3%B3micos_Atomic_Habits_Spanish.html?hl=&id=zweQzwEACAAJ"
+      },
+      "saleInfo": {
+        "country": "MX",
+        "saleability": "NOT_FOR_SALE",
+        "isEbook": false
+      },
+      "accessInfo": {
+        "country": "MX",
+        "viewability": "NO_PAGES",
+        "embeddable": false,
+        "publicDomain": false,
+        "textToSpeechPermission": "ALLOWED",
+        "epub": {
+          "isAvailable": false
+        },
+        "pdf": {
+          "isAvailable": false
+        },
+        "webReaderLink": "http://play.google.com/books/reader?id=zweQzwEACAAJ&hl=&as_pt=BOOKS&source=gbs_api",
+        "accessViewStatus": "NONE",
+        "quoteSharingAllowed": false
+      },
+      "searchInfo": {
+        "textSnippet": "Según el reconocido experto en hábitos James Clear, el cambio real proviene del resultado de cientos de pequeñas decisiones: hacer dos flexiones al día, levantarse cinco minutos antes o hacer una corta llamada telefónica.Clear llama a ..."
+      }
+    },
+    {
+      "kind": "books#volume",
+      "id": "tVX00AEACAAJ",
+      "etag": "VqFwurMfJ/0",
+      "selfLink": "https://www.googleapis.com/books/v1/volumes/tVX00AEACAAJ",
+      "volumeInfo": {
+        "title": "Atomic Habits",
+        "subtitle": "An Easy & Proven Way to Build Good Habits & Break Bad Ones",
+        "authors": [
+          "James Clear"
+        ],
+        "publishedDate": "2018",
+        "industryIdentifiers": [
+          {
+            "type": "ISBN_10",
+            "identifier": "1804220205"
+          },
+          {
+            "type": "ISBN_13",
+            "identifier": "9781804220207"
+          }
+        ],
+        "readingModes": {
+          "text": false,
+          "image": false
+        },
+        "pageCount": 0,
+        "printType": "BOOK",
+        "maturityRating": "NOT_MATURE",
+        "allowAnonLogging": false,
+        "contentVersion": "preview-1.0.0",
+        "panelizationSummary": {
+          "containsEpubBubbles": false,
+          "containsImageBubbles": false
+        },
+        "imageLinks": {
+          "smallThumbnail": "http://books.google.com/books/content?id=tVX00AEACAAJ&printsec=frontcover&img=1&zoom=5&source=gbs_api",
+          "thumbnail": "http://books.google.com/books/content?id=tVX00AEACAAJ&printsec=frontcover&img=1&zoom=1&source=gbs_api"
+        },
+        "language": "en",
+        "previewLink": "http://books.google.com.mx/books?id=tVX00AEACAAJ&dq=intitle:%22Atomic+Habits%22&hl=&as_pt=BOOKS&cd=4&source=gbs_api",
+        "infoLink": "http://books.google.com.mx/books?id=tVX00AEACAAJ&dq=intitle:%22Atomic+Habits%22&hl=&as_pt=BOOKS&source=gbs_api",
+        "canonicalVolumeLink": "https://books.google.com/books/about/Atomic_Habits.html?hl=&id=tVX00AEACAAJ"
+      },
+      "saleInfo": {
+        "country": "MX",
+        "saleability": "NOT_FOR_SALE",
+        "isEbook": false
+      },
+      "accessInfo": {
+        "country": "MX",
+        "viewability": "NO_PAGES",
+        "embeddable": false,
+        "publicDomain": false,
+        "textToSpeechPermission": "ALLOWED",
+        "epub": {
+          "isAvailable": false
+        },
+        "pdf": {
+          "isAvailable": false
+        },
+        "webReaderLink": "http://play.google.com/books/reader?id=tVX00AEACAAJ&hl=&as_pt=BOOKS&source=gbs_api",
+        "accessViewStatus": "NONE",
+        "quoteSharingAllowed": false
+      }
+    },
+    {
+      "kind": "books#volume",
+      "id": "fFCjDQAAQBAJ",
+      "etag": "9p78mb9/LNQ",
+      "selfLink": "https://www.googleapis.com/books/v1/volumes/fFCjDQAAQBAJ",
+      "volumeInfo": {
+        "title": "Atomic Habits",
+        "subtitle": "The life-changing million-copy #1 bestseller",
+        "authors": [
+          "James Clear"
+        ],
+        "publisher": "Random House",
+        "publishedDate": "2018-10-18",
+        "description": "***COMING 9TH DECEMBER 2025 - THE ATOMIC HABITS WORKBOOK: OFFICIAL COMPANION TO THE #1 WORLDWIDE BESTSELLER. PREORDER NOW*** THE PHENOMENAL INTERNATIONAL BESTSELLER: OVER 25 MILLION COPIES SOLD WORLDWIDE Transform your life with tiny changes in behaviour, starting now. People think that when you want to change your life, you need to think big. But world-renowned habits expert James Clear has discovered another way. He knows that real change comes from the compound effect of hundreds of small decisions: doing two push-ups a day, waking up five minutes early, or holding a single short phone call. He calls them atomic habits. In this ground-breaking book, Clears reveals exactly how these minuscule changes can grow into such life-altering outcomes. He uncovers a handful of simple life hacks (the forgotten art of Habit Stacking, the unexpected power of the Two Minute Rule, or the trick to entering the Goldilocks Zone), and delves into cutting-edge psychology and neuroscience to explain why they matter. Along the way, he tells inspiring stories of Olympic gold medalists, leading CEOs, and distinguished scientists who have used the science of tiny habits to stay productive, motivated, and happy. These small changes will have a revolutionary effect on your career, your relationships, and your life. ________________________________ A NEW YORK TIMES AND SUNDAY TIMES BESTSELLER 'A supremely practical and useful book.' Mark Manson, author of The Subtle Art of Not Giving A F*ck 'James Clear has spent years honing the art and studying the science of habits. This engaging, hands-on book is the guide you need to break bad routines and make good ones.' Adam Grant, author of Originals 'Atomic Habits is a step-by-step manual for changing routines.' Books of the Month, Financial Times 'A special book that will change how you approach your day and live your life.' Ryan Holiday, author of The Obstacle is the Way",
+        "industryIdentifiers": [
+          {
+            "type": "ISBN_13",
+            "identifier": "9781473537804"
+          },
+          {
+            "type": "ISBN_10",
+            "identifier": "1473537800"
+          }
+        ],
+        "readingModes": {
+          "text": true,
+          "image": false
+        },
+        "pageCount": 216,
+        "printType": "BOOK",
+        "categories": [
+          "Self-Help"
+        ],
+        "averageRating": 4,
+        "ratingsCount": 4,
+        "maturityRating": "NOT_MATURE",
+        "allowAnonLogging": true,
+        "contentVersion": "2.16.16.0.preview.2",
+        "panelizationSummary": {
+          "containsEpubBubbles": false,
+          "containsImageBubbles": false
+        },
+        "imageLinks": {
+          "smallThumbnail": "http://books.google.com/books/content?id=fFCjDQAAQBAJ&printsec=frontcover&img=1&zoom=5&edge=curl&source=gbs_api",
+          "thumbnail": "http://books.google.com/books/content?id=fFCjDQAAQBAJ&printsec=frontcover&img=1&zoom=1&edge=curl&source=gbs_api"
+        },
+        "language": "en",
+        "previewLink": "http://books.google.com.mx/books?id=fFCjDQAAQBAJ&printsec=frontcover&dq=intitle:%22Atomic+Habits%22&hl=&as_pt=BOOKS&cd=5&source=gbs_api",
+        "infoLink": "http://books.google.com.mx/books?id=fFCjDQAAQBAJ&dq=intitle:%22Atomic+Habits%22&hl=&as_pt=BOOKS&source=gbs_api",
+        "canonicalVolumeLink": "https://books.google.com/books/about/Atomic_Habits.html?hl=&id=fFCjDQAAQBAJ"
+      },
+      "saleInfo": {
+        "country": "MX",
+        "saleability": "NOT_FOR_SALE",
+        "isEbook": false
+      },
+      "accessInfo": {
+        "country": "MX",
+        "viewability": "PARTIAL",
+        "embeddable": true,
+        "publicDomain": false,
+        "textToSpeechPermission": "ALLOWED",
+        "epub": {
+          "isAvailable": true,
+          "acsTokenLink": "http://books.google.com.mx/books/download/Atomic_Habits-sample-epub.acsm?id=fFCjDQAAQBAJ&format=epub&output=acs4_fulfillment_token&dl_type=sample&source=gbs_api"
+        },
+        "pdf": {
+          "isAvailable": false
+        },
+        "webReaderLink": "http://play.google.com/books/reader?id=fFCjDQAAQBAJ&hl=&as_pt=BOOKS&source=gbs_api",
+        "accessViewStatus": "SAMPLE",
+        "quoteSharingAllowed": false
+      },
+      "searchInfo": {
+        "textSnippet": "He calls them atomic habits. In this ground-breaking book, Clears reveals exactly how these minuscule changes can grow into such life-altering outcomes."
+      }
+    },
+    {
+      "kind": "books#volume",
+      "id": "mmoszgEACAAJ",
+      "etag": "LDO2IY59PuQ",
+      "selfLink": "https://www.googleapis.com/books/v1/volumes/mmoszgEACAAJ",
+      "volumeInfo": {
+        "title": "Summary of Atomic Habits",
+        "subtitle": "An Easy & Proven Way to Build Good Habits & Break Bad Ones By: James Clear",
+        "authors": [
+          "David C. Beard"
+        ],
+        "publishedDate": "2021",
+        "description": "\"Atomic Habits by James Clear\" became a Wall Street Journal bestseller, USA Today Bestseller, Publisher's Weekly bestseller and one of Fast Company's 7 best business books of 2018 for good reasons. Habits creates us. James Clear compiled his years of research and studies of habits into 4 simple steps that anyone could not only learn, but apply. Why? Because information is not power. It's potential power. The real power comes from implementation and Atomic Habits is a book of implementation and execution. Are you ready? In this New York Times bestseller, James Clear writes that starting with some small steps can lead to big changes in your life. He presents an easy, actionable guide to creating new habits and breaking old ones. In this book you will find: Book Summary Overview Chapter by Chapter Analysis Background Information about the book Background information about the author Discussion Trivia Questions Discussion Questions Note to readers: This is an unofficial summary & analysis of James Clear's book \"Atomic Habits: An Easy & Proven Way to Build Good Habits & Break Bad Ones\" designed to enrich your reading experience.",
+        "industryIdentifiers": [
+          {
+            "type": "ISBN_10",
+            "identifier": "1922577251"
+          },
+          {
+            "type": "ISBN_13",
+            "identifier": "9781922577252"
+          }
+        ],
+        "readingModes": {
+          "text": false,
+          "image": false
+        },
+        "pageCount": 36,
+        "printType": "BOOK",
+        "categories": [
+          "Business & Economics"
+        ],
+        "maturityRating": "NOT_MATURE",
+        "allowAnonLogging": false,
+        "contentVersion": "preview-1.0.0",
+        "panelizationSummary": {
+          "containsEpubBubbles": false,
+          "containsImageBubbles": false
+        },
+        "imageLinks": {
+          "smallThumbnail": "http://books.google.com/books/content?id=mmoszgEACAAJ&printsec=frontcover&img=1&zoom=5&source=gbs_api",
+          "thumbnail": "http://books.google.com/books/content?id=mmoszgEACAAJ&printsec=frontcover&img=1&zoom=1&source=gbs_api"
+        },
+        "language": "en",
+        "previewLink": "http://books.google.com.mx/books?id=mmoszgEACAAJ&dq=intitle:%22Atomic+Habits%22&hl=&as_pt=BOOKS&cd=6&source=gbs_api",
+        "infoLink": "http://books.google.com.mx/books?id=mmoszgEACAAJ&dq=intitle:%22Atomic+Habits%22&hl=&as_pt=BOOKS&source=gbs_api",
+        "canonicalVolumeLink": "https://books.google.com/books/about/Summary_of_Atomic_Habits.html?hl=&id=mmoszgEACAAJ"
+      },
+      "saleInfo": {
+        "country": "MX",
+        "saleability": "NOT_FOR_SALE",
+        "isEbook": false
+      },
+      "accessInfo": {
+        "country": "MX",
+        "viewability": "NO_PAGES",
+        "embeddable": false,
+        "publicDomain": false,
+        "textToSpeechPermission": "ALLOWED",
+        "epub": {
+          "isAvailable": false
+        },
+        "pdf": {
+          "isAvailable": false
+        },
+        "webReaderLink": "http://play.google.com/books/reader?id=mmoszgEACAAJ&hl=&as_pt=BOOKS&source=gbs_api",
+        "accessViewStatus": "NONE",
+        "quoteSharingAllowed": false
+      },
+      "searchInfo": {
+        "textSnippet": "&quot;Habits creates us."
+      }
+    },
+    {
+      "kind": "books#volume",
+      "id": "jj900QEACAAJ",
+      "etag": "bYu1eGqwN5I",
+      "selfLink": "https://www.googleapis.com/books/v1/volumes/jj900QEACAAJ",
+      "volumeInfo": {
+        "title": "Atomic Habits: an Easy and Proven Way to Build Good Habits and Break Bad Ones by James Clear",
+        "authors": [
+          "James Clear"
+        ],
+        "publishedDate": "2021-08-09",
+        "industryIdentifiers": [
+          {
+            "type": "ISBN_13",
+            "identifier": "9798999373205"
+          }
+        ],
+        "readingModes": {
+          "text": false,
+          "image": false
+        },
+        "pageCount": 0,
+        "printType": "BOOK",
+        "categories": [
+          "Fiction"
+        ],
+        "maturityRating": "NOT_MATURE",
+        "allowAnonLogging": false,
+        "contentVersion": "preview-1.0.0",
+        "panelizationSummary": {
+          "containsEpubBubbles": false,
+          "containsImageBubbles": false
+        },
+        "imageLinks": {
+          "smallThumbnail": "http://books.google.com/books/content?id=jj900QEACAAJ&printsec=frontcover&img=1&zoom=5&source=gbs_api",
+          "thumbnail": "http://books.google.com/books/content?id=jj900QEACAAJ&printsec=frontcover&img=1&zoom=1&source=gbs_api"
+        },
+        "language": "en",
+        "previewLink": "http://books.google.com.mx/books?id=jj900QEACAAJ&dq=intitle:%22Atomic+Habits%22&hl=&as_pt=BOOKS&cd=7&source=gbs_api",
+        "infoLink": "http://books.google.com.mx/books?id=jj900QEACAAJ&dq=intitle:%22Atomic+Habits%22&hl=&as_pt=BOOKS&source=gbs_api",
+        "canonicalVolumeLink": "https://books.google.com/books/about/Atomic_Habits_an_Easy_and_Proven_Way_to.html?hl=&id=jj900QEACAAJ"
+      },
+      "saleInfo": {
+        "country": "MX",
+        "saleability": "NOT_FOR_SALE",
+        "isEbook": false
+      },
+      "accessInfo": {
+        "country": "MX",
+        "viewability": "NO_PAGES",
+        "embeddable": false,
+        "publicDomain": false,
+        "textToSpeechPermission": "ALLOWED",
+        "epub": {
+          "isAvailable": false
+        },
+        "pdf": {
+          "isAvailable": false
+        },
+        "webReaderLink": "http://play.google.com/books/reader?id=jj900QEACAAJ&hl=&as_pt=BOOKS&source=gbs_api",
+        "accessViewStatus": "NONE",
+        "quoteSharingAllowed": false
+      }
+    },
+    {
+      "kind": "books#volume",
+      "id": "x3DezgEACAAJ",
+      "etag": "qlRTJdND9J0",
+      "selfLink": "https://www.googleapis.com/books/v1/volumes/x3DezgEACAAJ",
+      "volumeInfo": {
+        "title": "Summary of Atomic Habits",
+        "subtitle": "An Easy and Proven Way to Build Good Habits and Break Bad Ones",
+        "authors": [
+          "Katrina Morin"
+        ],
+        "publishedDate": "2021-09-18",
+        "description": "SUMMARY OF ATOMIC HABITS: An Easy & Proven Way To Build Good Habits And Break Bad Ones, By James Clear Tiny Changes, Remarkable Results! Are there things you'd prefer to do yet don't have the foggiest idea where to begin? Do you think that it is hard to see how to end negative habits and structure new ones? Do you at any point can't help thinking about why you act how you do in any event when you realize you shouldn't? Would you like to be the individual you need to be? The information and methods gave in Atomic Habits: An Easy & Proven Ways To Build Good Habits And Break Bad Ones, by James Clear are designed for helping you in finding whom you are on the right track now by looking at what you do. James Clear deconstructs the psychology of behaviors by depicting how actions become habits, why a few habits stick, and others don't, and how to reexamine your life to make new habits and keep up with them after some time. You can also learn how to; Set aside a few minutes for new habits (in any event, when life gets crazy). Beat an absence of inspiration and determination. Plan your current circumstance to make achievement simpler. Refocus when you fall off course. And many more... Note: This book is a summary, and it is intended to be a guide, not a substitution to the original text, Atomic Habits by James Clear. The author of this Summary is entirely answerable for its content, and it isn't related or associated with the original author. Scroll Up Now and Click on the \"Buy now with 1-Click\" Button to get this book.",
+        "industryIdentifiers": [
+          {
+            "type": "ISBN_13",
+            "identifier": "9798479949340"
+          }
+        ],
+        "readingModes": {
+          "text": false,
+          "image": false
+        },
+        "pageCount": 52,
+        "printType": "BOOK",
+        "maturityRating": "NOT_MATURE",
+        "allowAnonLogging": false,
+        "contentVersion": "preview-1.0.0",
+        "panelizationSummary": {
+          "containsEpubBubbles": false,
+          "containsImageBubbles": false
+        },
+        "language": "en",
+        "previewLink": "http://books.google.com.mx/books?id=x3DezgEACAAJ&dq=intitle:%22Atomic+Habits%22&hl=&as_pt=BOOKS&cd=8&source=gbs_api",
+        "infoLink": "http://books.google.com.mx/books?id=x3DezgEACAAJ&dq=intitle:%22Atomic+Habits%22&hl=&as_pt=BOOKS&source=gbs_api",
+        "canonicalVolumeLink": "https://books.google.com/books/about/Summary_of_Atomic_Habits.html?hl=&id=x3DezgEACAAJ"
+      },
+      "saleInfo": {
+        "country": "MX",
+        "saleability": "NOT_FOR_SALE",
+        "isEbook": false
+      },
+      "accessInfo": {
+        "country": "MX",
+        "viewability": "NO_PAGES",
+        "embeddable": false,
+        "publicDomain": false,
+        "textToSpeechPermission": "ALLOWED",
+        "epub": {
+          "isAvailable": false
+        },
+        "pdf": {
+          "isAvailable": false
+        },
+        "webReaderLink": "http://play.google.com/books/reader?id=x3DezgEACAAJ&hl=&as_pt=BOOKS&source=gbs_api",
+        "accessViewStatus": "NONE",
+        "quoteSharingAllowed": false
+      },
+      "searchInfo": {
+        "textSnippet": "Refocus when you fall off course. And many more... Note: This book is a summary, and it is intended to be a guide, not a substitution to the original text, Atomic Habits by James Clear."
+      }
+    },
+    {
+      "kind": "books#volume",
+      "id": "-a5puQEACAAJ",
+      "etag": "El+51Pjh37w",
+      "selfLink": "https://www.googleapis.com/books/v1/volumes/-a5puQEACAAJ",
+      "volumeInfo": {
+        "title": "Atomic Habits",
+        "subtitle": "An Easy and Proven Way to Build Good Habits and Break Bad Ones",
+        "authors": [
+          "James Clear"
+        ],
+        "publisher": "Random House Business Books",
+        "publishedDate": "2019-04-04",
+        "industryIdentifiers": [
+          {
+            "type": "ISBN_10",
+            "identifier": "1847941842"
+          },
+          {
+            "type": "ISBN_13",
+            "identifier": "9781847941848"
+          }
+        ],
+        "readingModes": {
+          "text": false,
+          "image": false
+        },
+        "pageCount": 288,
+        "printType": "BOOK",
+        "maturityRating": "NOT_MATURE",
+        "allowAnonLogging": false,
+        "contentVersion": "preview-1.0.0",
+        "panelizationSummary": {
+          "containsEpubBubbles": false,
+          "containsImageBubbles": false
+        },
+        "language": "en",
+        "previewLink": "http://books.google.com.mx/books?id=-a5puQEACAAJ&dq=intitle:%22Atomic+Habits%22&hl=&as_pt=BOOKS&cd=9&source=gbs_api",
+        "infoLink": "http://books.google.com.mx/books?id=-a5puQEACAAJ&dq=intitle:%22Atomic+Habits%22&hl=&as_pt=BOOKS&source=gbs_api",
+        "canonicalVolumeLink": "https://books.google.com/books/about/Atomic_Habits.html?hl=&id=-a5puQEACAAJ"
+      },
+      "saleInfo": {
+        "country": "MX",
+        "saleability": "NOT_FOR_SALE",
+        "isEbook": false
+      },
+      "accessInfo": {
+        "country": "MX",
+        "viewability": "NO_PAGES",
+        "embeddable": false,
+        "publicDomain": false,
+        "textToSpeechPermission": "ALLOWED",
+        "epub": {
+          "isAvailable": false
+        },
+        "pdf": {
+          "isAvailable": false
+        },
+        "webReaderLink": "http://play.google.com/books/reader?id=-a5puQEACAAJ&hl=&as_pt=BOOKS&source=gbs_api",
+        "accessViewStatus": "NONE",
+        "quoteSharingAllowed": false
+      },
+      "searchInfo": {
+        "textSnippet": "A supremely practical and useful book. James Clear distils the most fundamental information about habit formation, so you can accomplish more by focusing on less."
+      }
+    },
+    {
+      "kind": "books#volume",
+      "id": "Wo2sEAAAQBAJ",
+      "etag": "nAH/i145tU8",
+      "selfLink": "https://www.googleapis.com/books/v1/volumes/Wo2sEAAAQBAJ",
+      "volumeInfo": {
+        "title": "Summary of Atomic Habits",
+        "authors": [
+          "PenZen Summaries"
+        ],
+        "publisher": "by Mocktime Publication",
+        "publishedDate": "2023-02-08",
+        "description": "Summary of Atomic Habits Table of Contents Introduction Chapter 1: The Surprising Power of Atomic Habits Chapter 2: The 1% Better Rule Chapter 3: The Four Laws of Behavior Change Chapter 4: How to Build a Good Habit Chapter 5: How to Break a Bad Habit Chapter 6: The Two-Minute Rule Chapter 7: The Compound Effect of Habits Chapter 8: Overcoming Plateaus and Setbacks Conclusion",
+        "readingModes": {
+          "text": true,
+          "image": true
+        },
+        "pageCount": 22,
+        "printType": "BOOK",
+        "categories": [
+          "Study Aids"
+        ],
+        "maturityRating": "MATURE",
+        "allowAnonLogging": false,
+        "contentVersion": "1.2.2.0.preview.3",
+        "panelizationSummary": {
+          "containsEpubBubbles": false,
+          "containsImageBubbles": false
+        },
+        "imageLinks": {
+          "smallThumbnail": "http://books.google.com/books/content?id=Wo2sEAAAQBAJ&printsec=frontcover&img=1&zoom=5&edge=curl&source=gbs_api",
+          "thumbnail": "http://books.google.com/books/content?id=Wo2sEAAAQBAJ&printsec=frontcover&img=1&zoom=1&edge=curl&source=gbs_api"
+        },
+        "language": "en",
+        "previewLink": "http://books.google.com.mx/books?id=Wo2sEAAAQBAJ&printsec=frontcover&dq=intitle:%22Atomic+Habits%22&hl=&as_pt=BOOKS&cd=10&source=gbs_api",
+        "infoLink": "https://play.google.com/store/books/details?id=Wo2sEAAAQBAJ&source=gbs_api",
+        "canonicalVolumeLink": "https://play.google.com/store/books/details?id=Wo2sEAAAQBAJ"
+      },
+      "saleInfo": {
+        "country": "MX",
+        "saleability": "FOR_SALE",
+        "isEbook": true,
+        "listPrice": {
+          "amount": 35,
+          "currencyCode": "MXN"
+        },
+        "retailPrice": {
+          "amount": 35,
+          "currencyCode": "MXN"
+        },
+        "buyLink": "https://play.google.com/store/books/details?id=Wo2sEAAAQBAJ&rdid=book-Wo2sEAAAQBAJ&rdot=1&source=gbs_api",
+        "offers": [
+          {
+            "finskyOfferType": 1,
+            "listPrice": {
+              "amountInMicros": 35000000,
+              "currencyCode": "MXN"
+            },
+            "retailPrice": {
+              "amountInMicros": 35000000,
+              "currencyCode": "MXN"
+            },
+            "giftable": true
+          }
+        ]
+      },
+      "accessInfo": {
+        "country": "MX",
+        "viewability": "PARTIAL",
+        "embeddable": true,
+        "publicDomain": false,
+        "textToSpeechPermission": "ALLOWED",
+        "epub": {
+          "isAvailable": true,
+          "acsTokenLink": "http://books.google.com.mx/books/download/Summary_of_Atomic_Habits-sample-epub.acsm?id=Wo2sEAAAQBAJ&format=epub&output=acs4_fulfillment_token&dl_type=sample&source=gbs_api"
+        },
+        "pdf": {
+          "isAvailable": true,
+          "acsTokenLink": "http://books.google.com.mx/books/download/Summary_of_Atomic_Habits-sample-pdf.acsm?id=Wo2sEAAAQBAJ&format=pdf&output=acs4_fulfillment_token&dl_type=sample&source=gbs_api"
+        },
+        "webReaderLink": "http://play.google.com/books/reader?id=Wo2sEAAAQBAJ&hl=&as_pt=BOOKS&source=gbs_api",
+        "accessViewStatus": "SAMPLE",
+        "quoteSharingAllowed": false
+      },
+      "searchInfo": {
+        "textSnippet": "Summary of Atomic Habits Table of Contents Introduction Chapter 1: The Surprising Power of Atomic Habits Chapter 2: The 1% Better Rule Chapter 3: The Four Laws of Behavior Change Chapter 4: How to Build a Good Habit Chapter 5: How to Break ..."
+      }
+    },
+    {
+      "kind": "books#volume",
+      "id": "p6gUEQAAQBAJ",
+      "etag": "Jl1r1dTqBL0",
+      "selfLink": "https://www.googleapis.com/books/v1/volumes/p6gUEQAAQBAJ",
+      "volumeInfo": {
+        "title": "Workbook & Summary - Atomic Habits - Based On The Book By James Clear",
+        "authors": [
+          "Sapiens Quick Books"
+        ],
+        "publisher": "Sapiens Quick Books",
+        "publishedDate": "2024-08-04",
+        "description": "This publication is a summary.This publication is not the complete book.This publication is a condensed summary of the most important concepts and ideas based on the original book.-WORKBOOK & SUMMARY: ATOMIC HABITS - BASED ON THE BOOK BY JAMES CLEARAre you ready to boost your knowledge about ATOMIC HABITS? Do you want to quickly and concisely learn the key lessons of this book?Are you ready to process the information of an entire book in just one reading of approximately 30 minutes?Would you like to have a deeper understanding of the original book?Then this book is for you!CONTENT:Essential Concepts Of Atomic HabitsHabits Influence Identity And Vice VersaFour Steps To Create Effective HabitsHow Success Can Mess With Your Mind: Success Can Distort Your MindsetUnconventional Habit-Starting MethodsEnvironment Outweighs Motivation In Habit FormationKey Strategies For Maintaining Self-ControlEnsuring Habits Become PermanentFundamental Principle For Changing BehaviorDaily Commitment To Positive HabitsImpact Of Having An Accountability PartnerBest Speed For Habit DevelopmentStrategies For Habit RecoveryMaintaining Motivation With The Right Challenge",
+        "industryIdentifiers": [
+          {
+            "type": "ISBN_13",
+            "identifier": "9781304231659"
+          },
+          {
+            "type": "ISBN_10",
+            "identifier": "1304231658"
+          }
+        ],
+        "readingModes": {
+          "text": true,
+          "image": true
+        },
+        "pageCount": 53,
+        "printType": "BOOK",
+        "categories": [
+          "Self-Help"
+        ],
+        "maturityRating": "NOT_MATURE",
+        "allowAnonLogging": false,
+        "contentVersion": "preview-1.0.0",
+        "panelizationSummary": {
+          "containsEpubBubbles": false,
+          "containsImageBubbles": false
+        },
+        "imageLinks": {
+          "smallThumbnail": "http://books.google.com/books/content?id=p6gUEQAAQBAJ&printsec=frontcover&img=1&zoom=5&edge=curl&source=gbs_api",
+          "thumbnail": "http://books.google.com/books/content?id=p6gUEQAAQBAJ&printsec=frontcover&img=1&zoom=1&edge=curl&source=gbs_api"
+        },
+        "language": "en",
+        "previewLink": "http://books.google.com.mx/books?id=p6gUEQAAQBAJ&printsec=frontcover&dq=intitle:%22Atomic+Habits%22&hl=&as_pt=BOOKS&cd=11&source=gbs_api",
+        "infoLink": "https://play.google.com/store/books/details?id=p6gUEQAAQBAJ&source=gbs_api",
+        "canonicalVolumeLink": "https://play.google.com/store/books/details?id=p6gUEQAAQBAJ"
+      },
+      "saleInfo": {
+        "country": "MX",
+        "saleability": "FOR_SALE",
+        "isEbook": true,
+        "listPrice": {
+          "amount": 69,
+          "currencyCode": "MXN"
+        },
+        "retailPrice": {
+          "amount": 69,
+          "currencyCode": "MXN"
+        },
+        "buyLink": "https://play.google.com/store/books/details?id=p6gUEQAAQBAJ&rdid=book-p6gUEQAAQBAJ&rdot=1&source=gbs_api",
+        "offers": [
+          {
+            "finskyOfferType": 1,
+            "listPrice": {
+              "amountInMicros": 69000000,
+              "currencyCode": "MXN"
+            },
+            "retailPrice": {
+              "amountInMicros": 69000000,
+              "currencyCode": "MXN"
+            },
+            "giftable": true
+          }
+        ]
+      },
+      "accessInfo": {
+        "country": "MX",
+        "viewability": "PARTIAL",
+        "embeddable": true,
+        "publicDomain": false,
+        "textToSpeechPermission": "ALLOWED",
+        "epub": {
+          "isAvailable": true,
+          "acsTokenLink": "http://books.google.com.mx/books/download/Workbook_Summary_Atomic_Habits_Based_On-sample-epub.acsm?id=p6gUEQAAQBAJ&format=epub&output=acs4_fulfillment_token&dl_type=sample&source=gbs_api"
+        },
+        "pdf": {
+          "isAvailable": true,
+          "acsTokenLink": "http://books.google.com.mx/books/download/Workbook_Summary_Atomic_Habits_Based_On-sample-pdf.acsm?id=p6gUEQAAQBAJ&format=pdf&output=acs4_fulfillment_token&dl_type=sample&source=gbs_api"
+        },
+        "webReaderLink": "http://play.google.com/books/reader?id=p6gUEQAAQBAJ&hl=&as_pt=BOOKS&source=gbs_api",
+        "accessViewStatus": "SAMPLE",
+        "quoteSharingAllowed": false
+      },
+      "searchInfo": {
+        "textSnippet": "Do you want to quickly and concisely learn the key lessons of this book?Are you ready to process the information of an entire book in just one reading of approximately 30 minutes?Would you like to have a deeper understanding of the original ..."
+      }
+    },
+    {
+      "kind": "books#volume",
+      "id": "T929zgEACAAJ",
+      "etag": "aEAZwuodZTE",
+      "selfLink": "https://www.googleapis.com/books/v1/volumes/T929zgEACAAJ",
+      "volumeInfo": {
+        "title": "Atomic Habits",
+        "subtitle": "An Easy and Proven Way to Build Good Habits and Break Bad Ones",
+        "authors": [
+          "James Clear"
+        ],
+        "publisher": "Avery",
+        "publishedDate": "2018-10-16",
+        "description": "James Clear, an expert on habit formation, reveals practical strategies that will teach you how to form good habits, break bad ones, and master the tiny behaviors that lead to remarkable results. He draws on proven ideas from biology, psychology, and neuroscience to create an easy-to-understand guide for making good habits inevitable and bad habits impossible.",
+        "industryIdentifiers": [
+          {
+            "type": "ISBN_10",
+            "identifier": "1804225789"
+          },
+          {
+            "type": "ISBN_13",
+            "identifier": "9781804225783"
+          }
+        ],
+        "readingModes": {
+          "text": false,
+          "image": false
+        },
+        "pageCount": 0,
+        "printType": "BOOK",
+        "categories": [
+          "Behavior modification"
+        ],
+        "averageRating": 4,
+        "ratingsCount": 1,
+        "maturityRating": "NOT_MATURE",
+        "allowAnonLogging": false,
+        "contentVersion": "preview-1.0.0",
+        "panelizationSummary": {
+          "containsEpubBubbles": false,
+          "containsImageBubbles": false
+        },
+        "imageLinks": {
+          "smallThumbnail": "http://books.google.com/books/content?id=T929zgEACAAJ&printsec=frontcover&img=1&zoom=5&source=gbs_api",
+          "thumbnail": "http://books.google.com/books/content?id=T929zgEACAAJ&printsec=frontcover&img=1&zoom=1&source=gbs_api"
+        },
+        "language": "en",
+        "previewLink": "http://books.google.com.mx/books?id=T929zgEACAAJ&dq=intitle:%22Atomic+Habits%22&hl=&as_pt=BOOKS&cd=12&source=gbs_api",
+        "infoLink": "http://books.google.com.mx/books?id=T929zgEACAAJ&dq=intitle:%22Atomic+Habits%22&hl=&as_pt=BOOKS&source=gbs_api",
+        "canonicalVolumeLink": "https://books.google.com/books/about/Atomic_Habits.html?hl=&id=T929zgEACAAJ"
+      },
+      "saleInfo": {
+        "country": "MX",
+        "saleability": "NOT_FOR_SALE",
+        "isEbook": false
+      },
+      "accessInfo": {
+        "country": "MX",
+        "viewability": "NO_PAGES",
+        "embeddable": false,
+        "publicDomain": false,
+        "textToSpeechPermission": "ALLOWED",
+        "epub": {
+          "isAvailable": false
+        },
+        "pdf": {
+          "isAvailable": false
+        },
+        "webReaderLink": "http://play.google.com/books/reader?id=T929zgEACAAJ&hl=&as_pt=BOOKS&source=gbs_api",
+        "accessViewStatus": "NONE",
+        "quoteSharingAllowed": false
+      },
+      "searchInfo": {
+        "textSnippet": "He calls them atomic habits. In this ground-breaking book, Clears reveals exactly how these minuscule changes can grow into such life-altering outcomes."
+      }
+    },
+    {
+      "kind": "books#volume",
+      "id": "FtMyzgEACAAJ",
+      "etag": "zZkcVEKjbyc",
+      "selfLink": "https://www.googleapis.com/books/v1/volumes/FtMyzgEACAAJ",
+      "volumeInfo": {
+        "title": "WORKBOOK For Atomic Habits: An Easy & Proven Way to Build Good Habits & Break Bad Ones",
+        "authors": [
+          "Pocket Books"
+        ],
+        "publisher": "Book Bound",
+        "publishedDate": "2021-01-23",
+        "description": "Workbook For Atomic Habits: An Easy & Proven Way To Build Good Habits & Break Bad Ones HOW TO USE THIS WORKBOOK FOR ENHANCED APPLICATION This workbook is designed to guide readers into breaking bad attitudes and embracing good behaviours. Readers will have an understanding of how they can make a positive change in their lives by putting in little and consistent daily routines. Readers can make a positive change in their lives if they read this workbook carefully and follow the guides and instructions of the workbook. In the book \"Atomic Habits\" by James Clear, James guides us through a simplified and well explained steps/pattern through which readers, learn how they can become a better version of them self. This workbook, helps you put those steps into motion by pushing you to not just read, but take action. To get the best out of the book, and life itself, answer the questions, apply the lessons and follow the action steps provided in this workbook. The lessons contained herein are easy to understand and the action steps guide the reader aright as he employs the lessons learnt. With the checklist, the reader is set on the perfect path, being prevented from digressing but simply adhering to all that this workbook has to offer. A diligent, true, committed answering of the questions would open the reader up to a world of bliss, and expose him to areas hitherto untouched. The reader can be sure that their expectation for picking up the workbook is met. Have fun, be patient with yourself, and enjoy using this workbook. Scroll Up and Click The Buy Button To Get Started Disclaimer: This is a Workbook review of the book \"Atomic Habits\" and not the original book.",
+        "industryIdentifiers": [
+          {
+            "type": "ISBN_10",
+            "identifier": "1638090009"
+          },
+          {
+            "type": "ISBN_13",
+            "identifier": "9781638090007"
+          }
+        ],
+        "readingModes": {
+          "text": false,
+          "image": false
+        },
+        "pageCount": 74,
+        "printType": "BOOK",
+        "categories": [
+          "Education"
+        ],
+        "maturityRating": "NOT_MATURE",
+        "allowAnonLogging": false,
+        "contentVersion": "preview-1.0.0",
+        "panelizationSummary": {
+          "containsEpubBubbles": false,
+          "containsImageBubbles": false
+        },
+        "imageLinks": {
+          "smallThumbnail": "http://books.google.com/books/content?id=FtMyzgEACAAJ&printsec=frontcover&img=1&zoom=5&source=gbs_api",
+          "thumbnail": "http://books.google.com/books/content?id=FtMyzgEACAAJ&printsec=frontcover&img=1&zoom=1&source=gbs_api"
+        },
+        "language": "en",
+        "previewLink": "http://books.google.com.mx/books?id=FtMyzgEACAAJ&dq=intitle:%22Atomic+Habits%22&hl=&as_pt=BOOKS&cd=13&source=gbs_api",
+        "infoLink": "http://books.google.com.mx/books?id=FtMyzgEACAAJ&dq=intitle:%22Atomic+Habits%22&hl=&as_pt=BOOKS&source=gbs_api",
+        "canonicalVolumeLink": "https://books.google.com/books/about/WORKBOOK_For_Atomic_Habits_An_Easy_Prove.html?hl=&id=FtMyzgEACAAJ"
+      },
+      "saleInfo": {
+        "country": "MX",
+        "saleability": "NOT_FOR_SALE",
+        "isEbook": false
+      },
+      "accessInfo": {
+        "country": "MX",
+        "viewability": "NO_PAGES",
+        "embeddable": false,
+        "publicDomain": false,
+        "textToSpeechPermission": "ALLOWED",
+        "epub": {
+          "isAvailable": false
+        },
+        "pdf": {
+          "isAvailable": false
+        },
+        "webReaderLink": "http://play.google.com/books/reader?id=FtMyzgEACAAJ&hl=&as_pt=BOOKS&source=gbs_api",
+        "accessViewStatus": "NONE",
+        "quoteSharingAllowed": false
+      },
+      "searchInfo": {
+        "textSnippet": "Have fun, be patient with yourself, and enjoy using this workbook. Scroll Up and Click The Buy Button To Get Started Disclaimer: This is a Workbook review of the book &quot;Atomic Habits&quot; and not the original book."
+      }
+    },
+    {
+      "kind": "books#volume",
+      "id": "C2yBzgEACAAJ",
+      "etag": "XWY5yf79Jq0",
+      "selfLink": "https://www.googleapis.com/books/v1/volumes/C2yBzgEACAAJ",
+      "volumeInfo": {
+        "title": "Summary of Atomic Habits",
+        "subtitle": "An Easy and Proven Way to Build Good Habits and Break Bad Ones",
+        "authors": [
+          "Book Reviews"
+        ],
+        "publishedDate": "2021-06-06",
+        "description": "BOOK REVIEWS offers an in-depth look into the well-known book by James Clear, Atomic Habits. This summary book breaks down all the big ideas, key points, and facts in \"Atomic Habits\" so the reader can quickly and easily comprehend the content. In this New York Times bestseller, James Clear writes that begins with some small steps can lead to big changes in your life. He presents an easy, actionable guide to building new habits and breaking old ones. In this book you will find: Book Summary Overview Chapter by Chapter Analysis Background Information about the book Background information about the author Discussion Trivia Questions Discussion Questions Note to readers: This is not an offical summary & analysis of James Clear's book \"Atomic Habits: An Easy & Proven Way to Build Good Habits & Break Bad Ones\" designed to enrich your reading experience. Click on BUY to get copy of this good summary for yourself and for your loved ones",
+        "industryIdentifiers": [
+          {
+            "type": "ISBN_13",
+            "identifier": "9798516401374"
+          }
+        ],
+        "readingModes": {
+          "text": false,
+          "image": false
+        },
+        "pageCount": 62,
+        "printType": "BOOK",
+        "maturityRating": "NOT_MATURE",
+        "allowAnonLogging": false,
+        "contentVersion": "preview-1.0.0",
+        "panelizationSummary": {
+          "containsEpubBubbles": false,
+          "containsImageBubbles": false
+        },
+        "language": "en",
+        "previewLink": "http://books.google.com.mx/books?id=C2yBzgEACAAJ&dq=intitle:%22Atomic+Habits%22&hl=&as_pt=BOOKS&cd=14&source=gbs_api",
+        "infoLink": "http://books.google.com.mx/books?id=C2yBzgEACAAJ&dq=intitle:%22Atomic+Habits%22&hl=&as_pt=BOOKS&source=gbs_api",
+        "canonicalVolumeLink": "https://books.google.com/books/about/Summary_of_Atomic_Habits.html?hl=&id=C2yBzgEACAAJ"
+      },
+      "saleInfo": {
+        "country": "MX",
+        "saleability": "NOT_FOR_SALE",
+        "isEbook": false
+      },
+      "accessInfo": {
+        "country": "MX",
+        "viewability": "NO_PAGES",
+        "embeddable": false,
+        "publicDomain": false,
+        "textToSpeechPermission": "ALLOWED",
+        "epub": {
+          "isAvailable": false
+        },
+        "pdf": {
+          "isAvailable": false
+        },
+        "webReaderLink": "http://play.google.com/books/reader?id=C2yBzgEACAAJ&hl=&as_pt=BOOKS&source=gbs_api",
+        "accessViewStatus": "NONE",
+        "quoteSharingAllowed": false
+      },
+      "searchInfo": {
+        "textSnippet": "In this book you will find: Book Summary Overview Chapter by Chapter Analysis Background Information about the book Background information about the author Discussion Trivia Questions Discussion Questions Note to readers: This is not an ..."
+      }
+    },
+    {
+      "kind": "books#volume",
+      "id": "yy_8xwEACAAJ",
+      "etag": "LCfXgDN4Gu4",
+      "selfLink": "https://www.googleapis.com/books/v1/volumes/yy_8xwEACAAJ",
+      "volumeInfo": {
+        "title": "WORKBOOK for Atomic Habits",
+        "subtitle": "An Easy and Proven Way to Build Good Habits and Break Bad Ones",
+        "authors": [
+          "Pocket Books"
+        ],
+        "publisher": "Hybrid Books",
+        "publishedDate": "2019-07-25",
+        "description": "Workbook For Atomic Habits: An Easy & Proven Way To Build Good Habits & Break Bad Ones HOW TO USE THIS WORKBOOK FOR ENHANCED APPLICATION This workbook is designed to guide readers into breaking bad attitudes and embracing good behaviours. Readers will have an understanding of how they can make a positive change in their lives by putting in little and consistent daily routines. Readers can make a positive change in their lives if they read this workbook carefully and follow the guides and instructions of the workbook. In the book \"Atomic Habits\" by James Clear, James guides us through a simplified and well explained steps/pattern through which readers, learn how they can become a better version of them self. This workbook, helps you put those steps into motion by pushing you to not just read, but take action. To get the best out of the book, and life itself, answer the questions, apply the lessons and follow the action steps provided in this workbook. The lessons contained herein are easy to understand and the action steps guide the reader aright as he employs the lessons learnt. With the checklist, the reader is set on the perfect path, being prevented from digressing but simply adhering to all that this workbook has to offer. A diligent, true, committed answering of the questions would open the reader up to a world of bliss, and expose him to areas hitherto untouched. The reader can be sure that their expectation for picking up the workbook is met. Have fun, be patient with yourself, and enjoy using this workbook. Scroll Up and Click The Buy Button To Get Started Disclaimer: This is a Workbook review of the book \"Atomic Habits\" and not the original book",
+        "industryIdentifiers": [
+          {
+            "type": "ISBN_10",
+            "identifier": "1950284182"
+          },
+          {
+            "type": "ISBN_13",
+            "identifier": "9781950284184"
+          }
+        ],
+        "readingModes": {
+          "text": false,
+          "image": false
+        },
+        "pageCount": 76,
+        "printType": "BOOK",
+        "maturityRating": "NOT_MATURE",
+        "allowAnonLogging": false,
+        "contentVersion": "preview-1.0.0",
+        "panelizationSummary": {
+          "containsEpubBubbles": false,
+          "containsImageBubbles": false
+        },
+        "imageLinks": {
+          "smallThumbnail": "http://books.google.com/books/content?id=yy_8xwEACAAJ&printsec=frontcover&img=1&zoom=5&source=gbs_api",
+          "thumbnail": "http://books.google.com/books/content?id=yy_8xwEACAAJ&printsec=frontcover&img=1&zoom=1&source=gbs_api"
+        },
+        "language": "en",
+        "previewLink": "http://books.google.com.mx/books?id=yy_8xwEACAAJ&dq=intitle:%22Atomic+Habits%22&hl=&as_pt=BOOKS&cd=15&source=gbs_api",
+        "infoLink": "http://books.google.com.mx/books?id=yy_8xwEACAAJ&dq=intitle:%22Atomic+Habits%22&hl=&as_pt=BOOKS&source=gbs_api",
+        "canonicalVolumeLink": "https://books.google.com/books/about/WORKBOOK_for_Atomic_Habits.html?hl=&id=yy_8xwEACAAJ"
+      },
+      "saleInfo": {
+        "country": "MX",
+        "saleability": "NOT_FOR_SALE",
+        "isEbook": false
+      },
+      "accessInfo": {
+        "country": "MX",
+        "viewability": "NO_PAGES",
+        "embeddable": false,
+        "publicDomain": false,
+        "textToSpeechPermission": "ALLOWED",
+        "epub": {
+          "isAvailable": false
+        },
+        "pdf": {
+          "isAvailable": false
+        },
+        "webReaderLink": "http://play.google.com/books/reader?id=yy_8xwEACAAJ&hl=&as_pt=BOOKS&source=gbs_api",
+        "accessViewStatus": "NONE",
+        "quoteSharingAllowed": false
+      },
+      "searchInfo": {
+        "textSnippet": "Have fun, be patient with yourself, and enjoy using this workbook. Scroll Up and Click The Buy Button To Get Started Disclaimer: This is a Workbook review of the book &quot;Atomic Habits&quot; and not the original book"
+      }
+    },
+    {
+      "kind": "books#volume",
+      "id": "1mJ0zgEACAAJ",
+      "etag": "n1I9D4y1q+8",
+      "selfLink": "https://www.googleapis.com/books/v1/volumes/1mJ0zgEACAAJ",
+      "volumeInfo": {
+        "title": "Summary of Atomic Habits",
+        "subtitle": "An Easy and Proven Way to Build Good Habits & Break Bad Ones By James Clear",
+        "authors": [
+          "Lewis Orwell"
+        ],
+        "publishedDate": "2021-05-15",
+        "description": "KINDLYNOTE: This is a Rundown, Survey, and Examination of the book, not the original. It is composed and distributed by Lewis Orwell. This book doesn't in any capacity replace the original however to fill in as a far-reaching guide for you. Change is a sluggish cycle. In the event that you concentrate for 60 minutes, you will not get familiar with the language. On the off chance that you read the main section of a book, you're not going to know the entire story. Settling on a decision that is a fraction better may appear to be unimportant at that point, yet the effect of Extra time is incredible. Achievement is the result of day-by-day propensities. This is a convenient Book Synopsis for each clinical understudy and doctor who thinks often about assisting patients with settling on better decisions. I energetically prescribe this Book Outline to any individual who has been putting off acquiring another expertise or attempting to dispose of a negative routine. To begin, PURCHASE this quick read Book Outline NOW and request additional duplicates to gift to your loved ones.",
+        "industryIdentifiers": [
+          {
+            "type": "ISBN_13",
+            "identifier": "9798504808901"
+          }
+        ],
+        "readingModes": {
+          "text": false,
+          "image": false
+        },
+        "pageCount": 34,
+        "printType": "BOOK",
+        "maturityRating": "NOT_MATURE",
+        "allowAnonLogging": false,
+        "contentVersion": "preview-1.0.0",
+        "panelizationSummary": {
+          "containsEpubBubbles": false,
+          "containsImageBubbles": false
+        },
+        "imageLinks": {
+          "smallThumbnail": "http://books.google.com/books/content?id=1mJ0zgEACAAJ&printsec=frontcover&img=1&zoom=5&source=gbs_api",
+          "thumbnail": "http://books.google.com/books/content?id=1mJ0zgEACAAJ&printsec=frontcover&img=1&zoom=1&source=gbs_api"
+        },
+        "language": "en",
+        "previewLink": "http://books.google.com.mx/books?id=1mJ0zgEACAAJ&dq=intitle:%22Atomic+Habits%22&hl=&as_pt=BOOKS&cd=16&source=gbs_api",
+        "infoLink": "http://books.google.com.mx/books?id=1mJ0zgEACAAJ&dq=intitle:%22Atomic+Habits%22&hl=&as_pt=BOOKS&source=gbs_api",
+        "canonicalVolumeLink": "https://books.google.com/books/about/Summary_of_Atomic_Habits.html?hl=&id=1mJ0zgEACAAJ"
+      },
+      "saleInfo": {
+        "country": "MX",
+        "saleability": "NOT_FOR_SALE",
+        "isEbook": false
+      },
+      "accessInfo": {
+        "country": "MX",
+        "viewability": "NO_PAGES",
+        "embeddable": false,
+        "publicDomain": false,
+        "textToSpeechPermission": "ALLOWED",
+        "epub": {
+          "isAvailable": false
+        },
+        "pdf": {
+          "isAvailable": false
+        },
+        "webReaderLink": "http://play.google.com/books/reader?id=1mJ0zgEACAAJ&hl=&as_pt=BOOKS&source=gbs_api",
+        "accessViewStatus": "NONE",
+        "quoteSharingAllowed": false
+      },
+      "searchInfo": {
+        "textSnippet": "KINDLYNOTE: This is a Rundown, Survey, and Examination of the book, not the original. It is composed and distributed by Lewis Orwell. This book doesn&#39;t in any capacity replace the original however to fill in as a far-reaching guide for you."
+      }
+    },
+    {
+      "kind": "books#volume",
+      "id": "fvBvzwEACAAJ",
+      "etag": "MqHKJAaOGkE",
+      "selfLink": "https://www.googleapis.com/books/v1/volumes/fvBvzwEACAAJ",
+      "volumeInfo": {
+        "title": "Summary of Atomic Habits",
+        "subtitle": "An Easy and Proven Way to Build Good Habits and Break Bad Ones",
+        "authors": [
+          "Willam Ethan"
+        ],
+        "publishedDate": "2022-09-18",
+        "description": "The Summary of Atomic Habits provides an effective and a practical insight to life. The book offers a useful and tested paradigm for developing good habits and eliminating bad ones. It demonstrates how little behavioural adjustments can lead to the development of new habits and enable you to accomplish significant goals by drawing on empirical research and real-world experiences.",
+        "industryIdentifiers": [
+          {
+            "type": "ISBN_10",
+            "identifier": "1471050203"
+          },
+          {
+            "type": "ISBN_13",
+            "identifier": "9781471050206"
+          }
+        ],
+        "readingModes": {
+          "text": false,
+          "image": false
+        },
+        "pageCount": 0,
+        "printType": "BOOK",
+        "maturityRating": "NOT_MATURE",
+        "allowAnonLogging": false,
+        "contentVersion": "preview-1.0.0",
+        "panelizationSummary": {
+          "containsEpubBubbles": false,
+          "containsImageBubbles": false
+        },
+        "imageLinks": {
+          "smallThumbnail": "http://books.google.com/books/content?id=fvBvzwEACAAJ&printsec=frontcover&img=1&zoom=5&source=gbs_api",
+          "thumbnail": "http://books.google.com/books/content?id=fvBvzwEACAAJ&printsec=frontcover&img=1&zoom=1&source=gbs_api"
+        },
+        "language": "en",
+        "previewLink": "http://books.google.com.mx/books?id=fvBvzwEACAAJ&dq=intitle:%22Atomic+Habits%22&hl=&as_pt=BOOKS&cd=17&source=gbs_api",
+        "infoLink": "http://books.google.com.mx/books?id=fvBvzwEACAAJ&dq=intitle:%22Atomic+Habits%22&hl=&as_pt=BOOKS&source=gbs_api",
+        "canonicalVolumeLink": "https://books.google.com/books/about/Summary_of_Atomic_Habits.html?hl=&id=fvBvzwEACAAJ"
+      },
+      "saleInfo": {
+        "country": "MX",
+        "saleability": "NOT_FOR_SALE",
+        "isEbook": false
+      },
+      "accessInfo": {
+        "country": "MX",
+        "viewability": "NO_PAGES",
+        "embeddable": false,
+        "publicDomain": false,
+        "textToSpeechPermission": "ALLOWED",
+        "epub": {
+          "isAvailable": false
+        },
+        "pdf": {
+          "isAvailable": false
+        },
+        "webReaderLink": "http://play.google.com/books/reader?id=fvBvzwEACAAJ&hl=&as_pt=BOOKS&source=gbs_api",
+        "accessViewStatus": "NONE",
+        "quoteSharingAllowed": false
+      },
+      "searchInfo": {
+        "textSnippet": "The Summary of Atomic Habits provides an effective and a practical insight to life. The book offers a useful and tested paradigm for developing good habits and eliminating bad ones."
+      }
+    },
+    {
+      "kind": "books#volume",
+      "id": "G5L3EQAAQBAJ",
+      "etag": "mRwT+JqBdnM",
+      "selfLink": "https://www.googleapis.com/books/v1/volumes/G5L3EQAAQBAJ",
+      "volumeInfo": {
+        "title": "ATOMIC HABITS AND JAMES CLEAR APPROACH",
+        "subtitle": "A Simple, Proven System for Building Good Habits and Breaking Bad Ones",
+        "authors": [
+          "James Craft "
+        ],
+        "publisher": "Joseph Lotachukwu Okafor",
+        "publishedDate": "2026-07-23",
+        "description": "What if the life you want is not waiting on the other side of a massive transformation, but is hidden in the smallest moments of your day? Every person has asked themselves why change is so hard. The answer is not that you lack willpower, or that you are not motivated enough, or that you need a more ambitious goal. The answer is that your system is broken. Goals set the direction, but systems generate the results. When you focus exclusively on the destination, you overlook the tiny, compound decisions that actually shape your identity and determine your trajectory. The path to remarkable results runs through unremarkable moments, and this book is the map that reveals how to navigate them. This is not a collection of quick fixes or empty motivational slogans. It is a comprehensive, scientifically grounded framework for understanding the mechanics of human behavior and redirecting them toward the person you wish to become. The strategy is built on a simple but powerful premise: small habits, consistently repeated, do not merely add up—they multiply. By mastering the four laws of behavior change and the art of showing up, you can engineer an upward spiral that makes success not a single event, but a natural byproduct of your daily existence. By applying the framework inside this book, you will learn how to: · Build an identity-based system that makes good habits stick and bad habits fade, without relying on motivation or sheer willpower. ✅Design your physical and digital environment so that the cues for positive behaviors become impossible to ignore, while the triggers for destructive patterns disappear from view. ✅Harness the neurological mechanics of craving and reward to make hard habits feel attractive and satisfying in the present moment, not just in some distant future. ✅Scale down any ambition into a two-minute ritual, proving that the decisive battle is always won at the point of initiation, never in the struggle for perfection. ✅Break stubborn bad habits permanently by inverting the four laws, turning the invisible architecture of your mind and surroundings against the behaviors that no longer serve you. ✅Navigate the inevitable plateaus, boredom, and valleys of disappointment that cause most people to quit, and emerge on the other side with a professional's commitment to mastery. ✅Implement advanced tactics for continuous improvement, including deliberate practice and annual integrity audits, so that your habits evolve as your identity expands. The life you build tomorrow starts with the single, unremarkable vote you cast today. Open the book. Read the first page. Make the choice. Show up. The only thing standing between who you are and who you could become is the decision to take one small, obvious, easy, and satisfying step forward. Take it now. SCROLL UP AND GRAB YOUR COPY TODAY !!!",
+        "readingModes": {
+          "text": true,
+          "image": true
+        },
+        "pageCount": 96,
+        "printType": "BOOK",
+        "categories": [
+          "Self-Help"
+        ],
+        "maturityRating": "NOT_MATURE",
+        "allowAnonLogging": false,
+        "contentVersion": "preview-1.0.0",
+        "panelizationSummary": {
+          "containsEpubBubbles": false,
+          "containsImageBubbles": false
+        },
+        "imageLinks": {
+          "smallThumbnail": "http://books.google.com/books/content?id=G5L3EQAAQBAJ&printsec=frontcover&img=1&zoom=5&edge=curl&source=gbs_api",
+          "thumbnail": "http://books.google.com/books/content?id=G5L3EQAAQBAJ&printsec=frontcover&img=1&zoom=1&edge=curl&source=gbs_api"
+        },
+        "language": "en",
+        "previewLink": "http://books.google.com.mx/books?id=G5L3EQAAQBAJ&printsec=frontcover&dq=intitle:%22Atomic+Habits%22&hl=&as_pt=BOOKS&cd=18&source=gbs_api",
+        "infoLink": "https://play.google.com/store/books/details?id=G5L3EQAAQBAJ&source=gbs_api",
+        "canonicalVolumeLink": "https://play.google.com/store/books/details?id=G5L3EQAAQBAJ"
+      },
+      "saleInfo": {
+        "country": "MX",
+        "saleability": "FOR_SALE",
+        "isEbook": true,
+        "listPrice": {
+          "amount": 139,
+          "currencyCode": "MXN"
+        },
+        "retailPrice": {
+          "amount": 139,
+          "currencyCode": "MXN"
+        },
+        "buyLink": "https://play.google.com/store/books/details?id=G5L3EQAAQBAJ&rdid=book-G5L3EQAAQBAJ&rdot=1&source=gbs_api",
+        "offers": [
+          {
+            "finskyOfferType": 1,
+            "listPrice": {
+              "amountInMicros": 139000000,
+              "currencyCode": "MXN"
+            },
+            "retailPrice": {
+              "amountInMicros": 139000000,
+              "currencyCode": "MXN"
+            },
+            "giftable": true
+          }
+        ]
+      },
+      "accessInfo": {
+        "country": "MX",
+        "viewability": "PARTIAL",
+        "embeddable": true,
+        "publicDomain": false,
+        "textToSpeechPermission": "ALLOWED",
+        "epub": {
+          "isAvailable": true,
+          "acsTokenLink": "http://books.google.com.mx/books/download/ATOMIC_HABITS_AND_JAMES_CLEAR_APPROACH-sample-epub.acsm?id=G5L3EQAAQBAJ&format=epub&output=acs4_fulfillment_token&dl_type=sample&source=gbs_api"
+        },
+        "pdf": {
+          "isAvailable": true,
+          "acsTokenLink": "http://books.google.com.mx/books/download/ATOMIC_HABITS_AND_JAMES_CLEAR_APPROACH-sample-pdf.acsm?id=G5L3EQAAQBAJ&format=pdf&output=acs4_fulfillment_token&dl_type=sample&source=gbs_api"
+        },
+        "webReaderLink": "http://play.google.com/books/reader?id=G5L3EQAAQBAJ&hl=&as_pt=BOOKS&source=gbs_api",
+        "accessViewStatus": "SAMPLE",
+        "quoteSharingAllowed": false
+      },
+      "searchInfo": {
+        "textSnippet": "The path to remarkable results runs through unremarkable moments, and this book is the map that reveals how to navigate them. This is not a collection of quick fixes or empty motivational slogans."
+      }
+    },
+    {
+      "kind": "books#volume",
+      "id": "MS3yEAAAQBAJ",
+      "etag": "J/Cz5hbmSUo",
+      "selfLink": "https://www.googleapis.com/books/v1/volumes/MS3yEAAAQBAJ",
+      "volumeInfo": {
+        "title": "Guidebook For Atomic Habits",
+        "subtitle": "An Unofficial Guidebook for James Clear’s Book",
+        "authors": [
+          "John Cole"
+        ],
+        "publisher": "LongTale Publishing",
+        "publishedDate": "2024-02-02",
+        "description": "Guidebook For: Atomic Habits - An Unofficial Guidebook for James Clear’s Book Welcome to the journey of personal development and habit transformation with the “Guidebook For: Atomic Habits”, an unofficial companion to the groundbreaking book “Atomic Habits” by James Clear. This Guidebook is designed as a tool to delve deeper into the insights and strategies presented in “Atomic Habits”, enabling readers to apply the principles of habit change to their own lives through reflective exercises and actionable steps. Although this Guidebook is inspired by James Clear’s work, it is important to note that it is an unofficial guide and is not endorsed by the author. Its purpose is to enhance the learning experience, providing a space for self-examination, personal growth, and the practice of techniques to build better habits. Within these pages, you’ll find summaries of the core concepts from “Atomic Habits” alongside dedicated exercises for reflection, processing, and practicing the lessons learned. This additional layer of interaction aims to solidify your understanding of habit formation and to help you create a more productive, fulfilling life anchored by effective habits. As you navigate through each section, you are encouraged to actively engage with the material—to ponder, write, and implement—to truly make the wisdom of “Atomic Habits” a part of your daily routines. Let’s embark on this transformative journey together, step by incremental step.",
+        "readingModes": {
+          "text": false,
+          "image": true
+        },
+        "pageCount": 95,
+        "printType": "BOOK",
+        "categories": [
+          "Self-Help"
+        ],
+        "maturityRating": "NOT_MATURE",
+        "allowAnonLogging": false,
+        "contentVersion": "0.1.1.0.preview.1",
+        "panelizationSummary": {
+          "containsEpubBubbles": false,
+          "containsImageBubbles": false
+        },
+        "imageLinks": {
+          "smallThumbnail": "http://books.google.com/books/content?id=MS3yEAAAQBAJ&printsec=frontcover&img=1&zoom=5&edge=curl&source=gbs_api",
+          "thumbnail": "http://books.google.com/books/content?id=MS3yEAAAQBAJ&printsec=frontcover&img=1&zoom=1&edge=curl&source=gbs_api"
+        },
+        "language": "en",
+        "previewLink": "http://books.google.com.mx/books?id=MS3yEAAAQBAJ&printsec=frontcover&dq=intitle:%22Atomic+Habits%22&hl=&as_pt=BOOKS&cd=19&source=gbs_api",
+        "infoLink": "https://play.google.com/store/books/details?id=MS3yEAAAQBAJ&source=gbs_api",
+        "canonicalVolumeLink": "https://play.google.com/store/books/details?id=MS3yEAAAQBAJ"
+      },
+      "saleInfo": {
+        "country": "MX",
+        "saleability": "FOR_SALE",
+        "isEbook": true,
+        "listPrice": {
+          "amount": 63,
+          "currencyCode": "MXN"
+        },
+        "retailPrice": {
+          "amount": 63,
+          "currencyCode": "MXN"
+        },
+        "buyLink": "https://play.google.com/store/books/details?id=MS3yEAAAQBAJ&rdid=book-MS3yEAAAQBAJ&rdot=1&source=gbs_api",
+        "offers": [
+          {
+            "finskyOfferType": 1,
+            "listPrice": {
+              "amountInMicros": 63000000,
+              "currencyCode": "MXN"
+            },
+            "retailPrice": {
+              "amountInMicros": 63000000,
+              "currencyCode": "MXN"
+            },
+            "giftable": true
+          }
+        ]
+      },
+      "accessInfo": {
+        "country": "MX",
+        "viewability": "PARTIAL",
+        "embeddable": true,
+        "publicDomain": false,
+        "textToSpeechPermission": "ALLOWED",
+        "epub": {
+          "isAvailable": false
+        },
+        "pdf": {
+          "isAvailable": true,
+          "acsTokenLink": "http://books.google.com.mx/books/download/Guidebook_For_Atomic_Habits-sample-pdf.acsm?id=MS3yEAAAQBAJ&format=pdf&output=acs4_fulfillment_token&dl_type=sample&source=gbs_api"
+        },
+        "webReaderLink": "http://play.google.com/books/reader?id=MS3yEAAAQBAJ&hl=&as_pt=BOOKS&source=gbs_api",
+        "accessViewStatus": "SAMPLE",
+        "quoteSharingAllowed": false
+      },
+      "searchInfo": {
+        "textSnippet": "Guidebook For: Atomic Habits - An Unofficial Guidebook for James Clear’s Book Welcome to the journey of personal development and habit transformation with the “Guidebook For: Atomic Habits”, an unofficial companion to the ..."
+      }
+    },
+    {
+      "kind": "books#volume",
+      "id": "gzrsEAAAQBAJ",
+      "etag": "z9SqPlYpjSA",
+      "selfLink": "https://www.googleapis.com/books/v1/volumes/gzrsEAAAQBAJ",
+      "volumeInfo": {
+        "title": "Summary of Atomic Habits: An Easy & Proven Way to Build Good Habits & Break Bad Ones",
+        "authors": [
+          "J.J. Holt"
+        ],
+        "publisher": "J.J. Holt",
+        "publishedDate": "2024-01-04",
+        "description": "Summary of the book called \"Atomic Habits\" by James Clear is a comprehensive guide on habit formation and improvement. The book delves into the science of how habits work and offers a practical and straightforward framework for creating good habits and breaking bad ones. Clear presents the four-step model of cue, craving, response, and reward, which forms the backbone of every habit.",
+        "readingModes": {
+          "text": false,
+          "image": true
+        },
+        "pageCount": 40,
+        "printType": "BOOK",
+        "categories": [
+          "Biography & Autobiography"
+        ],
+        "maturityRating": "NOT_MATURE",
+        "allowAnonLogging": true,
+        "contentVersion": "0.1.1.0.preview.1",
+        "panelizationSummary": {
+          "containsEpubBubbles": false,
+          "containsImageBubbles": false
+        },
+        "imageLinks": {
+          "smallThumbnail": "http://books.google.com/books/content?id=gzrsEAAAQBAJ&printsec=frontcover&img=1&zoom=5&edge=curl&source=gbs_api",
+          "thumbnail": "http://books.google.com/books/content?id=gzrsEAAAQBAJ&printsec=frontcover&img=1&zoom=1&edge=curl&source=gbs_api"
+        },
+        "language": "en",
+        "previewLink": "http://books.google.com.mx/books?id=gzrsEAAAQBAJ&printsec=frontcover&dq=intitle:%22Atomic+Habits%22&hl=&as_pt=BOOKS&cd=20&source=gbs_api",
+        "infoLink": "https://play.google.com/store/books/details?id=gzrsEAAAQBAJ&source=gbs_api",
+        "canonicalVolumeLink": "https://play.google.com/store/books/details?id=gzrsEAAAQBAJ"
+      },
+      "saleInfo": {
+        "country": "MX",
+        "saleability": "FOR_SALE",
+        "isEbook": true,
+        "listPrice": {
+          "amount": 52,
+          "currencyCode": "MXN"
+        },
+        "retailPrice": {
+          "amount": 52,
+          "currencyCode": "MXN"
+        },
+        "buyLink": "https://play.google.com/store/books/details?id=gzrsEAAAQBAJ&rdid=book-gzrsEAAAQBAJ&rdot=1&source=gbs_api",
+        "offers": [
+          {
+            "finskyOfferType": 1,
+            "listPrice": {
+              "amountInMicros": 52000000,
+              "currencyCode": "MXN"
+            },
+            "retailPrice": {
+              "amountInMicros": 52000000,
+              "currencyCode": "MXN"
+            },
+            "giftable": true
+          }
+        ]
+      },
+      "accessInfo": {
+        "country": "MX",
+        "viewability": "PARTIAL",
+        "embeddable": true,
+        "publicDomain": false,
+        "textToSpeechPermission": "ALLOWED",
+        "epub": {
+          "isAvailable": false
+        },
+        "pdf": {
+          "isAvailable": true
+        },
+        "webReaderLink": "http://play.google.com/books/reader?id=gzrsEAAAQBAJ&hl=&as_pt=BOOKS&source=gbs_api",
+        "accessViewStatus": "SAMPLE",
+        "quoteSharingAllowed": false
+      },
+      "searchInfo": {
+        "textSnippet": "Summary of the book called &quot;Atomic Habits&quot; by James Clear is a comprehensive guide on habit formation and improvement."
+      }
+    }
+  ]
+}

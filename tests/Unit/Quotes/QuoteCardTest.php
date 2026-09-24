@@ -35,6 +35,26 @@ it('baja de escalón la Cita larga, y no la recorta', function () {
         ->and($card->text())->toBe(trim($long));
 });
 
+/*
+ * El tope de la imagen. El lienzo es fijo y el tamaño más chico es el más chico
+ * que se lee, así que hay Citas que no caben en una imagen (ADR-009).
+ */
+
+it('la Cita de cuarenta palabras cabe en la imagen', function () {
+    $card = QuoteCard::of(str_repeat('La biblioteca de Babel es ilimitada y periódica. ', 8));
+
+    expect($card->fitsInImage())->toBeTrue();
+});
+
+it('la Cita que no cabe ni en el tamaño más chico se queda sin imagen', function () {
+    $card = QuoteCard::of(str_repeat('La biblioteca de Babel es ilimitada y periódica. ', 20));
+
+    expect($card->scale())->toBe(QuoteScale::Small)
+        ->and($card->fitsInImage())->toBeFalse()
+        // Se queda sin imagen, no recortada: en la página se lee entera.
+        ->and($card->text())->toContain('periódica. La biblioteca');
+});
+
 it('cuenta los renglones que la Cita trae por su cuenta', function () {
     // Eight short lines of verse take eight lines, even though their characters
     // would fit in two.

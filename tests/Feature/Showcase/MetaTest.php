@@ -20,7 +20,7 @@ beforeEach(function () {
 
 it('la portada dice de qué es y cuánto hay, y es su propia canónica', function () {
     $book = Book::factory()->create(['title' => 'Pedro Páramo']);
-    $book->addQuote('Vine a Comala porque me dijeron que acá vivía mi padre.', 7);
+    $book->addQuote('Vine a Comala porque me dijeron que acá vivía mi padre.', '7');
 
     $this->get(route('showcase'))
         ->assertSee('<title>'.config('app.name').'</title>', escape: false)
@@ -56,8 +56,8 @@ it('la descripción de un Libro dice cuántas Citas tiene, y no las transcribe',
         'description' => 'Un hombre llega a Comala buscando a su padre.',
     ]);
 
-    $book->addQuote('Vine a Comala porque me dijeron que acá vivía mi padre.', 7);
-    $book->addQuote('Nada puede durar tanto, no existe ningún recuerdo por intenso que sea que no se apague.', 9);
+    $book->addQuote('Vine a Comala porque me dijeron que acá vivía mi padre.', '7');
+    $book->addQuote('Nada puede durar tanto, no existe ningún recuerdo por intenso que sea que no se apague.', '9');
 
     $response = $this->get(route('showcase.book', $book));
 

@@ -2,6 +2,8 @@
 
 use App\Domain\Isbn;
 use App\Enums;
+use App\Quotes\ImageRenderer;
+use App\Quotes\ShareImages;
 use App\Sources\Candidate;
 use App\Sources\Candidates;
 use App\Sources\LookupResult;
@@ -10,6 +12,7 @@ use App\Sources\Source;
 use App\Sources\SourceResolver;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Http;
+use Tests\Support\FakeImageRenderer;
 use Tests\TestCase;
 
 /*
@@ -113,6 +116,30 @@ function contrastRatio(string $first, string $second): float
     $darker = min(relativeLuminance($first), relativeLuminance($second));
 
     return ($lighter + 0.05) / ($darker + 0.05);
+}
+
+/**
+ * Puts a fake renderer in place of html2img, and hands it back so the test can
+ * ask what it was sent.
+ *
+ * Without this the renderer has no key —phpunit.xml empties it— and draws
+ * nothing, which is what keeps the rest of the suite from ever reaching the
+ * service. No test spends a credit (ADR-009).
+ */
+function rendererDraws(?Throwable $failure = null): FakeImageRenderer
+{
+    $renderer = $failure instanceof Throwable
+        ? FakeImageRenderer::failingWith($failure)
+        : new FakeImageRenderer;
+
+    app()->instance(ImageRenderer::class, $renderer);
+
+    app()->instance(ShareImages::class, new ShareImages(
+        renderer: $renderer,
+        directory: (string) config('quotes.directory', 'quotes'),
+    ));
+
+    return $renderer;
 }
 
 /**

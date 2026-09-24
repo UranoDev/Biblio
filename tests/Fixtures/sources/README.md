@@ -1,42 +1,113 @@
-# Respuestas de las Fuentes usadas en las pruebas
+# Respuestas grabadas de las Fuentes
 
-Las pruebas de los adaptadores corren contra estos archivos y **nunca salen a internet**
-(`Http::preventStrayRequests()` es global, en `tests/Pest.php`).
+**Todos los archivos de esta carpeta son grabaciones.** Cada uno es lo que un catálogo
+contestó a una petición concreta, escrito tal cual llegó —sin recortar campos, sin
+reacomodar, sin reformatear— por `php artisan sources:record`. Ninguno está escrito a
+mano.
 
-**Ninguno es una grabación cruda.** Todos están escritos a mano con la forma del
-catálogo: traen los campos que el adaptador lee y tiran el resto. Una respuesta real de
-Open Library, por ejemplo, incluye además `created`, `last_modified`, `latest_revision`,
-`revision`, `source_records`, `identifiers`, `ocaid` y `classifications`, que aquí no
-están porque a nadie le hacen falta.
+Las pruebas de los adaptadores corren contra estos archivos y **nunca salen a internet**:
+`Http::preventStrayRequests()` es global, en `tests/Pest.php`. Las únicas que sí salen son
+las de contrato, y están abajo.
 
-Eso está bien para probar un adaptador y tiene un costo que conviene tener presente: **lo
-que estas pruebas verifican es que el adaptador entiende la forma que nosotros creemos
-que el catálogo manda.** Un campo que nadie previó pasa desapercibido.
+## Cómo se graba
 
-Varias llevan a propósito rarezas reales del catálogo, que es lo que las hace útiles:
-`covers: [-1, ...]` de Open Library —usa `-1` para «no hay»—, la `description` que a
-veces es cadena y a veces objeto con `value`, y la de Google Books que viene con HTML
-adentro.
+El comando pide y guarda **una** respuesta. Se corre a mano cuando hace falta una nueva, y
+el archivo se commitea.
 
-## La excepción que sí es un problema: `google-books-search.json`
+```
+php artisan sources:record <nombre> --source=open-library --isbn=<ISBN>
+php artisan sources:record <nombre> --source=open-library --resource=works/OL274505W
+php artisan sources:record <nombre> --source=open-library --title=<título> --author=<autor>
+php artisan sources:record <nombre> --source=google-books --isbn=<ISBN>
+php artisan sources:record <nombre> --source=google-books --title=<título> --author=<autor>
+```
 
-Hay una diferencia grande entre las demás y ésta.
+La petición que manda es **la que manda el adaptador**: los parámetros de la búsqueda
+salen de `OpenLibrary::searchParameters()` y `GoogleBooks::searchParameters()`, las mismas
+que usa `byTitle()`. Una grabación de una petición que nadie hace no prueba nada del
+adaptador que la lee.
 
-En las otras, alguien vio la respuesta real en algún momento y escribió la forma a partir
-de ella. La consulta por ISBN de Open Library se verificó contra la API en vivo mientras
-se planeaba BIB-5, y el adaptador se escribió sobre lo que se vio: que la edición **no**
-trae descripción y hay que seguir el enlace a la obra, y que ahí `description` llega en
-dos formas distintas.
+`--expect` dice qué estado HTTP se espera; con cualquier otro no se escribe nada. Así se
+graba a propósito un error —`--expect=429`— sin que un 503 de paso termine guardado con
+nombre de respuesta buena.
 
-De la **búsqueda por título de Google Books nadie ha visto nunca una respuesta real** en
-este proyecto. El día que se construyó BIB-6, la cuota anónima estaba en cero y
-`GOOGLE_BOOKS_API_KEY` no estaba configurada, así que no se pudo ejecutar ni una vez.
-Este archivo se dedujo de la forma de `google-books-volume.json`, que es la consulta por
-ISBN, no la búsqueda.
+## Ninguna grabación lleva la llave
 
-Y eso pesa más de lo que parece, porque **la ampliación del ADR-002 eligió a Google Books
-como primera Fuente del Alta por título apoyándose justamente en cómo se supone que
-responde**.
+Una respuesta puede devolver la petición de vuelta —Google pone en `selfLink` la URL que
+contestó— y con ella la llave. El comando la quita antes de escribir, junto con cualquier
+cosa con forma de credencial, y la deja como `REDACTED`.
 
-El día que haya llave: ejecutar la búsqueda de verdad, rehacer este archivo, correr las
-pruebas y volver a leer esa ampliación del ADR-002.
+`tests/Feature/Sources/RecordingsTest.php` recorre la carpeta entera y falla si aparece
+una llave de Google, un `key=` en una URL o algo con pinta de token. Es lo que se entera
+el día que el comando deje de alcanzar.
+
+## Qué hay grabado
+
+Todo se grabó el **24 de septiembre de 2026**.
+
+### Open Library
+
+| Archivo | Se pidió | Qué caso trae |
+| --- | --- | --- |
+| `open-library-edition.json` | `--isbn=9788420471839` | La edición completa: editorial, año, nombre de edición, Cover y enlace a la obra. «Cien años de soledad». |
+| `open-library-edition-with-subtitle.json` | `--isbn=9781837639618` | La única grabada con `subtitle`, y la única acreditada a más de un autor. |
+| `open-library-edition-without-work.json` | `--isbn=9789972402203` | Una edición que no cuelga de ninguna obra: no hay de dónde sacar la Description. |
+| `open-library-edition-without-cover.json` | `--isbn=9781937785499` | `covers: [-1]`, que es como Open Library anota que no tiene ninguna. |
+| `open-library-edition-without-publisher.json` | `--isbn=9788178087368` | Una edición que es poco más que un título y un ISBN: sin editorial, sin fecha, sin Cover. |
+| `open-library-work.json` | `--resource=works/OL274505W` | La obra de la edición principal, con la `description` como cadena. |
+| `open-library-work-description-object.json` | `--resource=works/OL1731119W` | La misma `description`, pero como objeto con `value`. El catálogo guarda las dos formas. |
+| `open-library-author-garcia-marquez.json` | `--resource=authors/OL27363A` | El autor de la edición principal. |
+| `open-library-author-ayeva.json` | `--resource=authors/OL3121166A` | El primero de los dos de la edición con subtítulo. |
+| `open-library-author-kasampalis.json` | `--resource=authors/OL7494961A` | El segundo, que es lo que deja probar el orden. |
+| `open-library-search.json` | `--title="Pedro Páramo" --author=Rulfo` | El TitleLookup: 6 obras con 164 ediciones entre ellas, y una sola edición de cada una. |
+
+### Google Books
+
+| Archivo | Se pidió | Qué caso trae |
+| --- | --- | --- |
+| `google-books-volume.json` | `--isbn=9780307474728` | El volumen completo, con Description y con la Cover ofrecida por `http`. |
+| `google-books-volume-without-cover.json` | `--isbn=9788439732471` | Un volumen sin `imageLinks` y sin `publisher`. |
+| `google-books-search.json` | `--title="Pedro Paramo" --author=Rulfo` | El TitleLookup: 20 volúmenes, con y sin ISBN, con y sin editorial. |
+| `google-books-search-with-markup.json` | `--title="Atomic Habits"` | De los títulos que se probaron, el único cuya Description llega de verdad con etiquetas. |
+| `google-books-no-results.json` | un título que no existe | `totalItems: 0`, que no es lo mismo que no haber podido contestar. |
+| `google-books-quota-exhausted.json` | `--isbn=9780060883287 --without-key --expect=429` | El 429 de la cuota compartida, tal como lo contesta Google. Se graba sin llave a propósito: la cuota anónima ya está agotada. |
+
+## Lo que no está acá, y por qué
+
+Un caso no tiene grabación: **un ISBN cuyo dígito de control no cuadra**. De los 20
+volúmenes de `google-books-search.json`, todos los ISBN cuadran, y no apareció ninguno mal
+en lo que se revisó. El adaptador igual lo contempla, así que la prueba existe —en
+`GoogleBooksTest.php`, «descarta el ISBN cuyo dígito de control no cuadra»— y **arma el
+cuerpo ahí mismo**, en el archivo de la prueba.
+
+Esa es la regla: lo que no se pudo grabar no entra a esta carpeta disfrazado de grabación.
+Se escribe en la prueba que lo necesita, donde nadie lo va a confundir con lo que contestó
+un catálogo.
+
+## Las pruebas de contrato
+
+Viven en `tests/Feature/Sources/Contract/` y son las únicas del proyecto que salen a
+internet. **No corren con `php artisan test`**: `phpunit.xml` excluye su grupo. Se corren
+a mano pidiéndolo por nombre:
+
+```
+php artisan test --group=contract
+```
+
+No comparan contenido —el catálogo es un wiki y cambia, y eso no es una falla— sino
+forma: que los campos que los adaptadores leen sigan existiendo y sigan llegando como el
+día que se grabaron. Cuando una falla, lo que toca es volver a grabar y leer la grabación,
+no aflojar la prueba.
+
+## Qué apareció al grabar de verdad
+
+Regrabar contra los catálogos vivos sirvió para lo que se esperaba: las respuestas
+escritas a mano suponían cosas que no eran.
+
+- La edición de `9788420471839` no trae `subtitle`, y la editorial, el número de páginas y
+  la `key` eran otros. Se cambió la grabación; la forma del adaptador aguantó.
+- **Google Books contesta la búsqueda por título mucho más pobre de lo que supuso la
+  ampliación del ADR-002.** Buscando «Pedro Paramo» de Rulfo, de sus 20 volúmenes sólo 4
+  traen editorial y sólo 4 traen Cover; Open Library, con 6 resultados, trae editorial en
+  los 6 y Cover en 4. Eso toca la razón por la que Google Books quedó primero en el
+  TitleLookup, así que no se resolvió acá: está en BIB-44.

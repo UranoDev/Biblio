@@ -12,6 +12,18 @@
             <directory>tests/Feature</directory>
         </testsuite>
     </testsuites>
+    <!--
+        Las pruebas de contrato salen a internet: no pueden correr en cada
+        iteración ni gastar cuota, así que quedan fuera de la corrida normal.
+        Se corren a mano pidiendo el grupo por nombre en la línea de comandos,
+        que pisa esta exclusión: «php artisan test» con la opción de grupo y
+        «contract». Está escrito en tests/Fixtures/sources/README.md.
+    -->
+    <groups>
+        <exclude>
+            <group>contract</group>
+        </exclude>
+    </groups>
     <source>
         <include>
             <directory>app</directory>
@@ -26,6 +38,14 @@
         <env name="DB_CONNECTION" value="sqlite"/>
         <env name="DB_DATABASE" value=":memory:"/>
         <env name="DB_URL" value=""/>
+        <!--
+            El renderizador de las imágenes de una cita se queda sin llave: sin
+            ella no se le pide nada y las citas quedan esperando en la cola
+            (ADR-009). Es lo que garantiza que ninguna prueba llame al servicio
+            real ni gaste un crédito, aunque el .env local sí tenga la llave.
+            Las pruebas que sí dibujan ponen un renderizador falso en su lugar.
+        -->
+        <env name="HTML2IMG_API_KEY" value=""/>
         <env name="MAIL_MAILER" value="array"/>
         <env name="QUEUE_CONNECTION" value="sync"/>
         <env name="SESSION_DRIVER" value="array"/>

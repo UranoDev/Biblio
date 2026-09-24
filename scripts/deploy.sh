@@ -41,4 +41,9 @@ php artisan route:clear
 php artisan view:clear
 php artisan config:clear
 
+# Qué se publicó. El servidor no tiene `.git`, así que la versión sale del
+# encabezado más reciente de CHANGELOG.md, que viaja con el despliegue (BIB-39).
+echo "→ Versión publicada"
+php artisan app:version
+
 echo "Listo."

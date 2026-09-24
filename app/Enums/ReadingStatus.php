@@ -16,6 +16,32 @@ enum ReadingStatus: string
     case ReadDated = 'read_dated';
 
     /**
+     * The filter value that takes in both read states at once.
+     *
+     * It is not a fourth state and it is not stored: it is the question «¿lo
+     * leí?», which is the one the Dashboard counts and the one somebody asks
+     * when the date is not what they are after. The three states stay in the
+     * filter underneath it, because telling them apart is the other question.
+     */
+    public const ANY_READ = 'read';
+
+    /**
+     * What the filter of the Shelf offers, from the widest answer to the
+     * narrowest.
+     *
+     * @return array<string, string>
+     */
+    public static function filterOptions(): array
+    {
+        return [
+            self::Unread->value => self::Unread->label(),
+            self::ANY_READ => 'Leído',
+            self::ReadUndated->value => self::ReadUndated->label(),
+            self::ReadDated->value => self::ReadDated->label(),
+        ];
+    }
+
+    /**
      * The state as the filter of the Shelf names it, where the three have to
      * tell themselves apart from one another and nothing else is on the line.
      */
@@ -24,7 +50,7 @@ enum ReadingStatus: string
         return match ($this) {
             self::Unread => 'No leído',
             self::ReadUndated => 'Leído, sin fecha',
-            self::ReadDated => 'Leído',
+            self::ReadDated => 'Leído, con fecha',
         };
     }
 

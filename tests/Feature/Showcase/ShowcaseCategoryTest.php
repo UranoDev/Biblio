@@ -223,14 +223,13 @@ it('tampoco nombra la Categoría que se quedó sin Libros', function () {
     $this->get(route('showcase'))->assertDontSee('Ensayo');
 });
 
-it('lleva la navegación en la portada, en la Categoría y en la ficha del Libro', function () {
+it('lleva la navegación en la portada y en la Categoría', function () {
     $book = Book::factory()->create(['title' => 'Muerte sin fin']);
     $category = categoryOf('Poesía', [$book]);
 
     $urls = [
         route('showcase'),
         route('showcase.category', $category),
-        route('showcase.book', $book),
     ];
 
     foreach ($urls as $url) {
@@ -247,35 +246,92 @@ it('dice en la navegación cuál es la Categoría en la que se está', function 
         ->and($html)->toContain('data-test="category-nav-poesia"');
 });
 
-it('no ofrece la vuelta a toda la biblioteca en la portada, que es donde lleva', function () {
-    categoryOf('Poesía', [Book::factory()->create()]);
-
-    $this->get(route('showcase'))->assertDontSee('category-nav-all', false);
-});
-
-it('ofrece la vuelta a toda la biblioteca desde la Categoría y desde el Libro', function () {
+it('vuelve a toda la biblioteca por el nombre del sitio, desde la Categoría y desde el Libro', function () {
     $book = Book::factory()->create();
     $category = categoryOf('Poesía', [$book]);
 
-    $this->get(route('showcase.category', $category))
-        ->assertSee('Toda la biblioteca')
-        ->assertSee('category-nav-all', false);
-
-    $this->get(route('showcase.book', $book))
-        ->assertSee('Toda la biblioteca')
-        ->assertSee('category-nav-all', false);
-});
-
-it('deja la vuelta a toda la biblioteca aunque no haya ninguna Categoría', function () {
-    $book = Book::factory()->create();
-
-    $this->get(route('showcase.book', $book))->assertSee('Toda la biblioteca');
+    foreach ([route('showcase.category', $category), route('showcase.book', $book)] as $url) {
+        $this->get($url)
+            ->assertSee('href="'.route('showcase').'"', false)
+            ->assertSee(config('app.name'));
+    }
 });
 
 it('no arma la navegación en la portada cuando no hay ninguna Categoría', function () {
     Book::factory()->create();
 
     $this->get(route('showcase'))->assertDontSee('data-test="category-nav"', false);
+});
+
+/*
+|--------------------------------------------------------------------------
+| Dónde va la navegación (BIB-43)
+|--------------------------------------------------------------------------
+|
+| La lista crece con el acervo y no tiene tope, así que no se puede imprimir
+| entera arriba de la página: cincuenta Categorías empujarían el acervo debajo
+| del pliegue. Por eso cierra la página en vez de abrirla, y por eso estas
+| pruebas usan cincuenta y no las diez de hoy.
+*/
+
+it('cierra la Vitrina con la navegación y no imprime ninguna Categoría antes del acervo', function () {
+    $book = Book::factory()->create(['title' => 'Muerte sin fin']);
+
+    foreach (range(1, 50) as $number) {
+        categoryOf('Materia '.$number, [$book]);
+    }
+
+    $html = $this->get(route('showcase'))->getContent();
+
+    $firstName = strpos($html, 'data-test="category-nav-');
+    $heading = strpos($html, '<h1');
+    $firstCover = strpos($html, 'data-test="book-'.$book->getKey().'"');
+
+    expect(substr_count($html, 'data-test="category-nav-'))->toBe(50)
+        ->and($firstName)->toBeGreaterThan($heading)
+        ->and($firstName)->toBeGreaterThan($firstCover);
+});
+
+it('cierra también con la navegación la página de una Categoría', function () {
+    $book = Book::factory()->create(['title' => 'Muerte sin fin']);
+    $category = categoryOf('Poesía', [$book]);
+
+    foreach (range(1, 49) as $number) {
+        categoryOf('Materia '.$number, [$book]);
+    }
+
+    $html = $this->get(route('showcase.category', $category))->getContent();
+
+    expect(substr_count($html, 'data-test="category-nav-'))->toBe(50)
+        ->and(strpos($html, 'data-test="category-nav-'))
+        ->toBeGreaterThan(strpos($html, 'data-test="book-'.$book->getKey().'"'));
+});
+
+it('no imprime la lista global de Categorías en la ficha de un Libro: enseña las suyas', function () {
+    $book = Book::factory()->create(['title' => 'Muerte sin fin']);
+    $poetry = categoryOf('Poesía', [$book]);
+    $essay = categoryOf('Ensayo', [Book::factory()->create()]);
+
+    $this->get(route('showcase.book', $book))
+        ->assertDontSee('data-test="category-nav"', false)
+        ->assertSee('href="'.route('showcase.category', $poetry).'"', false)
+        ->assertDontSee('href="'.route('showcase.category', $essay).'"', false)
+        ->assertDontSee('Ensayo');
+});
+
+it('no le pregunta a la base por las Categorías en la ficha de un Libro', function () {
+    $book = Book::factory()->create();
+
+    foreach (range(1, 50) as $number) {
+        categoryOf('Materia '.$number, [Book::factory()->create()]);
+    }
+
+    DB::enableQueryLog();
+    $this->get(route('showcase.book', $book))->assertOk();
+    $queries = collect(DB::getQueryLog())->pluck('query');
+    DB::disableQueryLog();
+
+    expect($queries->filter(fn (string $query): bool => str_contains($query, 'books_count')))->toBeEmpty();
 });
 
 it('navega sin abrir nada: la navegación son ligas que ya vienen en el HTML', function () {

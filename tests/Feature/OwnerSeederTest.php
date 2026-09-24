@@ -46,7 +46,7 @@ class OwnerSeederTest extends TestCase
         ]);
 
         $response->assertSessionHasNoErrors()
-            ->assertRedirect(route('dashboard', absolute: false));
+            ->assertRedirect(route('shelf', absolute: false));
 
         $this->assertAuthenticated();
     }

@@ -85,7 +85,7 @@ new #[Title('Búsqueda de citas')] class extends Component
             ->with('book')
             ->join('books', 'books.id', '=', 'quotes.book_id')
             ->orderBy('books.title')
-            ->orderByRaw('quotes.page is null, quotes.page, quotes.id')
+            ->inBookOrder()
             ->select('quotes.*')
             ->paginate(self::PER_PAGE);
     }

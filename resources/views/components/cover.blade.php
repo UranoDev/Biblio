@@ -4,10 +4,15 @@
     'book',
     'size' => 'thumbnail',
     'decorative' => false,
+    'src' => null,
 ])
 
 @php
-    $url = $size === 'full' ? $book->coverUrl() : $book->coverThumbnailUrl();
+    // `src` is for the one surface that cannot follow an address: the card as
+    // the renderer draws it, where the image travels inlined because there is
+    // no network to fetch it over (ADR-009). Everywhere else the Cover is
+    // served by the route, which is the only place that knows about Hidden.
+    $url = $src ?? ($size === 'full' ? $book->coverUrl() : $book->coverThumbnailUrl());
 @endphp
 
 {{--

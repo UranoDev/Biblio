@@ -31,7 +31,7 @@ it('agrega una Quote con su texto y su página', function () {
 
     expect($quote->book_id)->toBe($book->getKey())
         ->and($quote->text)->toBe('Vine a Comala porque me dijeron que acá vivía mi padre.')
-        ->and($quote->page)->toBe(7);
+        ->and($quote->page)->toBe('7');
 });
 
 it('agrega una Quote sin página, porque la página es opcional', function () {
@@ -153,9 +153,9 @@ it('dibuja los saltos de línea en la pantalla', function () {
 it('ordena las Quotes por página, y las que no la traen al final', function () {
     $book = Book::factory()->create();
 
-    $late = Quote::factory()->for($book)->create(['text' => 'La de la página 200', 'page' => 200]);
+    $late = Quote::factory()->for($book)->create(['text' => 'La de la página 200', 'page' => '200']);
     $undatedFirst = Quote::factory()->for($book)->create(['text' => 'Sin página, la primera', 'page' => null]);
-    $early = Quote::factory()->for($book)->create(['text' => 'La de la página 7', 'page' => 7]);
+    $early = Quote::factory()->for($book)->create(['text' => 'La de la página 7', 'page' => '7']);
     $undatedSecond = Quote::factory()->for($book)->create(['text' => 'Sin página, la segunda', 'page' => null]);
 
     expect($book->quotes()->pluck('id')->all())->toBe([
@@ -185,7 +185,7 @@ it('mantiene el orden después de agregar una cita de una página anterior', fun
 
 it('edita una Quote existente', function () {
     $book = Book::factory()->create();
-    $quote = Quote::factory()->for($book)->create(['text' => 'Vine a Comala', 'page' => 7]);
+    $quote = Quote::factory()->for($book)->create(['text' => 'Vine a Comala', 'page' => '7']);
 
     quotesOf($book)
         ->call('editQuote', $quote->getKey())
@@ -202,12 +202,12 @@ it('edita una Quote existente', function () {
 
     expect(Quote::query()->count())->toBe(1)
         ->and($quote->refresh()->text)->toBe('Vine a Comala porque me dijeron que acá vivía mi padre.')
-        ->and($quote->page)->toBe(9);
+        ->and($quote->page)->toBe('9');
 });
 
 it('deja sin página una Quote que la tenía', function () {
     $book = Book::factory()->create();
-    $quote = Quote::factory()->for($book)->create(['page' => 7]);
+    $quote = Quote::factory()->for($book)->create(['page' => '7']);
 
     quotesOf($book)
         ->call('editQuote', $quote->getKey())
@@ -300,4 +300,129 @@ it('dice que las Citas se ven en la Vitrina y el apunte no', function () {
         ->assertSeeInOrder(['Citas', 'Agregar cita'])
         ->assertSee('Se ve en la Vitrina')
         ->assertSeeInOrder(['No sale de aquí', 'Apunte']);
+});
+
+// La página que imprime el libro.
+
+it('captura una página en romanos y la guarda como se escribió', function () {
+    $book = Book::factory()->create();
+
+    quotesOf($book)
+        ->set('quoteText', 'Este libro nació de una conversación.')
+        ->set('quotePage', 'xiv')
+        ->call('saveQuote')
+        ->assertHasNoErrors();
+
+    $quote = Quote::query()->sole();
+
+    expect($quote->page)->toBe('xiv')
+        ->and($quote->page_is_front_matter)->toBeTrue()
+        ->and($quote->page_number)->toBe(14);
+});
+
+it('respeta las mayúsculas con que el libro imprime la página', function () {
+    $book = Book::factory()->create();
+
+    quotesOf($book)
+        ->set('quoteText', 'Una cita del prólogo.')
+        ->set('quotePage', 'XIV')
+        ->call('saveQuote')
+        ->assertHasNoErrors();
+
+    expect(Quote::query()->sole()->page)->toBe('XIV');
+});
+
+it('muestra la página en romanos en la ficha del Book', function () {
+    $book = Book::factory()->create();
+    Quote::factory()->for($book)->create(['text' => 'Una cita del prólogo.', 'page' => 'xiv']);
+
+    $this->get(route('book', $book))
+        ->assertOk()
+        ->assertSee('p. xiv');
+});
+
+it('no acepta una página que no sea ni arábiga ni romana', function () {
+    $book = Book::factory()->create();
+
+    quotesOf($book)
+        ->set('quoteText', 'Una cita.')
+        ->set('quotePage', '29b')
+        ->call('saveQuote')
+        ->assertHasErrors('quotePage');
+
+    expect(Quote::query()->count())->toBe(0);
+});
+
+it('dice qué se espera cuando la página no se entiende', function () {
+    $book = Book::factory()->create();
+
+    quotesOf($book)
+        ->set('quoteText', 'Una cita.')
+        ->set('quotePage', 'siete')
+        ->call('saveQuote')
+        ->assertSee('La página se escribe como viene en el libro: 29, o xiv si es de las preliminares.');
+});
+
+it('pone las páginas preliminares antes que las arábigas', function () {
+    $book = Book::factory()->create();
+
+    $first = Quote::factory()->for($book)->create(['text' => 'La de la página 1', 'page' => '1']);
+    $prologue = Quote::factory()->for($book)->create(['text' => 'La del prólogo', 'page' => 'xiv']);
+    $undated = Quote::factory()->for($book)->create(['text' => 'Sin página', 'page' => null]);
+    $opening = Quote::factory()->for($book)->create(['text' => 'La de la portadilla', 'page' => 'ix']);
+
+    expect($book->quotes()->pluck('id')->all())->toBe([
+        $opening->getKey(),
+        $prologue->getKey(),
+        $first->getKey(),
+        $undated->getKey(),
+    ]);
+});
+
+it('ordena las preliminares por su valor y no por su letra', function () {
+    $book = Book::factory()->create();
+
+    $fourteen = Quote::factory()->for($book)->create(['text' => 'La catorce', 'page' => 'xiv']);
+    $nine = Quote::factory()->for($book)->create(['text' => 'La nueve', 'page' => 'ix']);
+    $eleven = Quote::factory()->for($book)->create(['text' => 'La once', 'page' => 'XI']);
+
+    expect($book->quotes()->pluck('id')->all())->toBe([
+        $nine->getKey(),
+        $eleven->getKey(),
+        $fourteen->getKey(),
+    ]);
+});
+
+it('deriva el orden otra vez cuando se corrige la página', function () {
+    $book = Book::factory()->create();
+    $quote = Quote::factory()->for($book)->create(['text' => 'Vine a Comala', 'page' => '200']);
+
+    quotesOf($book)
+        ->call('editQuote', $quote->getKey())
+        ->assertSet('quotePage', '200')
+        ->set('quotePage', 'xiv')
+        ->call('saveQuote')
+        ->assertHasNoErrors();
+
+    $quote->refresh();
+
+    expect($quote->page)->toBe('xiv')
+        ->and($quote->page_is_front_matter)->toBeTrue()
+        ->and($quote->page_number)->toBe(14);
+});
+
+it('deja sin orden la Quote que se queda sin página', function () {
+    $book = Book::factory()->create();
+    $quote = Quote::factory()->for($book)->create(['page' => 'xiv']);
+
+    quotesOf($book)
+        ->call('editQuote', $quote->getKey())
+        ->set('quotePage', '')
+        ->call('saveQuote');
+
+    $quote->refresh();
+
+    expect($quote->page)->toBeNull()
+        ->and($quote->page_is_front_matter)->toBeFalse()
+        ->and($quote->page_number)->toBeNull();
 });

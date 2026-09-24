@@ -20,6 +20,19 @@ Route::middleware(['auth', 'verified'])->group(function () {
      */
     Route::livewire('settings/regenerate', 'pages::settings.regenerate')->name('regenerate');
 
+    /*
+     * The images with which a Quote gets shared (BIB-31). It is where the count
+     * of what is owed lives, and where the queue says it stopped for want of
+     * credits — a stop that is correct and silent without a screen (ADR-009).
+     */
+    Route::livewire('settings/quote-images', 'pages::settings.quote-images')->name('quote-images');
+
+    /*
+     * The jobs the queue gave up on (BIB-40). The Dashboard prints how many
+     * there are and this is the list behind that number.
+     */
+    Route::livewire('settings/failed-jobs', 'pages::settings.failed-jobs')->name('failed-jobs');
+
     Route::livewire('settings/security', 'pages::settings.security')
         ->middleware([
             'password.confirm',

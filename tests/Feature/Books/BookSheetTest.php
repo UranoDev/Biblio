@@ -525,7 +525,7 @@ it('no dice que algo se ve en la Vitrina cuando el Book está oculto', function 
 
 it('muestra las Quotes del Book', function () {
     $book = Book::factory()->create();
-    Quote::factory()->for($book)->create(['text' => 'Vine a Comala porque me dijeron que acá vivía mi padre.', 'page' => 7]);
+    Quote::factory()->for($book)->create(['text' => 'Vine a Comala porque me dijeron que acá vivía mi padre.', 'page' => '7']);
 
     $this->get(route('book', $book))
         ->assertOk()

@@ -10,9 +10,12 @@
     layout — they are not in the page at all, which is what makes the rule
     checkable from the served HTML.
 --}}
-{{-- The way back to the whole library is the first item of the navigation the
-     layout draws, so it is not written again here. --}}
-<x-showcase.layout :meta="$meta">
+{{-- The sheet of a Book carries no global list of Categories (BIB-43): it
+     names its own, further down, which are one to three and are the useful
+     link from here. Repeating the whole navigation on every sheet printed
+     fifty names above the title of the book. The way back to the whole library
+     is the name of the site, at the foot. --}}
+<x-showcase.layout :meta="$meta" :browse="false">
     <article class="flex flex-col gap-14">
         <header class="flex flex-col gap-10 md:flex-row md:items-start md:gap-14">
             <div class="w-36 shrink-0 md:w-56">
@@ -73,9 +76,7 @@
                      or invent a plot, so whoever reads it is told that it is
                      not the back cover (ADR-007). --}}
                 @if ($book->description_origin === Origin::Ai)
-                    <p class="type-section-heading text-ink-muted" data-test="description-by-ai">
-                        Descripción escrita por una inteligencia artificial; puede equivocarse
-                    </p>
+                    <x-ai-badge label="Descripción generada por IA" data-test="description-by-ai" />
                 @endif
             </section>
         @endif
@@ -84,9 +85,11 @@
             <section class="flex flex-col gap-3" data-test="categories">
                 <h2 class="type-section-heading text-ink-muted">Categorías</h2>
 
-                {{-- Each one leads to the other Books of the same subject
-                     (BIB-19). Every Category of a visible Book has at least
-                     this Book in it, so none of these links lands on a 404. --}}
+                {{-- Its own, and no others: what this Book is about is part
+                     of what the Book is, and each one leads to the others of
+                     the same subject (BIB-19). Every Category of a visible Book
+                     has at least this Book in it, so none of these links lands
+                     on a 404. --}}
                 <ul class="flex flex-wrap items-baseline gap-x-5 gap-y-2 text-lg">
                     @foreach ($book->categories as $category)
                         <li>
@@ -100,7 +103,9 @@
         @endif
 
         {{-- Every Quote of the Book, with no ceiling and nothing folded away:
-             a Book with forty shows the forty (decisión 19). --}}
+             a Book with forty shows the forty (decisión 19). Each card is drawn
+             at home —the Cover, the title and the Authors are right above— so
+             what it shows is the words and the page (BIB-41). --}}
         @if ($book->quotes->isNotEmpty())
             <section class="flex flex-col gap-8" data-test="quotes">
                 <h2 class="type-section-heading text-ink-muted">
@@ -109,7 +114,7 @@
 
                 <div class="flex flex-col gap-10">
                     @foreach ($book->quotes as $quote)
-                        <x-quote-card :quote="$quote" />
+                        <x-quote-card :quote="$quote" :standalone="false" />
                     @endforeach
                 </div>
             </section>

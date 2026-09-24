@@ -4,6 +4,7 @@ namespace App\Showcase;
 
 use App\Models\Book;
 use App\Models\Category;
+use App\Models\Quote;
 use DateTimeInterface;
 use Illuminate\Support\Facades\Date;
 
@@ -57,10 +58,19 @@ final class Sitemap
             $books->sortByDesc('updated_at')->first()?->updated_at,
         );
 
-        // The page of a Quote is not here yet; it is born with BIB-31, and it
-        // is the one that brings visits.
+        // The page of a Quote (BIB-31), which is the one that brings visits:
+        // what gets pasted somewhere is a Quote and not a catalogue sheet. It
+        // leaves here the moment its Book is Hidden, like everything else,
+        // because the list it comes from is the same one every public page
+        // asks (ADR-003).
+        $quotes = Showcase::quotes()
+            ->map(fn (Quote $quote): array => self::entry(
+                route('showcase.quote', $quote),
+                $quote->updated_at,
+            ))
+            ->all();
 
-        return [$front, ...$entries, ...$categories];
+        return [$front, ...$entries, ...$categories, ...$quotes];
     }
 
     /**

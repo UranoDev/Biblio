@@ -1,0 +1,71 @@
+{
+  "kind": "books#volumes",
+  "totalItems": 1,
+  "items": [
+    {
+      "kind": "books#volume",
+      "id": "OafYAQAACAAJ",
+      "etag": "UO8cCJcuafE",
+      "selfLink": "https://www.googleapis.com/books/v1/volumes/OafYAQAACAAJ",
+      "volumeInfo": {
+        "title": "Cien años de soledad",
+        "subtitle": "Ed. Conmemorativa Ilustrada 50 Aniversario",
+        "authors": [
+          "Gabriel García Márquez"
+        ],
+        "publishedDate": "2017-04-02",
+        "industryIdentifiers": [
+          {
+            "type": "ISBN_10",
+            "identifier": "8439732473"
+          },
+          {
+            "type": "ISBN_13",
+            "identifier": "9788439732471"
+          }
+        ],
+        "readingModes": {
+          "text": false,
+          "image": false
+        },
+        "pageCount": 384,
+        "printType": "BOOK",
+        "maturityRating": "NOT_MATURE",
+        "allowAnonLogging": false,
+        "contentVersion": "preview-1.0.0",
+        "panelizationSummary": {
+          "containsEpubBubbles": false,
+          "containsImageBubbles": false
+        },
+        "language": "es",
+        "previewLink": "http://books.google.com.mx/books?id=OafYAQAACAAJ&dq=isbn:9788439732471&hl=&cd=1&source=gbs_api",
+        "infoLink": "http://books.google.com.mx/books?id=OafYAQAACAAJ&dq=isbn:9788439732471&hl=&source=gbs_api",
+        "canonicalVolumeLink": "https://books.google.com/books/about/Cien_a%C3%B1os_de_soledad.html?hl=&id=OafYAQAACAAJ"
+      },
+      "saleInfo": {
+        "country": "MX",
+        "saleability": "NOT_FOR_SALE",
+        "isEbook": false
+      },
+      "accessInfo": {
+        "country": "MX",
+        "viewability": "NO_PAGES",
+        "embeddable": false,
+        "publicDomain": false,
+        "textToSpeechPermission": "ALLOWED",
+        "epub": {
+          "isAvailable": false
+        },
+        "pdf": {
+          "isAvailable": false
+        },
+        "webReaderLink": "http://play.google.com/books/reader?id=OafYAQAACAAJ&hl=&source=gbs_api",
+        "accessViewStatus": "NONE",
+        "quoteSharingAllowed": false
+      },
+      "searchInfo": {
+        "textSnippet": "Muchos años después, frente al pelotón de fusilamiento, el coronel Aureliano Buendía había de recordar aquella tarde remota en que su padre lo llevo a conocer el hielo."
+      }
+    }
+  ]
+}

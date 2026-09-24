@@ -2,6 +2,8 @@
 
 use App\Ai\AiModel;
 use App\Concerns\RegeneratesBooks;
+use App\Enums\CoverOrigin;
+use App\Enums\GenerationStatus;
 use App\Enums\ReadingStatus;
 use App\Enums\Status;
 use App\Models\Book;
@@ -10,6 +12,7 @@ use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Collection;
 use Livewire\Attributes\Computed;
 use Livewire\Attributes\Title;
+use Livewire\Attributes\Url;
 use Livewire\Component;
 
 /**
@@ -34,36 +37,68 @@ new #[Title('Acervo')] class extends Component
     use RegeneratesBooks;
 
     /** The Search, inside my own Books: title and Authors, never a Source. */
+    #[Url(as: 'q', except: '')]
     public string $search = '';
 
-    /** Which Status is being looked at; empty is both. */
-    public string $status = '';
+    /**
+     * Which Status is being looked at; empty is both.
+     *
+     * The screen is called Acervo and opens on it: what is Wanted is not
+     * hidden, it is one tab away with its count in sight. The default sits on
+     * the property and no longer in a `mount()`, so that what arrives in the
+     * address wins over it -- the Dashboard links here already narrowed
+     * (BIB-40).
+     */
+    #[Url(except: Status::Owned->value)]
+    public string $status = Status::Owned->value;
 
-    /** Which of the three Reading states; empty is all of them. */
+    /**
+     * Which Reading is being looked at: one of the three states, or both read
+     * ones at once; empty is all of them.
+     */
+    #[Url(except: '')]
     public string $reading = '';
 
     /** The slug of the Category being looked at; empty is all of them. */
+    #[Url(except: '')]
     public string $category = '';
+
+    /**
+     * Where the Cover came from; empty is anywhere. Generated is the queue of
+     * what is left to photograph (ADR-008), and it is what this filter exists
+     * for.
+     */
+    #[Url(except: '')]
+    public string $cover = '';
+
+    /** What the AI is doing with the Book: in the queue, or failed (BIB-33). */
+    #[Url(except: '')]
+    public string $generation = '';
+
+    /** Only the Books nobody has typed a single Quote from. */
+    #[Url(as: 'without-quotes', except: false)]
+    public bool $withoutQuotes = false;
 
     /**
      * Whether the grid is narrowed to the Books left on another AiModel: the
      * candidates to regenerate after changing the model (ADR-006).
      */
+    #[Url(as: 'another-model', except: false)]
     public bool $fromAnotherAiModel = false;
-
-    public function mount(): void
-    {
-        // The screen is called Acervo and opens on it. What is Wanted is not
-        // hidden -- it is one tab away, with its count in sight.
-        $this->status = Status::Owned->value;
-    }
 
     /** Back to the first sight of the screen. */
     public function clearFilters(): void
     {
-        $this->reset('search', 'reading', 'category', 'fromAnotherAiModel');
-
-        $this->status = Status::Owned->value;
+        $this->reset(
+            'search',
+            'status',
+            'reading',
+            'category',
+            'cover',
+            'generation',
+            'withoutQuotes',
+            'fromAnotherAiModel',
+        );
     }
 
     /**
@@ -154,6 +189,9 @@ new #[Title('Acervo')] class extends Component
         return trim($this->search) !== ''
             || $this->reading !== ''
             || $this->category !== ''
+            || $this->cover !== ''
+            || $this->generation !== ''
+            || $this->withoutQuotes
             || $this->fromAnotherAiModel
             || $this->status !== Status::Owned->value;
     }
@@ -197,12 +235,30 @@ new #[Title('Acervo')] class extends Component
             $query->matching($this->search);
         }
 
-        if ($this->readingFilter() instanceof ReadingStatus) {
+        // Both read states at once is not a fourth state: it is the question
+        // «¿lo leí?», which is the one the Dashboard counts.
+        if ($this->reading === ReadingStatus::ANY_READ) {
+            $query->read();
+        } elseif ($this->readingFilter() instanceof ReadingStatus) {
             $query->inReadingStatus($this->readingFilter());
         }
 
         if ($this->category !== '') {
             $query->inCategory($this->category);
+        }
+
+        if ($this->coverFilter() instanceof CoverOrigin) {
+            $query->withCoverOrigin($this->coverFilter());
+        }
+
+        match ($this->generationFilter()) {
+            GenerationStatus::Pending => $query->awaitingGeneration(),
+            GenerationStatus::Failed => $query->withFailedGeneration(),
+            default => null,
+        };
+
+        if ($this->withoutQuotes) {
+            $query->withoutQuotes();
         }
 
         // The Books left on another AiModel. Without a chosen one there is
@@ -226,6 +282,25 @@ new #[Title('Acervo')] class extends Component
     private function readingFilter(): ?ReadingStatus
     {
         return ReadingStatus::tryFrom($this->reading);
+    }
+
+    private function coverFilter(): ?CoverOrigin
+    {
+        return CoverOrigin::tryFrom($this->cover);
+    }
+
+    /**
+     * Only two of the four situations narrow the grid: the other two -- having
+     * it generated, and there being no AiModel chosen -- are not a queue
+     * anybody works through.
+     */
+    private function generationFilter(): ?GenerationStatus
+    {
+        return match (GenerationStatus::tryFrom($this->generation)) {
+            GenerationStatus::Pending => GenerationStatus::Pending,
+            GenerationStatus::Failed => GenerationStatus::Failed,
+            default => null,
+        };
     }
 }; ?>
 
@@ -273,8 +348,8 @@ new #[Title('Acervo')] class extends Component
             <flux:select wire:model.live="reading" label="Lectura" class="max-w-56" data-test="reading-filter">
                 <flux:select.option value="">Toda lectura</flux:select.option>
 
-                @foreach (\App\Enums\ReadingStatus::cases() as $state)
-                    <flux:select.option value="{{ $state->value }}">{{ $state->label() }}</flux:select.option>
+                @foreach (\App\Enums\ReadingStatus::filterOptions() as $value => $label)
+                    <flux:select.option value="{{ $value }}">{{ $label }}</flux:select.option>
                 @endforeach
             </flux:select>
 
@@ -292,6 +367,42 @@ new #[Title('Acervo')] class extends Component
                     @endforeach
                 </flux:select>
             @endif
+
+            {{--
+                Where the Cover came from. The generated ones are the queue of
+                what is left to photograph, which is the number the Dashboard
+                prints (ADR-008, BIB-40).
+            --}}
+            <flux:select wire:model.live="cover" label="Portada" class="max-w-56" data-test="cover-filter">
+                <flux:select.option value="">Toda portada</flux:select.option>
+
+                @foreach (\App\Enums\CoverOrigin::cases() as $origin)
+                    <flux:select.option value="{{ $origin->value }}">{{ $origin->label() }}</flux:select.option>
+                @endforeach
+            </flux:select>
+
+            {{--
+                What the AI still owes: what is in line and what it gave up on,
+                which are not the same thing (BIB-33).
+            --}}
+            <flux:select wire:model.live="generation" label="Generación" class="max-w-56" data-test="generation-filter">
+                <flux:select.option value="">Toda generación</flux:select.option>
+
+                <flux:select.option value="{{ \App\Enums\GenerationStatus::Pending->value }}">
+                    {{ \App\Enums\GenerationStatus::Pending->label() }}
+                </flux:select.option>
+
+                <flux:select.option value="{{ \App\Enums\GenerationStatus::Failed->value }}">
+                    {{ \App\Enums\GenerationStatus::Failed->label() }}
+                </flux:select.option>
+            </flux:select>
+
+            <flux:checkbox
+                wire:model.live="withoutQuotes"
+                label="Sin citas"
+                description="Los que todavía no tienen ninguna Cita escrita."
+                data-test="without-quotes-filter"
+            />
 
             {{--
                 Only with a chosen AiModel: «otro modelo» has nothing to mean

@@ -20,7 +20,7 @@ use Illuminate\Support\Facades\Http;
 final class OpenLibrary implements Source
 {
     /** How many titles are asked for in a TitleLookup. */
-    private const MAX_CANDIDATES = 20;
+    public const MAX_CANDIDATES = 20;
 
     /**
      * What `/search.json` gets asked for. Without `fields` it answers the whole
@@ -28,9 +28,12 @@ final class OpenLibrary implements Source
      * without `editions.*` nothing at the edition level comes down, which is the
      * only thing that helps pick one.
      */
-    private const SEARCH_FIELDS = 'key,title,author_name,cover_i,'
+    public const SEARCH_FIELDS = 'key,title,author_name,cover_i,'
         .'editions,editions.key,editions.title,editions.author_name,'
         .'editions.publisher,editions.publish_date,editions.isbn,editions.cover_i';
+
+    /** Where a TitleLookup is asked. */
+    public const SEARCH_PATH = '/search.json';
 
     public function __construct(
         private readonly string $url,
@@ -41,6 +44,30 @@ final class OpenLibrary implements Source
     public function identifier(): Enums\Source
     {
         return Enums\Source::OpenLibrary;
+    }
+
+    /**
+     * What a TitleLookup sends. It is public and static because the recorder of
+     * `sources:record` asks for it: a recording of a request the adapter does
+     * not make is not a recording of anything.
+     *
+     * @return array<string, mixed>
+     */
+    public static function searchParameters(string $title, ?string $author = null): array
+    {
+        $parameters = [
+            'title' => trim($title),
+            'limit' => self::MAX_CANDIDATES,
+            'fields' => self::SEARCH_FIELDS,
+        ];
+
+        $author = $author === null ? '' : trim($author);
+
+        if ($author !== '') {
+            $parameters['author'] = $author;
+        }
+
+        return $parameters;
     }
 
     public function byIsbn(Isbn $isbn): LookupResult
@@ -95,20 +122,8 @@ final class OpenLibrary implements Source
             return Candidates::none();
         }
 
-        $parameters = [
-            'title' => $title,
-            'limit' => self::MAX_CANDIDATES,
-            'fields' => self::SEARCH_FIELDS,
-        ];
-
-        $author = $author === null ? '' : trim($author);
-
-        if ($author !== '') {
-            $parameters['author'] = $author;
-        }
-
         try {
-            $body = $this->json('/search.json', $parameters);
+            $body = $this->json(self::SEARCH_PATH, self::searchParameters($title, $author));
         } catch (SourceUnavailable $failure) {
             return Candidates::unavailable($failure->getMessage());
         }

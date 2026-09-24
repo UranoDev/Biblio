@@ -157,10 +157,10 @@ it('usa Google Books de respaldo cuando Open Library no conoce el ISBN', functio
         'www.googleapis.com/*' => Http::response(recorded('google-books-volume')),
     ]);
 
-    $record = app(SourceResolver::class)->byIsbn(Isbn::from('9788437604176'))->record;
+    $record = app(SourceResolver::class)->byIsbn(Isbn::from('9780307474728'))->record;
 
     expect($record->source)->toBe(Enums\Source::GoogleBooks)
-        ->and($record->title)->toBe('Pedro Páramo');
+        ->and($record->title)->toBe('Cien años de soledad / One Hundred Years of Solitude');
 });
 
 it('se queda con los Candidates de la primera Source que tenga alguno', function () {

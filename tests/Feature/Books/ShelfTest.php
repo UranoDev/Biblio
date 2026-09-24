@@ -1,9 +1,12 @@
 <?php
 
+use App\Enums\CoverOrigin;
+use App\Enums\GenerationStatus;
 use App\Enums\ReadingStatus;
 use App\Enums\Status;
 use App\Models\Book;
 use App\Models\Category;
+use App\Models\Quote;
 use App\Models\User;
 use Illuminate\Support\Facades\DB;
 use Livewire\Features\SupportTesting\Testable;
@@ -348,6 +351,85 @@ it('quita todos los filtros de un golpe', function () {
         ->assertSet('status', Status::Owned->value)
         ->assertSet('reading', '')
         ->assertSet('category', '')
+        ->assertSee('Cartucho');
+});
+
+it('filtra por el origen de la Portada', function () {
+    Book::factory()->coverGenerated()->create(['title' => 'Sin fotografiar']);
+    Book::factory()->coverFromOwner()->create(['title' => 'Con mi foto']);
+
+    shelf()
+        ->set('cover', CoverOrigin::Generated->value)
+        ->assertSee('Sin fotografiar')
+        ->assertDontSee('Con mi foto');
+});
+
+it('filtra lo que sigue en la cola y lo que falló, que no son lo mismo', function () {
+    Book::factory()->generationQueued()->create(['title' => 'Esperando turno']);
+    Book::factory()->generationFailed()->create(['title' => 'Se rompió']);
+
+    shelf()
+        ->set('generation', GenerationStatus::Pending->value)
+        ->assertSee('Esperando turno')
+        ->assertDontSee('Se rompi');
+
+    shelf()
+        ->set('generation', GenerationStatus::Failed->value)
+        ->assertSee('Se rompi')
+        ->assertDontSee('Esperando turno');
+});
+
+it('filtra los Books de los que no hay ninguna Quote escrita', function () {
+    $quoted = Book::factory()->create(['title' => 'Ya tiene cita']);
+    Quote::factory()->for($quoted)->create();
+
+    Book::factory()->create(['title' => 'Nada escrito']);
+
+    shelf()
+        ->set('withoutQuotes', true)
+        ->assertSee('Nada escrito')
+        ->assertDontSee('Ya tiene cita');
+});
+
+it('toma los dos estados leídos cuando se pregunta si lo leí', function () {
+    Book::factory()->read()->create(['title' => 'Con fecha']);
+    Book::factory()->readUndated()->create(['title' => 'Sin fecha']);
+    Book::factory()->create(['title' => 'Pendiente']);
+
+    shelf()
+        ->set('reading', ReadingStatus::ANY_READ)
+        ->assertSee('Con fecha')
+        ->assertSee('Sin fecha')
+        ->assertDontSee('Pendiente');
+});
+
+it('recibe los filtros en la dirección, para que otra pantalla pueda enlazar aquí', function () {
+    Book::factory()->coverGenerated()->create(['title' => 'Sin fotografiar']);
+    Book::factory()->coverFromOwner()->create(['title' => 'Con mi foto']);
+    Book::factory()->wanted()->create(['title' => 'Por comprar todavía']);
+
+    $this->get(route('shelf', ['cover' => CoverOrigin::Generated->value]))
+        ->assertSee('Sin fotografiar')
+        ->assertDontSee('Con mi foto');
+
+    // The Acervo is where the screen opens, and the address overrides it:
+    // without that, every link from the Dashboard would open the same list.
+    $this->get(route('shelf', ['status' => Status::Wanted->value]))
+        ->assertSee('Por comprar todav')
+        ->assertDontSee('Con mi foto');
+});
+
+it('quita también los filtros nuevos de un golpe', function () {
+    Book::factory()->owned()->create(['title' => 'Cartucho']);
+
+    shelf()
+        ->set('cover', CoverOrigin::Generated->value)
+        ->set('generation', GenerationStatus::Failed->value)
+        ->set('withoutQuotes', true)
+        ->call('clearFilters')
+        ->assertSet('cover', '')
+        ->assertSet('generation', '')
+        ->assertSet('withoutQuotes', false)
         ->assertSee('Cartucho');
 });
 

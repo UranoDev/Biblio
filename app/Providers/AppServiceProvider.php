@@ -5,6 +5,9 @@ namespace App\Providers;
 use App\Ai\LocalServer;
 use App\Covers\CoverStore;
 use App\Jobs\ProposeForBook;
+use App\Quotes\Html2Img;
+use App\Quotes\ImageRenderer;
+use App\Quotes\ShareImages;
 use App\Sources\GoogleBooks;
 use App\Sources\OpenLibrary;
 use App\Sources\Source;
@@ -37,6 +40,30 @@ class AppServiceProvider extends ServiceProvider
         // One instance for the whole request, so that the Settings screen asks
         // the local server whether it is up once and not once per question.
         $this->app->singleton(LocalServer::class);
+
+        /*
+         * The renderer of the images of a Quote, behind its seam (ADR-009).
+         * Swapping html2img for a browser of our own is this line and nothing
+         * else: neither the card nor the images already made get touched.
+         */
+        $this->app->singleton(
+            ImageRenderer::class,
+            fn (): ImageRenderer => new Html2Img(
+                url: (string) config('quotes.renderer.url'),
+                key: config('quotes.renderer.key') === null
+                    ? null
+                    : (string) config('quotes.renderer.key'),
+                timeout: (int) config('quotes.renderer.timeout', 60),
+            ),
+        );
+
+        $this->app->singleton(
+            ShareImages::class,
+            fn (): ShareImages => new ShareImages(
+                renderer: $this->app->make(ImageRenderer::class),
+                directory: (string) config('quotes.directory', 'quotes'),
+            ),
+        );
 
         $this->app->singleton(
             CoverStore::class,

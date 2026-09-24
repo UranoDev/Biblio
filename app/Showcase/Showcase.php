@@ -130,6 +130,44 @@ final class Showcase
     }
 
     /**
+     * Every Quote a visitor can open, each with the Book it belongs to.
+     *
+     * The sitemap asks it: since BIB-31 each Quote is an address of its own,
+     * and it is the address that brings visits — what gets pasted somewhere is
+     * a Quote, not a catalogue sheet.
+     *
+     * @return Collection<int, Quote>
+     */
+    public static function quotes(): Collection
+    {
+        return Quote::query()
+            ->whereHas('book', self::onlyVisible(...))
+            ->with('book')
+            ->orderBy('id')
+            ->get();
+    }
+
+    /**
+     * One Quote, as a visitor reaches it by its own address (BIB-31).
+     *
+     * A Quote inherits visibility from its Book and has none of its own
+     * (ADR-003): the Quote of a Hidden Book is not found, which is the same
+     * answer an address that was never a Quote gets. The image of that Quote is
+     * not served either, and that is checked where it is served — a file on a
+     * disk knows nothing about any of this.
+     */
+    public static function quote(int $id): Quote
+    {
+        /** @var Quote $quote */
+        $quote = Quote::query()
+            ->whereHas('book', self::onlyVisible(...))
+            ->with('book')
+            ->findOrFail($id);
+
+        return $quote;
+    }
+
+    /**
      * Narrows a public query to one Category, or leaves it as it was.
      *
      * A Book with several Categories belongs to all of them, so this filters

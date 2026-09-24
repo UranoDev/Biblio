@@ -8,6 +8,7 @@ use App\Enums\Status;
 use App\Models\Book;
 use App\Models\Category;
 use App\Models\Quote;
+use App\Quotes\PageLabel;
 use Illuminate\Support\Str;
 use Illuminate\Validation\Rule;
 use Livewire\Attributes\Computed;
@@ -352,6 +353,24 @@ new #[Title('Ficha del Libro')] class extends Component
     }
 
     /**
+     * The page is the one the Book prints: arabic for the body, roman for the
+     * front matter, and nothing else (BIB-42).
+     *
+     * It is rejected here and not fixed on the way in, because a page nobody
+     * can read is a page that would get ordered somewhere at random.
+     */
+    private function pageIsAPage(): \Closure
+    {
+        return function (string $attribute, mixed $value, \Closure $fail): void {
+            $written = trim((string) $value);
+
+            if ($written !== '' && ! PageLabel::isValid($written)) {
+                $fail('La página se escribe como viene en el libro: 29, o xiv si es de las preliminares.');
+            }
+        };
+    }
+
+    /**
      * Writes the Quote, and leaves the field ready for the next one.
      *
      * The Quotes get transcribed in one sitting, one after another, so the same
@@ -362,16 +381,14 @@ new #[Title('Ficha del Libro')] class extends Component
     {
         $this->validate([
             'quoteText' => ['required', 'string', 'max:5000'],
-            'quotePage' => ['nullable', 'integer', 'min:1', 'max:100000'],
+            'quotePage' => ['nullable', 'string', 'max:16', $this->pageIsAPage()],
         ], [
             'quoteText.required' => 'Falta el texto de la cita.',
             'quoteText.max' => 'La cita no puede pasar de 5000 caracteres.',
-            'quotePage.integer' => 'La página se escribe con dígitos.',
-            'quotePage.min' => 'La página empieza en 1.',
-            'quotePage.max' => 'Esa página es demasiado alta.',
+            'quotePage.max' => 'Esa página es demasiado larga.',
         ]);
 
-        $page = trim($this->quotePage) === '' ? null : (int) trim($this->quotePage);
+        $page = trim($this->quotePage) === '' ? null : trim($this->quotePage);
 
         if ($this->editingQuote === null) {
             $this->book->addQuote($this->quoteText, $page);
@@ -397,7 +414,7 @@ new #[Title('Ficha del Libro')] class extends Component
 
         $this->editingQuote = $quote->getKey();
         $this->quoteText = $quote->text;
-        $this->quotePage = $quote->page === null ? '' : (string) $quote->page;
+        $this->quotePage = $quote->page ?? '';
 
         $this->resetValidation();
 
@@ -792,10 +809,10 @@ new #[Title('Ficha del Libro')] class extends Component
                 <flux:input
                     wire:model="quotePage"
                     label="Página"
-                    placeholder="Opcional"
-                    inputmode="numeric"
+                    description="Opcional. Como la imprime el libro: 29, o xiv."
+                    placeholder="29"
                     autocomplete="off"
-                    class="max-w-36"
+                    class="max-w-44"
                     data-test="quote-page-field"
                 />
 

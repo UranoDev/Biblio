@@ -1,13 +1,18 @@
 @use('App\Showcase\Showcase')
+@use('App\Release\Version')
 
-@props(['meta', 'category' => null])
+@props(['meta', 'category' => null, 'browse' => true])
 
 {{--
     The page of the Showcase: paper, and nothing of the back office around it.
 
-    The navigation by Category is here and not on each page, so that no public
-    surface can be added without it; the list it names comes from
-    `App\Showcase\Showcase`, which is where every public query starts (ADR-003).
+    The navigation by Category closes the page, under the collection and never
+    above it (BIB-43): the first thing on a page is what the page is about. It
+    is drawn here and not on each page, so that no public surface can be added
+    without it; the list it names comes from `App\Showcase\Showcase`, which is
+    where every public query starts (ADR-003). The sheet of a Book is the one
+    page that carries no such list —it names its own Categories, which are one
+    to three— and it says so with `browse`.
 
     It carries no appearance switch. The back office follows the system, light
     or dark; this face is always paper, because the Covers are the colour here
@@ -48,6 +53,15 @@
         @endif
         <meta name="twitter:card" content="{{ $meta->card() }}">
 
+        {{--
+            Qué versión está corriendo, acá también (BIB-39). Es la cara que se
+            abre sin iniciar sesión, que es justo lo que hacía falta para
+            comprobar si lo que se está viendo ya trae el arreglo.
+        --}}
+        @if (Version::current())
+            <meta name="version" content="{{ Version::current() }}">
+        @endif
+
         <link rel="icon" href="/favicon.ico" sizes="any">
         <link rel="icon" href="/favicon.svg" type="image/svg+xml">
         <link rel="apple-touch-icon" href="/apple-touch-icon.png">
@@ -59,18 +73,18 @@
 
     <body class="paper min-h-screen text-ink antialiased">
         <div class="mx-auto flex w-full max-w-5xl flex-col gap-16 px-6 py-14 md:px-10 md:py-20">
-            {{-- A page with no name of its own is the front page, and that is
-                 the one place where «toda la biblioteca» is where you already
-                 are. --}}
-            <x-showcase.categories
-                :categories="Showcase::categories()"
-                :current="$category"
-                :root="$meta->heading === null"
-            />
-
             {{ $slot }}
 
-            <footer class="border-t border-divider pt-8">
+            {{-- The closing block: the subjects, and the name of the site,
+                 which is the way back to the whole library from anywhere. --}}
+            <footer class="flex flex-col gap-8 border-t border-divider pt-8">
+                @if ($browse)
+                    <x-showcase.categories
+                        :categories="Showcase::categories()"
+                        :current="$category"
+                    />
+                @endif
+
                 <a href="{{ route('showcase') }}" class="type-section-heading text-link">
                     {{ config('app.name') }}
                 </a>

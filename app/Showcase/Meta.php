@@ -2,8 +2,11 @@
 
 namespace App\Showcase;
 
+use App\Enums\ShareFormat;
 use App\Models\Book;
 use App\Models\Category;
+use App\Models\Quote;
+use App\Quotes\QuoteCard;
 use Illuminate\Support\Str;
 
 /**
@@ -101,6 +104,40 @@ final readonly class Meta
             // an address of its own too.
             image: $book->hasCover() ? $book->coverUrl() : null,
             imageAlt: $book->hasCover() ? 'Portada de '.$book->title : null,
+        );
+    }
+
+    /**
+     * The page of one Quote, which is the one made for being pasted somewhere
+     * (BIB-31).
+     *
+     * The description is the Quote itself and nothing around it: what somebody
+     * sees in the preview is the words, which is the only reason they would
+     * open it. The title is the Book, because the words already fill the line
+     * below and repeating them there wastes it.
+     *
+     * The image is the card rasterized, and while it is not drawn yet it is the
+     * Cover of the Book (ADR-009). A link shared during that window does not go
+     * out bare: it goes out with the Cover instead of with the card, and a Book
+     * always has one to show (ADR-008) — as long as it is a stored one, because
+     * the generated piece is drawn in the page and no network can take it from
+     * there.
+     */
+    public static function quote(Quote $quote): self
+    {
+        $book = $quote->book;
+        $words = QuoteCard::for($quote)->text();
+
+        $image = $quote->imageUrlFor(ShareFormat::shared())
+            ?? ($book->hasCover() ? $book->coverUrl() : null);
+
+        return new self(
+            heading: $book->title,
+            description: Str::limit(Str::squish($words), 200),
+            canonical: route('showcase.quote', $quote),
+            type: 'article',
+            image: $image,
+            imageAlt: 'Cita de '.$book->title,
         );
     }
 

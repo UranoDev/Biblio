@@ -154,7 +154,7 @@ it('lleva de un resultado al Book de esa Quote', function () {
 });
 
 it('muestra la página de la Quote cuando la trae', function () {
-    Quote::factory()->for(Book::factory())->create(['text' => 'Vine a Comala.', 'page' => 7]);
+    Quote::factory()->for(Book::factory())->create(['text' => 'Vine a Comala.', 'page' => '7']);
 
     searchingQuotes('comala')->assertSee('p. 7');
 });

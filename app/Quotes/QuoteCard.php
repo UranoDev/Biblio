@@ -33,6 +33,23 @@ final class QuoteCard
     private const LONG = 9;
 
     /**
+     * Past this many lines the card does not fit the canvas of an image any
+     * more, and there is no size left to step down to.
+     *
+     * The canvas is fixed — 1200x630 is the narrower of the two formats — and
+     * the smallest of the three sizes is the smallest that is still legible at
+     * the size a network draws it. So the two of them together put a ceiling on
+     * how long a Quote can be and still come out as a picture somebody can
+     * read. Past it there is no image at all: the shared link falls back on the
+     * Cover of the Book, which always exists (ADR-008, ADR-009).
+     *
+     * Like `COLUMN` it is an estimate. Measured over the column the card leaves
+     * for the text in the wide format, at the smallest size, with the room the
+     * page line and the caption take off the top and the bottom.
+     */
+    private const CEILING = 13;
+
+    /**
      * The quote marks a Quote may have been typed with. They are the ones that
      * open and close a quotation in Spanish and in English; the apostrophe is
      * not here on purpose, because a word can legitimately end in one.
@@ -93,6 +110,19 @@ final class QuoteCard
             $lines >= self::LONG => QuoteScale::Small,
             default => QuoteScale::Regular,
         };
+    }
+
+    /**
+     * Whether this Quote can be drawn into a shareable image at all.
+     *
+     * A Quote longer than the canvas holds is not shrunk until it fits: type
+     * squeezed past legible is worse than no picture, because it gets shared
+     * just the same and whoever receives it sees nothing. The page says so
+     * instead of handing over a file nobody can read.
+     */
+    public function fitsInImage(): bool
+    {
+        return $this->lines() <= self::CEILING;
     }
 
     /**

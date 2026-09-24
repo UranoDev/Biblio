@@ -1,9 +1,12 @@
 <?php
 
+use App\Http\Controllers\DownloadQuoteImage;
 use App\Http\Controllers\ServeCover;
+use App\Http\Controllers\ServeQuoteImage;
 use App\Http\Controllers\ShowShowcase;
 use App\Http\Controllers\ShowShowcaseBook;
 use App\Http\Controllers\ShowShowcaseCategory;
+use App\Http\Controllers\ShowShowcaseQuote;
 use App\Http\Controllers\ShowSitemap;
 use Illuminate\Support\Facades\Route;
 
@@ -32,6 +35,40 @@ Route::get('category/{category}', ShowShowcaseCategory::class)
     ->name('showcase.category');
 
 /*
+ * The page of one Quote (BIB-31). It is the main tool for sharing, so its
+ * address is the short one: `quote/123`, and the number never changes.
+ *
+ * `quote-search` is the back office screen and it is three segments away from
+ * this one, so `robots.txt` declares each of the two explicitly.
+ */
+Route::get('quote/{quote}', ShowShowcaseQuote::class)
+    ->whereNumber('quote')
+    ->name('showcase.quote');
+
+/*
+ * The two shareable images of a Quote (ADR-009).
+ *
+ * The address carries a signature of what the image was drawn from, because
+ * the networks cache `og:image` by URL and with a will: without it, changing
+ * the image keeps showing the old one for days.
+ *
+ * They are served by the application and not as loose files on the disk for the
+ * same reason the Covers are: a static file survives its Book being Hidden, and
+ * that is a mistake that goes outwards and in silence (ADR-003).
+ */
+Route::get('quote/{quote}/{format}/{fingerprint}', ServeQuoteImage::class)
+    ->whereNumber('quote')
+    ->name('quote.image');
+
+/*
+ * The vertical one, as a file with a name a person reads. It exists because
+ * Instagram reads no tags: there the image is uploaded by hand.
+ */
+Route::get('quote/{quote}/download', DownloadQuoteImage::class)
+    ->whereNumber('quote')
+    ->name('quote.download');
+
+/*
  * The Covers are served by the application and not by the disk (BIB-32). The
  * route lives here, and not where the framework puts the one for `/storage`,
  * so that caching the routes does not take it away; and its address carries no
@@ -48,7 +85,12 @@ Route::get('covers/{book}/{size}', ServeCover::class)->name('cover');
 Route::get('sitemap.xml', ShowSitemap::class)->name('sitemap');
 
 Route::middleware(['auth', 'verified'])->group(function () {
-    Route::view('dashboard', 'dashboard')->name('dashboard');
+    /*
+     * The first screen of the back office (BIB-40). It is no longer where the
+     * login lands -- that is the Shelf -- and it is no longer the three
+     * placeholders of the skeleton: it says where the pending work is.
+     */
+    Route::livewire('dashboard', 'pages::dashboard')->name('dashboard');
 
     Route::livewire('shelf', 'pages::shelf')->name('shelf');
 

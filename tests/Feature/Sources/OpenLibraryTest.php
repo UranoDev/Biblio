@@ -16,7 +16,13 @@ function openLibrary(): OpenLibrary
     );
 }
 
-/** @param  array<string, mixed>  $extra */
+/**
+ * The recordings answer as the catalog answered them. The edition is the one
+ * of «Cien años de soledad» —ISBN 9788420471839—, which points at the work
+ * `/works/OL274505W` and at its one author, `/authors/OL27363A`.
+ *
+ * @param  array<string, mixed>  $extra
+ */
 function fakeOpenLibrary(array $extra = []): void
 {
     // The `+` leaves the responses of the case ahead of the base ones: Http
@@ -24,8 +30,9 @@ function fakeOpenLibrary(array $extra = []): void
     Http::fake($extra + [
         'openlibrary.org/isbn/*' => Http::response(recorded('open-library-edition')),
         'openlibrary.org/works/*' => Http::response(recorded('open-library-work')),
-        'openlibrary.org/authors/OL2622837A.json' => Http::response(recorded('open-library-author-garcia-marquez')),
-        'openlibrary.org/authors/OL9388A.json' => Http::response(recorded('open-library-author-vargas-llosa')),
+        'openlibrary.org/authors/OL27363A.json' => Http::response(recorded('open-library-author-garcia-marquez')),
+        'openlibrary.org/authors/OL3121166A.json' => Http::response(recorded('open-library-author-ayeva')),
+        'openlibrary.org/authors/OL7494961A.json' => Http::response(recorded('open-library-author-kasampalis')),
     ]);
 }
 
@@ -38,34 +45,55 @@ it('armal Record de un ISBN que conoce, siguiendo el enlace a la obra', function
 
     $record = $result->record;
 
-    expect($record->title)->toBe('Cien años de soledad: novela')
-        ->and($record->authors)->toBe(['Gabriel García Márquez', 'Mario Vargas Llosa'])
-        ->and($record->publisher)->toBe('Alfaguara')
+    expect($record->title)->toBe('Cien años de soledad')
+        ->and($record->authors)->toBe(['Gabriel García Márquez'])
+        ->and($record->publisher)->toBe('Santillana USA Publishing Co.')
         ->and($record->year)->toBe(2007)
-        ->and($record->edition)->toBe('Edición conmemorativa')
-        ->and($record->coverUrl)->toBe('https://covers.openlibrary.org/b/id/8231856-L.jpg')
-        ->and($record->description)->toContain('familia Buendía')
+        ->and($record->edition)->toBe('Edición conmemorativa (The 40th Anniversary Edition)')
+        ->and($record->coverUrl)->toBe('https://covers.openlibrary.org/b/id/2269535-L.jpg')
+        ->and($record->description)->toContain('Macondo')
         ->and($record->source)->toBe(Source::OpenLibrary)
         ->and($record->descriptionOrigin())->toBe(Origin::Source);
 });
 
-it('conserval orden en que la Source acredita a los autores', function () {
-    fakeOpenLibrary();
+it('juntal subtítulo al título cuando la edición lo trae', function () {
+    // «Mastering Python Design Patterns», ISBN 9781837639618: of the recorded
+    // editions it is the one that brings a subtitle, and the only one credited
+    // to more than one author.
+    fakeOpenLibrary([
+        'openlibrary.org/isbn/*' => Http::response(recorded('open-library-edition-with-subtitle')),
+    ]);
 
-    $record = openLibrary()->byIsbn(Isbn::from('9788420471839'))->record;
+    $record = openLibrary()->byIsbn(Isbn::from('9781837639618'))->record;
 
-    expect($record->authors[0])->toBe('Gabriel García Márquez');
+    expect($record->title)->toBe(
+        'Mastering Python Design Patterns: Craft Essential Python Patterns by Following Core Design Principles'
+    );
 });
 
-it('lee la descripción de la obra venga como cadena o como objeto con value', function (string $file) {
+it('conserval orden en que la Source acredita a los autores', function () {
+    fakeOpenLibrary([
+        'openlibrary.org/isbn/*' => Http::response(recorded('open-library-edition-with-subtitle')),
+    ]);
+
+    $record = openLibrary()->byIsbn(Isbn::from('9781837639618'))->record;
+
+    expect($record->authors)->toBe(['Kamon Ayeva', 'Sakis Kasampalis']);
+});
+
+it('lee la descripción de la obra venga como cadena o como objeto con value', function (string $file, string $fragment) {
     fakeOpenLibrary(['openlibrary.org/works/*' => Http::response(recorded($file))]);
 
     $record = openLibrary()->byIsbn(Isbn::from('9788420471839'))->record;
 
-    expect($record->description)->toBe(
-        'La historia de la familia Buendía a lo largo de siete generaciones en el pueblo de Macondo.'
-    );
-})->with(['open-library-work', 'open-library-work-description-object']);
+    expect($record->description)->toContain($fragment);
+})->with([
+    // The catalog stores it in both shapes and does not say which one it will
+    // answer with: on `/works/OL274505W` it is a string and on
+    // `/works/OL1731119W` an object with `value`.
+    ['open-library-work', 'Macondo'],
+    ['open-library-work-description-object', 'Comala'],
+]);
 
 it('devuelve sin Record cuando Open Library no conoce el ISBN', function () {
     Http::fake(['openlibrary.org/*' => Http::response(status: 404)]);
@@ -97,14 +125,15 @@ it('avisa que no pudo contestar cuando la red falla', function () {
 });
 
 it('dal Record sin Description cuando la edición no apunta a ninguna obra', function () {
-    Http::fake([
+    // ISBN 9789972402203: the catalog has the edition and leaves it hanging off
+    // no work, so there is nowhere to go for the Description.
+    fakeOpenLibrary([
         'openlibrary.org/isbn/*' => Http::response(recorded('open-library-edition-without-work')),
-        'openlibrary.org/authors/*' => Http::response(recorded('open-library-author-garcia-marquez')),
     ]);
 
-    $record = openLibrary()->byIsbn(Isbn::from('9788420471839'))->record;
+    $record = openLibrary()->byIsbn(Isbn::from('9789972402203'))->record;
 
-    expect($record->title)->toBe('Los recuerdos del porvenir')
+    expect($record->title)->toBe('Cien Anos De Soledad')
         ->and($record->hasDescription())->toBeFalse()
         ->and($record->descriptionOrigin())->toBeNull();
 });
@@ -119,14 +148,30 @@ it('dal Record sin Description cuando la obra no se pudo consultar', function ()
 });
 
 it('no devuelve Cover cuando la edición sólo trae la marca de que no tiene', function () {
-    Http::fake([
-        'openlibrary.org/isbn/*' => Http::response(recorded('open-library-edition-without-work')),
-        'openlibrary.org/authors/*' => Http::response(recorded('open-library-author-garcia-marquez')),
+    // ISBN 9781937785499: its `covers` is `[-1]`, which is how Open Library
+    // writes down that it has none.
+    fakeOpenLibrary([
+        'openlibrary.org/isbn/*' => Http::response(recorded('open-library-edition-without-cover')),
     ]);
 
-    $record = openLibrary()->byIsbn(Isbn::from('9788420471839'))->record;
+    $record = openLibrary()->byIsbn(Isbn::from('9781937785499'))->record;
 
-    expect($record->coverUrl)->toBeNull();
+    expect($record->coverUrl)->toBeNull()
+        ->and($record->publisher)->toBe('Pragmatic Bookshelf');
+});
+
+it('dal Record sin editorial cuando la edición no publica ninguna', function () {
+    // ISBN 9788178087368: an edition that is barely a title and an ISBN.
+    fakeOpenLibrary([
+        'openlibrary.org/isbn/*' => Http::response(recorded('open-library-edition-without-publisher')),
+    ]);
+
+    $record = openLibrary()->byIsbn(Isbn::from('9788178087368'))->record;
+
+    expect($record->title)->toBe('The C Programming Language')
+        ->and($record->publisher)->toBeNull()
+        ->and($record->year)->toBeNull()
+        ->and($record->coverUrl)->toBeNull();
 });
 
 it('prefiere reintentar antes que dar una Record a la que le faltan autores', function () {
@@ -151,8 +196,8 @@ it('devuelve un Candidate por obra, que es todo lo que su búsqueda entrega', fu
 
     $candidates = openLibrary()->byTitle('Pedro Páramo', 'Rulfo');
 
-    // The recorded response brings 6 works with 134 editions among them, and
-    // Open Library delivers a single one of each work. That is why it is the
+    // The recording brings 6 works with 164 editions among them, and Open
+    // Library delivers a single one of each work. That is why it is the
     // fallback and not the first one of the TitleLookup.
     expect($candidates)->toHaveCount(6);
 });

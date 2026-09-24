@@ -105,8 +105,31 @@ class Book extends Model
     }
 
     /**
-     * The Quotes of the Book, in the order they go in the Book: by page, and
-     * the ones whose page was not written down at the end.
+     * Anything that shows in the image of a Quote and lives on the Book sends
+     * its Quotes back to the queue (ADR-009).
+     *
+     * The Cover is the one that costs: replacing a generated piece with a
+     * photograph of my own (ADR-008) invalidates the shareable image of every
+     * Quote of that Book, and a day of photographing twenty books can be a
+     * hundred Quotes — two hundred renders. Without this rule the library fills
+     * up in silence with images of the Cover it used to have, and it is only
+     * found out when somebody shares one.
+     */
+    protected static function booted(): void
+    {
+        static::updated(function (Book $book): void {
+            if (! $book->wasChanged(['title', 'authors', 'cover_path'])) {
+                return;
+            }
+
+            $book->quotes()->each(fn (Quote $quote) => $quote->queueImages());
+        });
+    }
+
+    /**
+     * The Quotes of the Book, in the order they go in the Book: the front
+     * matter first, then the rest by page, and the ones whose page was not
+     * written down at the end.
      *
      * The order lives on the relation and not on each screen, because the Shelf
      * and the Showcase have to show the same Quotes in the same sequence, and a
@@ -116,7 +139,7 @@ class Book extends Model
      */
     public function quotes(): HasMany
     {
-        return $this->hasMany(Quote::class)->orderByRaw('page is null, page, id');
+        return $this->hasMany(Quote::class)->inBookOrder();
     }
 
     /** @return BelongsToMany<Category, $this> */
@@ -337,9 +360,10 @@ class Book extends Model
      * Adds a Quote to the Book: the words of the Book, with its page when it
      * was written down.
      *
-     * @param  int|null  $page  the page it is on, or null when it was not written down
+     * @param  string|null  $page  the page as the Book prints it — `29` or `xiv` —,
+     *                             or null when it was not written down
      */
-    public function addQuote(string $text, ?int $page = null): Quote
+    public function addQuote(string $text, ?string $page = null): Quote
     {
         return $this->quotes()->create([
             'text' => Quote::transcribe($text),
@@ -598,6 +622,34 @@ class Book extends Model
     protected function coverGenerated(Builder $query): void
     {
         $query->where('cover_origin', CoverOrigin::Generated);
+    }
+
+    /**
+     * The Books whose Cover came from one particular place.
+     *
+     * It is what the filter of the Shelf asks, so that the number the Dashboard
+     * prints opens the list it counted (BIB-40).
+     *
+     * @param  Builder<$this>  $query
+     */
+    #[Scope]
+    protected function withCoverOrigin(Builder $query, CoverOrigin $origin): void
+    {
+        $query->where('cover_origin', $origin);
+    }
+
+    /**
+     * The Books nobody has written a single Quote from yet.
+     *
+     * A Book gets read and its Quotes get typed in afterwards, days later and
+     * from the paper: this is the list of the ones where that is still owed.
+     *
+     * @param  Builder<$this>  $query
+     */
+    #[Scope]
+    protected function withoutQuotes(Builder $query): void
+    {
+        $query->whereDoesntHave('quotes');
     }
 
     /**

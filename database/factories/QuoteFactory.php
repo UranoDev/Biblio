@@ -21,7 +21,7 @@ class QuoteFactory extends Factory
         return [
             'book_id' => Book::factory(),
             'text' => fake()->paragraph(),
-            'page' => fake()->numberBetween(1, 500),
+            'page' => (string) fake()->numberBetween(1, 500),
         ];
     }
 

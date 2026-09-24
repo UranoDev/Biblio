@@ -1,9 +1,1 @@
-{
-  "publishers": ["Ediciones Era"],
-  "covers": [-1],
-  "key": "/books/OL1000000M",
-  "authors": [{ "key": "/authors/OL2622837A" }],
-  "title": "Los recuerdos del porvenir",
-  "publish_date": "1963",
-  "type": { "key": "/type/edition" }
-}
+{"title": "Cien Anos De Soledad", "publish_date": "2002", "publishers": ["Peisa Lima Peru"], "languages": [{"key": "/languages/spa"}], "isbn_13": ["9789972402203"], "physical_format": "Hardcover", "isbn_10": ["9972402207"], "oclc_numbers": ["70221278"], "type": {"key": "/type/edition"}, "source_records": ["amazon:9972402207"], "key": "/books/OL13213302M", "latest_revision": 3, "revision": 3, "created": {"type": "/type/datetime", "value": "2008-04-30T20:50:18.033121"}, "last_modified": {"type": "/type/datetime", "value": "2026-04-03T14:19:52.789379"}}

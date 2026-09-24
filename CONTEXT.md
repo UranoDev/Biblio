@@ -151,6 +151,13 @@ Un fragmento textual del Book que quiero conservar, con su página si la anoté.
 palabras del Book, no mías. Un Book puede no tener ninguna o tener muchas.
 _Avoid_: Excerpt, Passage, Highlight; frase, subrayado, extracto
 
+**PageLabel** · en la interfaz: «página»:
+La página de una Quote tal como la imprime el libro: `29` en el cuerpo, `xiv` en las
+preliminares. Se guarda como se escribió; el orden sale de dos cosas derivadas de la
+etiqueta —si es preliminar y cuánto vale—, porque `xiv` no va entre la 13 y la 15 sino
+antes de la 1.
+_Avoid_: PageNumber (una preliminar no es un número), Folio; número de página
+
 **LentTo** · en la interfaz: «prestado a»:
 A quién salió el Book, en texto libre, con la fecha en que salió. No hay entidad de
 personas ni historial: cuando vuelve, se borra. No sale en el Showcase.
@@ -201,6 +208,18 @@ pantalla del back y queda guardado con cada Book que generó, para saber qué fa
 regenerar cuando se cambia. **Se llama `AiModel` y no `Model`**, porque en Laravel un
 Model es otra cosa y confundirlos no tiene arreglo después.
 _Avoid_: Model a secas, Engine, Llm; IA (es la categoría general, no cuál)
+
+**AiBadge** · en la interfaz: no se nombra:
+La marca que dice que una máquina escribió eso: hoy una Description generada,
+mañana una traducida (BIB-45) o unas Categories. Es un trazo con su texto al
+lado, y el texto es opcional — donde se repite basta el dibujo. Lo que nunca se
+omite es el significado: sin palabras a la vista, la etiqueta se sigue anunciando
+a un lector de pantalla. **Dice una sola cosa, que lo escribió una máquina**;
+para avisar otra cosa va otro elemento, porque una marca que carga con todos los
+avisos deja de significar alguno.
+_Avoid_: AiNote, GeneratedMark; no confundir con **GenerationMark**, que es otra
+cosa: aquél dice en qué va el Book con la IA —en la cola, falló— y vive en el
+back office; éste habla del resultado y lo lee quien visita
 
 **ImageRenderer** · en la interfaz: no se nombra:
 Lo que convierte la tarjeta de una Quote en una imagen para compartir. Hoy es un servicio
@@ -387,7 +406,24 @@ Las nueve primeras tienen ADR en `docs/adr/`, porque son las costosas de reverti
     etiqueta dice el estado completo —`Por leer`, `Leído`, `Leído, 2024`—, y ahí vive el
     año. En la retícula va el sello y nada más, así que ahí «leído en 2019» y «leído sin
     fecha» se ven igual: la retícula contesta si lo leí y la ficha contesta cuándo.
+25. **La página de una Quote es una etiqueta, y el orden se deriva de ella.** Se captura
+    `29` o `xiv` en un solo campo y se guarda como se escribió; al guardar se derivan dos
+    columnas —si es preliminar y cuánto vale— y de ésas sale el orden, nunca de la
+    etiqueta. Una preliminar va antes de la página 1, no entre la 13 y la 15.
 
 Cuando aparezca una decisión que no se pueda tomar sobre la marcha, se abre otra vez una
 sección de lo que sigue abierto al final de este archivo, y la tarea que dependa de ella
-se marca `ready-for-human` con la explicación en el comentario. Hoy no hay ninguna.
+se marca `ready-for-human` con la explicación en el comentario.
+
+## Lo que sigue abierto
+
+**Qué Fuente va primero en el TitleLookup** (BIB-44). La decisión 20 puso a Google Books
+primero apoyándose en que cada volumen trae editorial, año, ISBN y Cover en la misma
+respuesta. Al grabar las respuestas reales (BIB-24) se midió lo contrario: buscando «Pedro
+Paramo» de Rulfo, de sus 20 volúmenes sólo 4 traen editorial y sólo 4 traen Cover, mientras
+que Open Library trae editorial en sus 6 resultados y Cover en 4. Dieciséis de veinte
+Candidates llegan sin los dos datos con los que una persona elige una edición.
+
+El defecto de Open Library sigue siendo real —busca obras y de cada una entrega una sola
+edición, elegida por ella—, así que no es cambiar el orden y ya. Toca el ADR-002, que ya
+está tomado, y las dos grabaciones que sostienen la medición están en el repositorio.

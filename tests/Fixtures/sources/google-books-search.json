@@ -1,71 +1,1227 @@
 {
   "kind": "books#volumes",
-  "totalItems": 4,
+  "totalItems": 300,
   "items": [
     {
       "kind": "books#volume",
-      "id": "kPnKDwAAQBAJ",
+      "id": "HFAHswEACAAJ",
+      "etag": "ICSs8t+dLYw",
+      "selfLink": "https://www.googleapis.com/books/v1/volumes/HFAHswEACAAJ",
       "volumeInfo": {
-        "title": "Pedro Páramo",
-        "authors": ["Juan Rulfo"],
-        "publisher": "Editorial RM",
-        "publishedDate": "2005-11-01",
-        "description": "<p>Juan Preciado llega a Comala buscando a su padre.</p>",
-        "industryIdentifiers": [
-          { "type": "ISBN_13", "identifier": "9788437604176" },
-          { "type": "ISBN_10", "identifier": "8437604176" }
+        "title": "Pedro Paramo",
+        "authors": [
+          "Juán Rulfo"
         ],
-        "imageLinks": {
-          "smallThumbnail": "http://books.google.com/books/content?id=kPnKDwAAQBAJ&printsec=frontcover&img=1&zoom=5",
-          "thumbnail": "http://books.google.com/books/content?id=kPnKDwAAQBAJ&printsec=frontcover&img=1&zoom=1"
+        "publisher": "CreateSpace",
+        "publishedDate": "2015-08-09",
+        "description": "Pedro Páramo es el título de la primera novela del escritor mexicano Juan Rulfo, escrita, según el mismo Juan Rulfo, «en cinco meses.Se trata del segundo libro de Rulfo después de El llano en llamas, que fuera una recopilación de cuentos que aparecieron inicialmente insertos en diarios de México.Pedro Páramo ha tenido una gran influencia en el desarrollo del realismo mágico y está contada en una mezcla de primera y tercera persona.La novela de Rulfo ha sido considerada como una de las cumbres de la literatura en lengua castellana por Carlos Fuentes. Gabriel García Márquez dijo que ninguna lectura lo había hecho sentir de ese modo desde que leyó La metamorfosis de Franz Kafka. Jorge Luis Borges comentó que Pedro Páramo es una de las mejores novelas de la Literatura Universal.",
+        "industryIdentifiers": [
+          {
+            "type": "ISBN_10",
+            "identifier": "1514731460"
+          },
+          {
+            "type": "ISBN_13",
+            "identifier": "9781514731468"
+          }
+        ],
+        "readingModes": {
+          "text": false,
+          "image": false
         },
-        "language": "es"
-      }
-    },
-    {
-      "kind": "books#volume",
-      "id": "3sKZDwAAQBAJ",
-      "volumeInfo": {
-        "title": "Pedro Páramo",
-        "authors": ["Juan Rulfo"],
-        "publisher": "Cátedra",
-        "publishedDate": "1997",
-        "industryIdentifiers": [
-          { "type": "ISBN_13", "identifier": "9788437622170" },
-          { "type": "ISBN_10", "identifier": "8437622174" }
-        ],
+        "pageCount": 56,
+        "printType": "BOOK",
+        "averageRating": 3,
+        "ratingsCount": 1,
+        "maturityRating": "NOT_MATURE",
+        "allowAnonLogging": false,
+        "contentVersion": "preview-1.0.0",
         "imageLinks": {
-          "thumbnail": "http://books.google.com/books/content?id=3sKZDwAAQBAJ&printsec=frontcover&img=1&zoom=1"
+          "smallThumbnail": "http://books.google.com/books/content?id=HFAHswEACAAJ&printsec=frontcover&img=1&zoom=5&source=gbs_api",
+          "thumbnail": "http://books.google.com/books/content?id=HFAHswEACAAJ&printsec=frontcover&img=1&zoom=1&source=gbs_api"
         },
-        "language": "es"
+        "language": "es",
+        "previewLink": "http://books.google.com.mx/books?id=HFAHswEACAAJ&dq=intitle:%22Pedro+Paramo%22+inauthor:%22Rulfo%22&hl=&as_pt=BOOKS&cd=1&source=gbs_api",
+        "infoLink": "http://books.google.com.mx/books?id=HFAHswEACAAJ&dq=intitle:%22Pedro+Paramo%22+inauthor:%22Rulfo%22&hl=&as_pt=BOOKS&source=gbs_api",
+        "canonicalVolumeLink": "https://books.google.com/books/about/Pedro_Paramo.html?hl=&id=HFAHswEACAAJ"
+      },
+      "saleInfo": {
+        "country": "MX",
+        "saleability": "NOT_FOR_SALE",
+        "isEbook": false
+      },
+      "accessInfo": {
+        "country": "MX",
+        "viewability": "NO_PAGES",
+        "embeddable": false,
+        "publicDomain": false,
+        "textToSpeechPermission": "ALLOWED",
+        "epub": {
+          "isAvailable": false
+        },
+        "pdf": {
+          "isAvailable": false
+        },
+        "webReaderLink": "http://play.google.com/books/reader?id=HFAHswEACAAJ&hl=&as_pt=BOOKS&source=gbs_api",
+        "accessViewStatus": "NONE",
+        "quoteSharingAllowed": false
+      },
+      "searchInfo": {
+        "textSnippet": "Pedro Páramo es el título de la primera novela del escritor mexicano Juan Rulfo, escrita, según el mismo Juan Rulfo, «en cinco meses.Se trata del segundo libro de Rulfo después de El llano en llamas, que fuera una recopilación de ..."
       }
     },
     {
       "kind": "books#volume",
-      "id": "7HlLAAAAMAAJ",
+      "id": "ENFBjgEACAAJ",
+      "etag": "8SL7wFq0Ql4",
+      "selfLink": "https://www.googleapis.com/books/v1/volumes/ENFBjgEACAAJ",
       "volumeInfo": {
-        "title": "Pedro Páramo",
-        "authors": ["Juan Rulfo"],
-        "publisher": "Fondo de Cultura Económica",
-        "publishedDate": "1955",
-        "language": "es"
-      }
-    },
-    {
-      "kind": "books#volume",
-      "id": "QQQQDwAAQBAJ",
-      "volumeInfo": {
-        "title": "Pedro Páramo",
-        "subtitle": "edición conmemorativa",
-        "authors": ["Juan Rulfo", "Jorge Zepeda"],
-        "publisher": "Editorial Planeta Mexicana",
-        "publishedDate": "2010-03",
-        "industryIdentifiers": [
-          { "type": "OTHER", "identifier": "UOM:39015062823174" },
-          { "type": "ISBN_13", "identifier": "9788437604177" },
-          { "type": "ISBN_10", "identifier": "8437654327" }
+        "title": "Pedro Paramo",
+        "authors": [
+          "Juán Rulfo"
         ],
-        "language": "es"
+        "publishedDate": "2015-08-19",
+        "description": "Pedro Páramo es el título de la primera novela del escritor mexicano Juan Rulfo, originalmente publicada en 1955.Escrita, según el mismo Juan Rulfo, «en cinco meses, de abril a septiembre de 1955».1 En apenas 23 ediciones y reimpresiones, la novela había vendido 1.143.000 reproducciones en Estados Unidos hasta noviembre de 1997, mientras otras ediciones en su tierra natal, México, así como de otros países de habla hispana, han vendido incontables reproducciones adicionales.Se trata del segundo libro de Rulfo después de El llano en llamas, que fuera una recopilación de cuentos que aparecieron inicialmente insertos en diarios de México.Pedro Páramo ha tenido una gran influencia en el desarrollo del realismo mágico y está contada en una mezcla de primera y tercera persona.La novela de Rulfo ha sido considerada como una de las cumbres de la literatura en lengua castellana por Carlos Fuentes. Gabriel García Márquez dijo que ninguna lectura lo había hecho sentir de ese modo desde que leyó La metamorfosis de Franz Kafka. Jorge Luis Borges comentó que Pedro Páramo es una de las mejores novelas de la Literatura Universal.",
+        "industryIdentifiers": [
+          {
+            "type": "ISBN_10",
+            "identifier": "1516961609"
+          },
+          {
+            "type": "ISBN_13",
+            "identifier": "9781516961603"
+          }
+        ],
+        "readingModes": {
+          "text": false,
+          "image": false
+        },
+        "pageCount": 68,
+        "printType": "BOOK",
+        "maturityRating": "NOT_MATURE",
+        "allowAnonLogging": false,
+        "contentVersion": "preview-1.0.0",
+        "language": "es",
+        "previewLink": "http://books.google.com.mx/books?id=ENFBjgEACAAJ&dq=intitle:%22Pedro+Paramo%22+inauthor:%22Rulfo%22&hl=&as_pt=BOOKS&cd=2&source=gbs_api",
+        "infoLink": "http://books.google.com.mx/books?id=ENFBjgEACAAJ&dq=intitle:%22Pedro+Paramo%22+inauthor:%22Rulfo%22&hl=&as_pt=BOOKS&source=gbs_api",
+        "canonicalVolumeLink": "https://books.google.com/books/about/Pedro_Paramo.html?hl=&id=ENFBjgEACAAJ"
+      },
+      "saleInfo": {
+        "country": "MX",
+        "saleability": "NOT_FOR_SALE",
+        "isEbook": false
+      },
+      "accessInfo": {
+        "country": "MX",
+        "viewability": "NO_PAGES",
+        "embeddable": false,
+        "publicDomain": false,
+        "textToSpeechPermission": "ALLOWED",
+        "epub": {
+          "isAvailable": false
+        },
+        "pdf": {
+          "isAvailable": false
+        },
+        "webReaderLink": "http://play.google.com/books/reader?id=ENFBjgEACAAJ&hl=&as_pt=BOOKS&source=gbs_api",
+        "accessViewStatus": "NONE",
+        "quoteSharingAllowed": false
+      },
+      "searchInfo": {
+        "textSnippet": "Pedro Páramo es el título de la primera novela del escritor mexicano Juan Rulfo, originalmente publicada en 1955.Escrita, según el mismo Juan Rulfo, «en cinco meses, de abril a septiembre de 1955».1 En apenas 23 ediciones y ..."
+      }
+    },
+    {
+      "kind": "books#volume",
+      "id": "P3FDPgAACAAJ",
+      "etag": "gBGqmEDt7Ig",
+      "selfLink": "https://www.googleapis.com/books/v1/volumes/P3FDPgAACAAJ",
+      "volumeInfo": {
+        "title": "Pedro Páramo y El Llano en llamas",
+        "authors": [
+          "Juan Rulfo"
+        ],
+        "publishedDate": "1986-12-01",
+        "industryIdentifiers": [
+          {
+            "type": "ISBN_10",
+            "identifier": "8432088080"
+          },
+          {
+            "type": "ISBN_13",
+            "identifier": "9788432088087"
+          }
+        ],
+        "readingModes": {
+          "text": false,
+          "image": false
+        },
+        "pageCount": 222,
+        "printType": "BOOK",
+        "maturityRating": "NOT_MATURE",
+        "allowAnonLogging": false,
+        "contentVersion": "preview-1.0.0",
+        "language": "es",
+        "previewLink": "http://books.google.com.mx/books?id=P3FDPgAACAAJ&dq=intitle:%22Pedro+Paramo%22+inauthor:%22Rulfo%22&hl=&as_pt=BOOKS&cd=3&source=gbs_api",
+        "infoLink": "http://books.google.com.mx/books?id=P3FDPgAACAAJ&dq=intitle:%22Pedro+Paramo%22+inauthor:%22Rulfo%22&hl=&as_pt=BOOKS&source=gbs_api",
+        "canonicalVolumeLink": "https://books.google.com/books/about/Pedro_P%C3%A1ramo_y_El_Llano_en_llamas.html?hl=&id=P3FDPgAACAAJ"
+      },
+      "saleInfo": {
+        "country": "MX",
+        "saleability": "NOT_FOR_SALE",
+        "isEbook": false
+      },
+      "accessInfo": {
+        "country": "MX",
+        "viewability": "NO_PAGES",
+        "embeddable": false,
+        "publicDomain": false,
+        "textToSpeechPermission": "ALLOWED",
+        "epub": {
+          "isAvailable": false
+        },
+        "pdf": {
+          "isAvailable": false
+        },
+        "webReaderLink": "http://play.google.com/books/reader?id=P3FDPgAACAAJ&hl=&as_pt=BOOKS&source=gbs_api",
+        "accessViewStatus": "NONE",
+        "quoteSharingAllowed": false
+      }
+    },
+    {
+      "kind": "books#volume",
+      "id": "92HRNAEACAAJ",
+      "etag": "hGSN9PUYKEo",
+      "selfLink": "https://www.googleapis.com/books/v1/volumes/92HRNAEACAAJ",
+      "volumeInfo": {
+        "title": "Pedro Paramo (Spanish Edition)",
+        "authors": [
+          "Juan Rulfo",
+          "José Carlos González Boixo"
+        ],
+        "publishedDate": "2012-11-05",
+        "description": "Pedro Páramo es el título de la primera novela del escritor mexicano Juan Rulfo, originalmente publicada en 1955. Escrita según el mismo Juan Rulfo, \"en cinco meses, de abril a septiembre de 1955\". En apenas 23 ediciones y reimpresiones, la novela había vendido 1.143.000 reproducciones en Estados Unidos hasta noviembre de 1997, mientras otras ediciones en su tierra natal, México, así como de otros países de habla hispana, han vendido incontables reproducciones adicionales. Es el segundo libro de Rulfo después de El llano en llamas, que fuera una recopilación de cuentos que aparecieron inicialmente insertos en diarios de México. Pedro Páramo ha tenido una gran influencia en el desarrollo del realismo mágico y está contada en una mezcla de primera y tercera persona. La novela de Rulfo ha sido considerada como una de las cumbres de la literatura en lengua castellana por Carlos Fuentes. Gabriel García Márquez dijo que ninguna lectura lo había hecho sentir de ese modo desde que leyó La metamorfosis de Franz Kafka. Jorge Luis Borges comentó que Pedro Páramo es una de las mejores novelas de la Literatura Universal.",
+        "industryIdentifiers": [
+          {
+            "type": "ISBN_10",
+            "identifier": "1480256501"
+          },
+          {
+            "type": "ISBN_13",
+            "identifier": "9781480256507"
+          }
+        ],
+        "readingModes": {
+          "text": false,
+          "image": false
+        },
+        "pageCount": 90,
+        "printType": "BOOK",
+        "maturityRating": "NOT_MATURE",
+        "allowAnonLogging": false,
+        "contentVersion": "preview-1.0.0",
+        "language": "es",
+        "previewLink": "http://books.google.com.mx/books?id=92HRNAEACAAJ&dq=intitle:%22Pedro+Paramo%22+inauthor:%22Rulfo%22&hl=&as_pt=BOOKS&cd=4&source=gbs_api",
+        "infoLink": "http://books.google.com.mx/books?id=92HRNAEACAAJ&dq=intitle:%22Pedro+Paramo%22+inauthor:%22Rulfo%22&hl=&as_pt=BOOKS&source=gbs_api",
+        "canonicalVolumeLink": "https://books.google.com/books/about/Pedro_Paramo_Spanish_Edition.html?hl=&id=92HRNAEACAAJ"
+      },
+      "saleInfo": {
+        "country": "MX",
+        "saleability": "NOT_FOR_SALE",
+        "isEbook": false
+      },
+      "accessInfo": {
+        "country": "MX",
+        "viewability": "NO_PAGES",
+        "embeddable": false,
+        "publicDomain": false,
+        "textToSpeechPermission": "ALLOWED",
+        "epub": {
+          "isAvailable": false
+        },
+        "pdf": {
+          "isAvailable": false
+        },
+        "webReaderLink": "http://play.google.com/books/reader?id=92HRNAEACAAJ&hl=&as_pt=BOOKS&source=gbs_api",
+        "accessViewStatus": "NONE",
+        "quoteSharingAllowed": false
+      },
+      "searchInfo": {
+        "textSnippet": "Pedro Páramo es el título de la primera novela del escritor mexicano Juan Rulfo, originalmente publicada en 1955. Escrita según el mismo Juan Rulfo, &quot;en cinco meses, de abril a septiembre de 1955&quot;."
+      }
+    },
+    {
+      "kind": "books#volume",
+      "id": "OVdNMQAACAAJ",
+      "etag": "a+2ccgIhiSo",
+      "selfLink": "https://www.googleapis.com/books/v1/volumes/OVdNMQAACAAJ",
+      "volumeInfo": {
+        "title": "Pedro Paramo (Spanish Edition)",
+        "authors": [
+          "Juan Rulfo"
+        ],
+        "publisher": "Createspace Independent Publishing Platform",
+        "publishedDate": "2017-01-13",
+        "description": "Pedro Páramo es una de las obras maestras de la literatura hispanoamericana. La novela cuenta cómo el protagonista, Juan Preciado, va en busca de su padre, Pedro Páramo, hasta el pueblo mexicano de Comala, un lugar vacio, misterioso, sin vida. Allí, el joven descubrirá que toda la gente del pueblo se llama Páramo, que muchos de ellos son sus propios hermanos, y que Pedro Páramo está muerto. Estamos, pues, ante una novela misteriosa y fantástica cuya atmósfera envuelve al lector y los transporta a un territorio mágico de sorprendentes ramificaciones.",
+        "industryIdentifiers": [
+          {
+            "type": "ISBN_10",
+            "identifier": "1542513936"
+          },
+          {
+            "type": "ISBN_13",
+            "identifier": "9781542513937"
+          }
+        ],
+        "readingModes": {
+          "text": false,
+          "image": false
+        },
+        "pageCount": 0,
+        "printType": "BOOK",
+        "categories": [
+          "Jalisco (Mexico)"
+        ],
+        "maturityRating": "NOT_MATURE",
+        "allowAnonLogging": false,
+        "contentVersion": "preview-1.0.0",
+        "panelizationSummary": {
+          "containsEpubBubbles": false,
+          "containsImageBubbles": false
+        },
+        "imageLinks": {
+          "smallThumbnail": "http://books.google.com/books/content?id=OVdNMQAACAAJ&printsec=frontcover&img=1&zoom=5&source=gbs_api",
+          "thumbnail": "http://books.google.com/books/content?id=OVdNMQAACAAJ&printsec=frontcover&img=1&zoom=1&source=gbs_api"
+        },
+        "language": "es",
+        "previewLink": "http://books.google.com.mx/books?id=OVdNMQAACAAJ&dq=intitle:%22Pedro+Paramo%22+inauthor:%22Rulfo%22&hl=&as_pt=BOOKS&cd=5&source=gbs_api",
+        "infoLink": "http://books.google.com.mx/books?id=OVdNMQAACAAJ&dq=intitle:%22Pedro+Paramo%22+inauthor:%22Rulfo%22&hl=&as_pt=BOOKS&source=gbs_api",
+        "canonicalVolumeLink": "https://books.google.com/books/about/Pedro_Paramo_Spanish_Edition.html?hl=&id=OVdNMQAACAAJ"
+      },
+      "saleInfo": {
+        "country": "MX",
+        "saleability": "NOT_FOR_SALE",
+        "isEbook": false
+      },
+      "accessInfo": {
+        "country": "MX",
+        "viewability": "NO_PAGES",
+        "embeddable": false,
+        "publicDomain": false,
+        "textToSpeechPermission": "ALLOWED",
+        "epub": {
+          "isAvailable": false
+        },
+        "pdf": {
+          "isAvailable": false
+        },
+        "webReaderLink": "http://play.google.com/books/reader?id=OVdNMQAACAAJ&hl=&as_pt=BOOKS&source=gbs_api",
+        "accessViewStatus": "NONE",
+        "quoteSharingAllowed": false
+      },
+      "searchInfo": {
+        "textSnippet": "La novela cuenta cómo el protagonista, Juan Preciado, va en busca de su padre, Pedro Páramo, hasta el pueblo mexicano de Comala, un lugar vacio, misterioso, sin vida."
+      }
+    },
+    {
+      "kind": "books#volume",
+      "id": "gKw7tAEACAAJ",
+      "etag": "fwdHam/BAII",
+      "selfLink": "https://www.googleapis.com/books/v1/volumes/gKw7tAEACAAJ",
+      "volumeInfo": {
+        "title": "Pedro Paramo (Spanish Edition)",
+        "authors": [
+          "Juán Rulfo"
+        ],
+        "publisher": "Createspace Independent Publishing Platform",
+        "publishedDate": "2018-02-03",
+        "description": "En el arranque de la novela, Juan Preciado promete a su madre en el lecho de muerte ir en busca de su padre, Pedro P�ramo, un peque�o cacique pueblerino a quien no conoce. �El olvido en que nos tuvo c�braselo caro� le dice ella, y Juan parte hacia Comala, un pueblo m�tico que es el verdadero protagonista de estas p�ginas. All�, envuelto en una tierra vieja que est� sobre las brasas de la tierra, �en la mera boca del infierno�, se encontrar� con las voces de la memoria de personajes de ensue�o, que ir�n tejiendo una historia de deseos y pasado, de muertos y visiones irreales, que abarca desde mediados del XIX a las revueltas cristeras de comienzos del XX. Anclada en terreno firme, la novela se dispara en m�ltiples direcciones rompiendo el tiempo, confundiendo realidad y alucinaci�n, fundiendo violencia y lirismo con sus conversaciones entrecortadas. Entre espectros, la desolaci�n de Comala hace realidad ese �valle de l�grimas� que compone la geograf�a universal del dolor, llena de ecos, violencia y aire envenenado.",
+        "industryIdentifiers": [
+          {
+            "type": "ISBN_10",
+            "identifier": "1985003902"
+          },
+          {
+            "type": "ISBN_13",
+            "identifier": "9781985003903"
+          }
+        ],
+        "readingModes": {
+          "text": false,
+          "image": false
+        },
+        "pageCount": 122,
+        "printType": "BOOK",
+        "maturityRating": "NOT_MATURE",
+        "allowAnonLogging": false,
+        "contentVersion": "preview-1.0.0",
+        "panelizationSummary": {
+          "containsEpubBubbles": false,
+          "containsImageBubbles": false
+        },
+        "imageLinks": {
+          "smallThumbnail": "http://books.google.com/books/content?id=gKw7tAEACAAJ&printsec=frontcover&img=1&zoom=5&source=gbs_api",
+          "thumbnail": "http://books.google.com/books/content?id=gKw7tAEACAAJ&printsec=frontcover&img=1&zoom=1&source=gbs_api"
+        },
+        "language": "es",
+        "previewLink": "http://books.google.com.mx/books?id=gKw7tAEACAAJ&dq=intitle:%22Pedro+Paramo%22+inauthor:%22Rulfo%22&hl=&as_pt=BOOKS&cd=6&source=gbs_api",
+        "infoLink": "http://books.google.com.mx/books?id=gKw7tAEACAAJ&dq=intitle:%22Pedro+Paramo%22+inauthor:%22Rulfo%22&hl=&as_pt=BOOKS&source=gbs_api",
+        "canonicalVolumeLink": "https://books.google.com/books/about/Pedro_Paramo_Spanish_Edition.html?hl=&id=gKw7tAEACAAJ"
+      },
+      "saleInfo": {
+        "country": "MX",
+        "saleability": "NOT_FOR_SALE",
+        "isEbook": false
+      },
+      "accessInfo": {
+        "country": "MX",
+        "viewability": "NO_PAGES",
+        "embeddable": false,
+        "publicDomain": false,
+        "textToSpeechPermission": "ALLOWED",
+        "epub": {
+          "isAvailable": false
+        },
+        "pdf": {
+          "isAvailable": false
+        },
+        "webReaderLink": "http://play.google.com/books/reader?id=gKw7tAEACAAJ&hl=&as_pt=BOOKS&source=gbs_api",
+        "accessViewStatus": "NONE",
+        "quoteSharingAllowed": false
+      },
+      "searchInfo": {
+        "textSnippet": "En el arranque de la novela, Juan Preciado promete a su madre en el lecho de muerte ir en busca de su padre, Pedro Páramo, un pequeño cacique pueblerino a quien no conoce. «El olvido en que nos tuvo cóbraselo caro» le dice ella, y Juan ..."
+      }
+    },
+    {
+      "kind": "books#volume",
+      "id": "_2_jzwEACAAJ",
+      "etag": "BiPu7ITzPrc",
+      "selfLink": "https://www.googleapis.com/books/v1/volumes/_2_jzwEACAAJ",
+      "volumeInfo": {
+        "title": "Pedro paramo y el llano en llamas",
+        "authors": [
+          "Juan Rulfo"
+        ],
+        "publishedDate": "1953",
+        "industryIdentifiers": [
+          {
+            "type": "OTHER",
+            "identifier": "OCLC:1374823373"
+          }
+        ],
+        "readingModes": {
+          "text": false,
+          "image": false
+        },
+        "pageCount": 0,
+        "printType": "BOOK",
+        "maturityRating": "NOT_MATURE",
+        "allowAnonLogging": false,
+        "contentVersion": "preview-1.0.0",
+        "panelizationSummary": {
+          "containsEpubBubbles": false,
+          "containsImageBubbles": false
+        },
+        "language": "es",
+        "previewLink": "http://books.google.com.mx/books?id=_2_jzwEACAAJ&dq=intitle:%22Pedro+Paramo%22+inauthor:%22Rulfo%22&hl=&as_pt=BOOKS&cd=7&source=gbs_api",
+        "infoLink": "http://books.google.com.mx/books?id=_2_jzwEACAAJ&dq=intitle:%22Pedro+Paramo%22+inauthor:%22Rulfo%22&hl=&as_pt=BOOKS&source=gbs_api",
+        "canonicalVolumeLink": "https://books.google.com/books/about/Pedro_paramo_y_el_llano_en_llamas.html?hl=&id=_2_jzwEACAAJ"
+      },
+      "saleInfo": {
+        "country": "MX",
+        "saleability": "NOT_FOR_SALE",
+        "isEbook": false
+      },
+      "accessInfo": {
+        "country": "MX",
+        "viewability": "NO_PAGES",
+        "embeddable": false,
+        "publicDomain": false,
+        "textToSpeechPermission": "ALLOWED",
+        "epub": {
+          "isAvailable": false
+        },
+        "pdf": {
+          "isAvailable": false
+        },
+        "webReaderLink": "http://play.google.com/books/reader?id=_2_jzwEACAAJ&hl=&as_pt=BOOKS&source=gbs_api",
+        "accessViewStatus": "NONE",
+        "quoteSharingAllowed": false
+      }
+    },
+    {
+      "kind": "books#volume",
+      "id": "ZiPHzQEACAAJ",
+      "etag": "yaJmwaXe+rM",
+      "selfLink": "https://www.googleapis.com/books/v1/volumes/ZiPHzQEACAAJ",
+      "volumeInfo": {
+        "title": "Pedro Paramo",
+        "subtitle": "Dolina u plamenu",
+        "authors": [
+          "Juan Rulfo"
+        ],
+        "publishedDate": "2017",
+        "industryIdentifiers": [
+          {
+            "type": "ISBN_10",
+            "identifier": "8664571570"
+          },
+          {
+            "type": "ISBN_13",
+            "identifier": "9788664571579"
+          }
+        ],
+        "readingModes": {
+          "text": false,
+          "image": false
+        },
+        "pageCount": 309,
+        "printType": "BOOK",
+        "maturityRating": "NOT_MATURE",
+        "allowAnonLogging": false,
+        "contentVersion": "preview-1.0.0",
+        "panelizationSummary": {
+          "containsEpubBubbles": false,
+          "containsImageBubbles": false
+        },
+        "language": "en",
+        "previewLink": "http://books.google.com.mx/books?id=ZiPHzQEACAAJ&dq=intitle:%22Pedro+Paramo%22+inauthor:%22Rulfo%22&hl=&as_pt=BOOKS&cd=8&source=gbs_api",
+        "infoLink": "http://books.google.com.mx/books?id=ZiPHzQEACAAJ&dq=intitle:%22Pedro+Paramo%22+inauthor:%22Rulfo%22&hl=&as_pt=BOOKS&source=gbs_api",
+        "canonicalVolumeLink": "https://books.google.com/books/about/Pedro_Paramo.html?hl=&id=ZiPHzQEACAAJ"
+      },
+      "saleInfo": {
+        "country": "MX",
+        "saleability": "NOT_FOR_SALE",
+        "isEbook": false
+      },
+      "accessInfo": {
+        "country": "MX",
+        "viewability": "NO_PAGES",
+        "embeddable": false,
+        "publicDomain": false,
+        "textToSpeechPermission": "ALLOWED",
+        "epub": {
+          "isAvailable": false
+        },
+        "pdf": {
+          "isAvailable": false
+        },
+        "webReaderLink": "http://play.google.com/books/reader?id=ZiPHzQEACAAJ&hl=&as_pt=BOOKS&source=gbs_api",
+        "accessViewStatus": "NONE",
+        "quoteSharingAllowed": false
+      }
+    },
+    {
+      "kind": "books#volume",
+      "id": "yts6AAAAIAAJ",
+      "etag": "K+UXku6T8ZM",
+      "selfLink": "https://www.googleapis.com/books/v1/volumes/yts6AAAAIAAJ",
+      "volumeInfo": {
+        "title": "Pedro Paramo",
+        "subtitle": "A Novel of Mexico",
+        "authors": [
+          "Juan Rulfo"
+        ],
+        "publisher": "New York : Grove Press",
+        "publishedDate": "1959",
+        "description": "Deserted villages of rural Mexico, where images and memories of the past linger like unquiet ghosts, haunted the imaginations of the author. In one such village of the mind, Comala, he set his classic novel Pedro Paramo, a dream-like tale that intertwines a man's quest to find his lost father and reclaim his patrimony with the father's obsessive love for a woman who will not be possessed, Susana San Juan.",
+        "industryIdentifiers": [
+          {
+            "type": "OTHER",
+            "identifier": "STANFORD:36105002483746"
+          }
+        ],
+        "readingModes": {
+          "text": false,
+          "image": false
+        },
+        "pageCount": 140,
+        "printType": "BOOK",
+        "categories": [
+          "Domestic fiction"
+        ],
+        "maturityRating": "NOT_MATURE",
+        "allowAnonLogging": false,
+        "contentVersion": "0.5.1.0.preview.0",
+        "panelizationSummary": {
+          "containsEpubBubbles": false,
+          "containsImageBubbles": false
+        },
+        "imageLinks": {
+          "smallThumbnail": "http://books.google.com/books/content?id=yts6AAAAIAAJ&printsec=frontcover&img=1&zoom=5&source=gbs_api",
+          "thumbnail": "http://books.google.com/books/content?id=yts6AAAAIAAJ&printsec=frontcover&img=1&zoom=1&source=gbs_api"
+        },
+        "language": "en",
+        "previewLink": "http://books.google.com.mx/books?id=yts6AAAAIAAJ&dq=intitle:%22Pedro+Paramo%22+inauthor:%22Rulfo%22&hl=&as_pt=BOOKS&cd=9&source=gbs_api",
+        "infoLink": "http://books.google.com.mx/books?id=yts6AAAAIAAJ&dq=intitle:%22Pedro+Paramo%22+inauthor:%22Rulfo%22&hl=&as_pt=BOOKS&source=gbs_api",
+        "canonicalVolumeLink": "https://books.google.com/books/about/Pedro_Paramo.html?hl=&id=yts6AAAAIAAJ"
+      },
+      "saleInfo": {
+        "country": "MX",
+        "saleability": "NOT_FOR_SALE",
+        "isEbook": false
+      },
+      "accessInfo": {
+        "country": "MX",
+        "viewability": "NO_PAGES",
+        "embeddable": false,
+        "publicDomain": false,
+        "textToSpeechPermission": "ALLOWED",
+        "epub": {
+          "isAvailable": false
+        },
+        "pdf": {
+          "isAvailable": false
+        },
+        "webReaderLink": "http://play.google.com/books/reader?id=yts6AAAAIAAJ&hl=&as_pt=BOOKS&source=gbs_api",
+        "accessViewStatus": "NONE",
+        "quoteSharingAllowed": false
+      },
+      "searchInfo": {
+        "textSnippet": "In one such village of the mind, Comala, he set his classic novel Pedro Paramo, a dream-like tale that intertwines a man&#39;s quest to find his lost father and reclaim his patrimony with the father&#39;s obsessive love for a woman who will not be ..."
+      }
+    },
+    {
+      "kind": "books#volume",
+      "id": "Lao50AEACAAJ",
+      "etag": "qbCCAtidwpw",
+      "selfLink": "https://www.googleapis.com/books/v1/volumes/Lao50AEACAAJ",
+      "volumeInfo": {
+        "title": "PEDRO PARAMO",
+        "subtitle": "EL LLANO, EN LLAMAS.",
+        "authors": [
+          "Juan Rulfo"
+        ],
+        "publishedDate": "1980",
+        "description": "Poetische beschrijvingen van het Mexicaanse landschap en van een gemeenschap waarin de cacique, de \"klassiekepotentaat\" in Zuid-Amerika, met zijn ongebreidelde heerszucht het middelpunt vormt.",
+        "industryIdentifiers": [
+          {
+            "type": "ISBN_10",
+            "identifier": "8432064211"
+          },
+          {
+            "type": "ISBN_13",
+            "identifier": "9788432064210"
+          }
+        ],
+        "readingModes": {
+          "text": false,
+          "image": false
+        },
+        "pageCount": 0,
+        "printType": "BOOK",
+        "categories": [
+          "Mexican fiction"
+        ],
+        "maturityRating": "NOT_MATURE",
+        "allowAnonLogging": false,
+        "contentVersion": "preview-1.0.0",
+        "panelizationSummary": {
+          "containsEpubBubbles": false,
+          "containsImageBubbles": false
+        },
+        "language": "es",
+        "previewLink": "http://books.google.com.mx/books?id=Lao50AEACAAJ&dq=intitle:%22Pedro+Paramo%22+inauthor:%22Rulfo%22&hl=&as_pt=BOOKS&cd=10&source=gbs_api",
+        "infoLink": "http://books.google.com.mx/books?id=Lao50AEACAAJ&dq=intitle:%22Pedro+Paramo%22+inauthor:%22Rulfo%22&hl=&as_pt=BOOKS&source=gbs_api",
+        "canonicalVolumeLink": "https://books.google.com/books/about/PEDRO_PARAMO.html?hl=&id=Lao50AEACAAJ"
+      },
+      "saleInfo": {
+        "country": "MX",
+        "saleability": "NOT_FOR_SALE",
+        "isEbook": false
+      },
+      "accessInfo": {
+        "country": "MX",
+        "viewability": "NO_PAGES",
+        "embeddable": false,
+        "publicDomain": false,
+        "textToSpeechPermission": "ALLOWED",
+        "epub": {
+          "isAvailable": false
+        },
+        "pdf": {
+          "isAvailable": false
+        },
+        "webReaderLink": "http://play.google.com/books/reader?id=Lao50AEACAAJ&hl=&as_pt=BOOKS&source=gbs_api",
+        "accessViewStatus": "NONE",
+        "quoteSharingAllowed": false
+      },
+      "searchInfo": {
+        "textSnippet": "Poetische beschrijvingen van het Mexicaanse landschap en van een gemeenschap waarin de cacique, de &quot;klassiekepotentaat&quot; in Zuid-Amerika, met zijn ongebreidelde heerszucht het middelpunt vormt."
+      }
+    },
+    {
+      "kind": "books#volume",
+      "id": "wVjTzQEACAAJ",
+      "etag": "oQM7d5HTGNs",
+      "selfLink": "https://www.googleapis.com/books/v1/volumes/wVjTzQEACAAJ",
+      "volumeInfo": {
+        "title": "Pedro Paramo",
+        "authors": [
+          "Juan Rulfo"
+        ],
+        "publishedDate": "2004",
+        "industryIdentifiers": [
+          {
+            "type": "ISBN_10",
+            "identifier": "8684989023"
+          },
+          {
+            "type": "ISBN_13",
+            "identifier": "9788684989026"
+          }
+        ],
+        "readingModes": {
+          "text": false,
+          "image": false
+        },
+        "pageCount": 143,
+        "printType": "BOOK",
+        "maturityRating": "NOT_MATURE",
+        "allowAnonLogging": false,
+        "contentVersion": "preview-1.0.0",
+        "panelizationSummary": {
+          "containsEpubBubbles": false,
+          "containsImageBubbles": false
+        },
+        "language": "en",
+        "previewLink": "http://books.google.com.mx/books?id=wVjTzQEACAAJ&dq=intitle:%22Pedro+Paramo%22+inauthor:%22Rulfo%22&hl=&as_pt=BOOKS&cd=11&source=gbs_api",
+        "infoLink": "http://books.google.com.mx/books?id=wVjTzQEACAAJ&dq=intitle:%22Pedro+Paramo%22+inauthor:%22Rulfo%22&hl=&as_pt=BOOKS&source=gbs_api",
+        "canonicalVolumeLink": "https://books.google.com/books/about/Pedro_Paramo.html?hl=&id=wVjTzQEACAAJ"
+      },
+      "saleInfo": {
+        "country": "MX",
+        "saleability": "NOT_FOR_SALE",
+        "isEbook": false
+      },
+      "accessInfo": {
+        "country": "MX",
+        "viewability": "NO_PAGES",
+        "embeddable": false,
+        "publicDomain": false,
+        "textToSpeechPermission": "ALLOWED",
+        "epub": {
+          "isAvailable": false
+        },
+        "pdf": {
+          "isAvailable": false
+        },
+        "webReaderLink": "http://play.google.com/books/reader?id=wVjTzQEACAAJ&hl=&as_pt=BOOKS&source=gbs_api",
+        "accessViewStatus": "NONE",
+        "quoteSharingAllowed": false
+      }
+    },
+    {
+      "kind": "books#volume",
+      "id": "_JgXlwEACAAJ",
+      "etag": "xNWivF/FcPY",
+      "selfLink": "https://www.googleapis.com/books/v1/volumes/_JgXlwEACAAJ",
+      "volumeInfo": {
+        "title": "Pedro Paramo",
+        "authors": [
+          "Juan Rulfo"
+        ],
+        "publishedDate": "1966",
+        "industryIdentifiers": [
+          {
+            "type": "OTHER",
+            "identifier": "OCLC:224260634"
+          }
+        ],
+        "readingModes": {
+          "text": false,
+          "image": false
+        },
+        "pageCount": 245,
+        "printType": "BOOK",
+        "maturityRating": "NOT_MATURE",
+        "allowAnonLogging": false,
+        "contentVersion": "preview-1.0.0",
+        "language": "en",
+        "previewLink": "http://books.google.com.mx/books?id=_JgXlwEACAAJ&dq=intitle:%22Pedro+Paramo%22+inauthor:%22Rulfo%22&hl=&as_pt=BOOKS&cd=12&source=gbs_api",
+        "infoLink": "http://books.google.com.mx/books?id=_JgXlwEACAAJ&dq=intitle:%22Pedro+Paramo%22+inauthor:%22Rulfo%22&hl=&as_pt=BOOKS&source=gbs_api",
+        "canonicalVolumeLink": "https://books.google.com/books/about/Pedro_Paramo.html?hl=&id=_JgXlwEACAAJ"
+      },
+      "saleInfo": {
+        "country": "MX",
+        "saleability": "NOT_FOR_SALE",
+        "isEbook": false
+      },
+      "accessInfo": {
+        "country": "MX",
+        "viewability": "NO_PAGES",
+        "embeddable": false,
+        "publicDomain": false,
+        "textToSpeechPermission": "ALLOWED",
+        "epub": {
+          "isAvailable": false
+        },
+        "pdf": {
+          "isAvailable": false
+        },
+        "webReaderLink": "http://play.google.com/books/reader?id=_JgXlwEACAAJ&hl=&as_pt=BOOKS&source=gbs_api",
+        "accessViewStatus": "NONE",
+        "quoteSharingAllowed": false
+      }
+    },
+    {
+      "kind": "books#volume",
+      "id": "ULP4AAAACAAJ",
+      "etag": "2FE4KvWH6PA",
+      "selfLink": "https://www.googleapis.com/books/v1/volumes/ULP4AAAACAAJ",
+      "volumeInfo": {
+        "title": "Pedro Paramo",
+        "subtitle": "Dolina u plamenu",
+        "authors": [
+          "Huan Rulfo",
+          "Radoje Tatić",
+          "Gordana Ćirjanić",
+          "Huan Oktavio Prens"
+        ],
+        "publishedDate": "2006",
+        "industryIdentifiers": [
+          {
+            "type": "ISBN_10",
+            "identifier": "8683507416"
+          },
+          {
+            "type": "ISBN_13",
+            "identifier": "9788683507412"
+          }
+        ],
+        "readingModes": {
+          "text": false,
+          "image": false
+        },
+        "printType": "BOOK",
+        "maturityRating": "NOT_MATURE",
+        "allowAnonLogging": false,
+        "contentVersion": "preview-1.0.0",
+        "language": "en",
+        "previewLink": "http://books.google.com.mx/books?id=ULP4AAAACAAJ&dq=intitle:%22Pedro+Paramo%22+inauthor:%22Rulfo%22&hl=&as_pt=BOOKS&cd=13&source=gbs_api",
+        "infoLink": "http://books.google.com.mx/books?id=ULP4AAAACAAJ&dq=intitle:%22Pedro+Paramo%22+inauthor:%22Rulfo%22&hl=&as_pt=BOOKS&source=gbs_api",
+        "canonicalVolumeLink": "https://books.google.com/books/about/Pedro_Paramo.html?hl=&id=ULP4AAAACAAJ"
+      },
+      "saleInfo": {
+        "country": "MX",
+        "saleability": "NOT_FOR_SALE",
+        "isEbook": false
+      },
+      "accessInfo": {
+        "country": "MX",
+        "viewability": "NO_PAGES",
+        "embeddable": false,
+        "publicDomain": false,
+        "textToSpeechPermission": "ALLOWED",
+        "epub": {
+          "isAvailable": false
+        },
+        "pdf": {
+          "isAvailable": false
+        },
+        "webReaderLink": "http://play.google.com/books/reader?id=ULP4AAAACAAJ&hl=&as_pt=BOOKS&source=gbs_api",
+        "accessViewStatus": "NONE",
+        "quoteSharingAllowed": false
+      }
+    },
+    {
+      "kind": "books#volume",
+      "id": "V9CkswEACAAJ",
+      "etag": "YMpFq5rAQDk",
+      "selfLink": "https://www.googleapis.com/books/v1/volumes/V9CkswEACAAJ",
+      "volumeInfo": {
+        "title": "Pedro Paramo",
+        "subtitle": "roman",
+        "authors": [
+          "Juan Rulfo"
+        ],
+        "publishedDate": "1976",
+        "industryIdentifiers": [
+          {
+            "type": "OTHER",
+            "identifier": "OCLC:317747001"
+          }
+        ],
+        "readingModes": {
+          "text": false,
+          "image": false
+        },
+        "pageCount": 164,
+        "printType": "BOOK",
+        "maturityRating": "NOT_MATURE",
+        "allowAnonLogging": false,
+        "contentVersion": "preview-1.0.0",
+        "panelizationSummary": {
+          "containsEpubBubbles": false,
+          "containsImageBubbles": false
+        },
+        "language": "bg",
+        "previewLink": "http://books.google.com.mx/books?id=V9CkswEACAAJ&dq=intitle:%22Pedro+Paramo%22+inauthor:%22Rulfo%22&hl=&as_pt=BOOKS&cd=14&source=gbs_api",
+        "infoLink": "http://books.google.com.mx/books?id=V9CkswEACAAJ&dq=intitle:%22Pedro+Paramo%22+inauthor:%22Rulfo%22&hl=&as_pt=BOOKS&source=gbs_api",
+        "canonicalVolumeLink": "https://books.google.com/books/about/Pedro_Paramo.html?hl=&id=V9CkswEACAAJ"
+      },
+      "saleInfo": {
+        "country": "MX",
+        "saleability": "NOT_FOR_SALE",
+        "isEbook": false
+      },
+      "accessInfo": {
+        "country": "MX",
+        "viewability": "NO_PAGES",
+        "embeddable": false,
+        "publicDomain": false,
+        "textToSpeechPermission": "ALLOWED",
+        "epub": {
+          "isAvailable": false
+        },
+        "pdf": {
+          "isAvailable": false
+        },
+        "webReaderLink": "http://play.google.com/books/reader?id=V9CkswEACAAJ&hl=&as_pt=BOOKS&source=gbs_api",
+        "accessViewStatus": "NONE",
+        "quoteSharingAllowed": false
+      }
+    },
+    {
+      "kind": "books#volume",
+      "id": "zGfNnQEACAAJ",
+      "etag": "u9ccEZmkjmo",
+      "selfLink": "https://www.googleapis.com/books/v1/volumes/zGfNnQEACAAJ",
+      "volumeInfo": {
+        "title": "Pedro Paramo",
+        "subtitle": "nouvela",
+        "authors": [
+          "Juan Rulfo"
+        ],
+        "publishedDate": "1996",
+        "industryIdentifiers": [
+          {
+            "type": "ISBN_10",
+            "identifier": "960360657X"
+          },
+          {
+            "type": "ISBN_13",
+            "identifier": "9789603606574"
+          }
+        ],
+        "readingModes": {
+          "text": false,
+          "image": false
+        },
+        "pageCount": 141,
+        "printType": "BOOK",
+        "categories": [
+          "Mexican literature"
+        ],
+        "maturityRating": "NOT_MATURE",
+        "allowAnonLogging": false,
+        "contentVersion": "preview-1.0.0",
+        "language": "el",
+        "previewLink": "http://books.google.com.mx/books?id=zGfNnQEACAAJ&dq=intitle:%22Pedro+Paramo%22+inauthor:%22Rulfo%22&hl=&as_pt=BOOKS&cd=15&source=gbs_api",
+        "infoLink": "http://books.google.com.mx/books?id=zGfNnQEACAAJ&dq=intitle:%22Pedro+Paramo%22+inauthor:%22Rulfo%22&hl=&as_pt=BOOKS&source=gbs_api",
+        "canonicalVolumeLink": "https://books.google.com/books/about/Pedro_Paramo.html?hl=&id=zGfNnQEACAAJ"
+      },
+      "saleInfo": {
+        "country": "MX",
+        "saleability": "NOT_FOR_SALE",
+        "isEbook": false
+      },
+      "accessInfo": {
+        "country": "MX",
+        "viewability": "NO_PAGES",
+        "embeddable": false,
+        "publicDomain": false,
+        "textToSpeechPermission": "ALLOWED",
+        "epub": {
+          "isAvailable": false
+        },
+        "pdf": {
+          "isAvailable": false
+        },
+        "webReaderLink": "http://play.google.com/books/reader?id=zGfNnQEACAAJ&hl=&as_pt=BOOKS&source=gbs_api",
+        "accessViewStatus": "NONE",
+        "quoteSharingAllowed": false
+      }
+    },
+    {
+      "kind": "books#volume",
+      "id": "POybwgEACAAJ",
+      "etag": "yfUHu8MZjMI",
+      "selfLink": "https://www.googleapis.com/books/v1/volumes/POybwgEACAAJ",
+      "volumeInfo": {
+        "title": "Pedro Paramo, Y El Llano en Llamas; Novelas",
+        "authors": [
+          "Juan Rulfo"
+        ],
+        "industryIdentifiers": [
+          {
+            "type": "OTHER",
+            "identifier": "OCLC:1086989434"
+          }
+        ],
+        "readingModes": {
+          "text": false,
+          "image": false
+        },
+        "pageCount": 292,
+        "printType": "BOOK",
+        "maturityRating": "NOT_MATURE",
+        "allowAnonLogging": false,
+        "contentVersion": "preview-1.0.0",
+        "panelizationSummary": {
+          "containsEpubBubbles": false,
+          "containsImageBubbles": false
+        },
+        "language": "en",
+        "previewLink": "http://books.google.com.mx/books?id=POybwgEACAAJ&dq=intitle:%22Pedro+Paramo%22+inauthor:%22Rulfo%22&hl=&as_pt=BOOKS&cd=16&source=gbs_api",
+        "infoLink": "http://books.google.com.mx/books?id=POybwgEACAAJ&dq=intitle:%22Pedro+Paramo%22+inauthor:%22Rulfo%22&hl=&as_pt=BOOKS&source=gbs_api",
+        "canonicalVolumeLink": "https://books.google.com/books/about/Pedro_Paramo_Y_El_Llano_en_Llamas_Novela.html?hl=&id=POybwgEACAAJ"
+      },
+      "saleInfo": {
+        "country": "MX",
+        "saleability": "NOT_FOR_SALE",
+        "isEbook": false
+      },
+      "accessInfo": {
+        "country": "MX",
+        "viewability": "NO_PAGES",
+        "embeddable": false,
+        "publicDomain": false,
+        "textToSpeechPermission": "ALLOWED",
+        "epub": {
+          "isAvailable": false
+        },
+        "pdf": {
+          "isAvailable": false
+        },
+        "webReaderLink": "http://play.google.com/books/reader?id=POybwgEACAAJ&hl=&as_pt=BOOKS&source=gbs_api",
+        "accessViewStatus": "NONE",
+        "quoteSharingAllowed": false
+      }
+    },
+    {
+      "kind": "books#volume",
+      "id": "HppS0AEACAAJ",
+      "etag": "+9vZQbje3Mg",
+      "selfLink": "https://www.googleapis.com/books/v1/volumes/HppS0AEACAAJ",
+      "volumeInfo": {
+        "title": "Pedro Paramo y El llana en llamas",
+        "subtitle": "novelas",
+        "authors": [
+          "Juan Rulfo"
+        ],
+        "publishedDate": "1972",
+        "industryIdentifiers": [
+          {
+            "type": "OTHER",
+            "identifier": "OCLC:1405563331"
+          }
+        ],
+        "readingModes": {
+          "text": false,
+          "image": false
+        },
+        "pageCount": 0,
+        "printType": "BOOK",
+        "maturityRating": "NOT_MATURE",
+        "allowAnonLogging": false,
+        "contentVersion": "preview-1.0.0",
+        "panelizationSummary": {
+          "containsEpubBubbles": false,
+          "containsImageBubbles": false
+        },
+        "language": "es",
+        "previewLink": "http://books.google.com.mx/books?id=HppS0AEACAAJ&dq=intitle:%22Pedro+Paramo%22+inauthor:%22Rulfo%22&hl=&as_pt=BOOKS&cd=17&source=gbs_api",
+        "infoLink": "http://books.google.com.mx/books?id=HppS0AEACAAJ&dq=intitle:%22Pedro+Paramo%22+inauthor:%22Rulfo%22&hl=&as_pt=BOOKS&source=gbs_api",
+        "canonicalVolumeLink": "https://books.google.com/books/about/Pedro_Paramo_y_El_llana_en_llamas.html?hl=&id=HppS0AEACAAJ"
+      },
+      "saleInfo": {
+        "country": "MX",
+        "saleability": "NOT_FOR_SALE",
+        "isEbook": false
+      },
+      "accessInfo": {
+        "country": "MX",
+        "viewability": "NO_PAGES",
+        "embeddable": false,
+        "publicDomain": false,
+        "textToSpeechPermission": "ALLOWED",
+        "epub": {
+          "isAvailable": false
+        },
+        "pdf": {
+          "isAvailable": false
+        },
+        "webReaderLink": "http://play.google.com/books/reader?id=HppS0AEACAAJ&hl=&as_pt=BOOKS&source=gbs_api",
+        "accessViewStatus": "NONE",
+        "quoteSharingAllowed": false
+      }
+    },
+    {
+      "kind": "books#volume",
+      "id": "TgGDNQAACAAJ",
+      "etag": "t3LqmNxuaD4",
+      "selfLink": "https://www.googleapis.com/books/v1/volumes/TgGDNQAACAAJ",
+      "volumeInfo": {
+        "title": "Pedro Paramo",
+        "subtitle": "mythistorēma",
+        "authors": [
+          "Juan Rulfo"
+        ],
+        "publishedDate": "1982",
+        "industryIdentifiers": [
+          {
+            "type": "OTHER",
+            "identifier": "OCLC:220813901"
+          }
+        ],
+        "readingModes": {
+          "text": false,
+          "image": false
+        },
+        "pageCount": 122,
+        "printType": "BOOK",
+        "maturityRating": "NOT_MATURE",
+        "allowAnonLogging": false,
+        "contentVersion": "preview-1.0.0",
+        "language": "el",
+        "previewLink": "http://books.google.com.mx/books?id=TgGDNQAACAAJ&dq=intitle:%22Pedro+Paramo%22+inauthor:%22Rulfo%22&hl=&as_pt=BOOKS&cd=18&source=gbs_api",
+        "infoLink": "http://books.google.com.mx/books?id=TgGDNQAACAAJ&dq=intitle:%22Pedro+Paramo%22+inauthor:%22Rulfo%22&hl=&as_pt=BOOKS&source=gbs_api",
+        "canonicalVolumeLink": "https://books.google.com/books/about/Pedro_Paramo.html?hl=&id=TgGDNQAACAAJ"
+      },
+      "saleInfo": {
+        "country": "MX",
+        "saleability": "NOT_FOR_SALE",
+        "isEbook": false
+      },
+      "accessInfo": {
+        "country": "MX",
+        "viewability": "NO_PAGES",
+        "embeddable": false,
+        "publicDomain": false,
+        "textToSpeechPermission": "ALLOWED",
+        "epub": {
+          "isAvailable": false
+        },
+        "pdf": {
+          "isAvailable": false
+        },
+        "webReaderLink": "http://play.google.com/books/reader?id=TgGDNQAACAAJ&hl=&as_pt=BOOKS&source=gbs_api",
+        "accessViewStatus": "NONE",
+        "quoteSharingAllowed": false
+      }
+    },
+    {
+      "kind": "books#volume",
+      "id": "8kJojwEACAAJ",
+      "etag": "dowwxMVAsbc",
+      "selfLink": "https://www.googleapis.com/books/v1/volumes/8kJojwEACAAJ",
+      "volumeInfo": {
+        "title": "Analisis literario: Pedro Paramo y el llano en llamas",
+        "publishedDate": "1999",
+        "industryIdentifiers": [
+          {
+            "type": "ISBN_10",
+            "identifier": "9589235581"
+          },
+          {
+            "type": "ISBN_13",
+            "identifier": "9789589235584"
+          }
+        ],
+        "readingModes": {
+          "text": false,
+          "image": false
+        },
+        "pageCount": 96,
+        "printType": "BOOK",
+        "maturityRating": "NOT_MATURE",
+        "allowAnonLogging": false,
+        "contentVersion": "preview-1.0.0",
+        "language": "es",
+        "previewLink": "http://books.google.com.mx/books?id=8kJojwEACAAJ&dq=intitle:%22Pedro+Paramo%22+inauthor:%22Rulfo%22&hl=&as_pt=BOOKS&cd=19&source=gbs_api",
+        "infoLink": "http://books.google.com.mx/books?id=8kJojwEACAAJ&dq=intitle:%22Pedro+Paramo%22+inauthor:%22Rulfo%22&hl=&as_pt=BOOKS&source=gbs_api",
+        "canonicalVolumeLink": "https://books.google.com/books/about/Analisis_literario_Pedro_Paramo_y_el_lla.html?hl=&id=8kJojwEACAAJ"
+      },
+      "saleInfo": {
+        "country": "MX",
+        "saleability": "NOT_FOR_SALE",
+        "isEbook": false
+      },
+      "accessInfo": {
+        "country": "MX",
+        "viewability": "NO_PAGES",
+        "embeddable": false,
+        "publicDomain": false,
+        "textToSpeechPermission": "ALLOWED",
+        "epub": {
+          "isAvailable": false
+        },
+        "pdf": {
+          "isAvailable": false
+        },
+        "webReaderLink": "http://play.google.com/books/reader?id=8kJojwEACAAJ&hl=&as_pt=BOOKS&source=gbs_api",
+        "accessViewStatus": "NONE",
+        "quoteSharingAllowed": false
+      }
+    },
+    {
+      "kind": "books#volume",
+      "id": "GOHjzwEACAAJ",
+      "etag": "ydQ9uxed27o",
+      "selfLink": "https://www.googleapis.com/books/v1/volumes/GOHjzwEACAAJ",
+      "volumeInfo": {
+        "title": "Pedro Paramo",
+        "subtitle": "El Llano en Llamas. Un Pedazo D E Noch",
+        "authors": [
+          "Juan Rulfo"
+        ],
+        "publishedDate": "1972",
+        "industryIdentifiers": [
+          {
+            "type": "OTHER",
+            "identifier": "LCCN:59007435"
+          }
+        ],
+        "readingModes": {
+          "text": false,
+          "image": false
+        },
+        "pageCount": 0,
+        "printType": "BOOK",
+        "maturityRating": "NOT_MATURE",
+        "allowAnonLogging": false,
+        "contentVersion": "preview-1.0.0",
+        "panelizationSummary": {
+          "containsEpubBubbles": false,
+          "containsImageBubbles": false
+        },
+        "language": "en",
+        "previewLink": "http://books.google.com.mx/books?id=GOHjzwEACAAJ&dq=intitle:%22Pedro+Paramo%22+inauthor:%22Rulfo%22&hl=&as_pt=BOOKS&cd=20&source=gbs_api",
+        "infoLink": "http://books.google.com.mx/books?id=GOHjzwEACAAJ&dq=intitle:%22Pedro+Paramo%22+inauthor:%22Rulfo%22&hl=&as_pt=BOOKS&source=gbs_api",
+        "canonicalVolumeLink": "https://books.google.com/books/about/Pedro_Paramo.html?hl=&id=GOHjzwEACAAJ"
+      },
+      "saleInfo": {
+        "country": "MX",
+        "saleability": "NOT_FOR_SALE",
+        "isEbook": false
+      },
+      "accessInfo": {
+        "country": "MX",
+        "viewability": "NO_PAGES",
+        "embeddable": false,
+        "publicDomain": false,
+        "textToSpeechPermission": "ALLOWED",
+        "epub": {
+          "isAvailable": false
+        },
+        "pdf": {
+          "isAvailable": false
+        },
+        "webReaderLink": "http://play.google.com/books/reader?id=GOHjzwEACAAJ&hl=&as_pt=BOOKS&source=gbs_api",
+        "accessViewStatus": "NONE",
+        "quoteSharingAllowed": false
       }
     }
   ]
