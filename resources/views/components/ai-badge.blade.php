@@ -1,28 +1,36 @@
-@props(['label', 'showLabel' => true])
+@props(['label', 'text' => null, 'showLabel' => true])
 
 {{--
     Says that a machine wrote what is next to it (AiBadge).
 
-    The mark is the drawing; the words beside it are optional. Where the reader
-    may be meeting it for the first time it carries its label; where it repeats
-    —one per Category in a list— the drawing alone is enough, because by then
-    the context has explained it.
+    The mark is the drawing; the words beside it are optional and can be
+    shorter than the full story. Three ways to read it:
 
-    What never goes away is the meaning: without visible words the label is
-    still announced to a screen reader and shown on hover. A sparkle on its own
-    means nothing to somebody who has not been told what it means, and nothing
-    at all to somebody who cannot see it.
+    - `label` alone, visible: the words a reader meets for the first time,
+      spelled out — «Descripción generada por IA».
+    - `label` + `text`, visible: a short word stands in for the full one where
+      space is tight and the context already explains it — «IA» inline at the
+      end of a paragraph. `label` still carries the meaning, as the accessible
+      name of the whole mark; `text` is announced nowhere twice.
+    - `showLabel="false"`: the drawing alone, repeated — one per Category in a
+      list, where the context has already explained it once.
 
-    It says one thing: a machine wrote this. Anything else that needs announcing
-    is a different element — a mark that takes on every notice ends up meaning
-    none of them.
+    What never goes away is the meaning: without visible words, or with only
+    the short word, `label` is still announced to a screen reader and shown on
+    hover. A sparkle on its own means nothing to somebody who has not been
+    told what it means, and nothing at all to somebody who cannot see it.
+
+    It says one thing: a machine wrote this. Anything else that needs
+    announcing is a different element — a mark that takes on every notice
+    ends up meaning none of them.
 --}}
 <span
     {{ $attributes->class([
-        'inline-flex w-fit items-center gap-2 text-sm text-ink-muted',
-        'rounded-full border border-rule bg-divider/40 px-3 py-1.5' => $showLabel,
+        'inline-flex w-fit items-center gap-1.5 text-sm text-ink-muted',
+        'rounded-full border border-rule bg-divider/40 px-3 py-1.5' => $showLabel && $text === null,
     ]) }}
-    @unless ($showLabel) title="{{ $label }}" @endunless
+    @if ($text !== null) aria-label="{{ $label }}" @endif
+    @if (! $showLabel) title="{{ $label }}" @endif
 >
     {{-- A stroke, not an emoji: this direction does not use any. --}}
     <svg
@@ -39,7 +47,9 @@
         <path d="M13 1.5v2.4M14.2 2.7h-2.4" />
     </svg>
 
-    @if ($showLabel)
+    @if ($showLabel && $text !== null)
+        <span aria-hidden="true">{{ $text }}</span>
+    @elseif ($showLabel)
         {{ $label }}
     @else
         <span class="sr-only">{{ $label }}</span>

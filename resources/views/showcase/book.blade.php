@@ -70,14 +70,14 @@
 
         @if ($book->hasDescription())
             <section class="flex max-w-prose flex-col gap-4" data-test="description">
-                <p class="text-lg leading-relaxed whitespace-pre-line">{{ $book->description }}</p>
-
-                {{-- A generated summary can mix up two books of the same title
-                     or invent a plot, so whoever reads it is told that it is
-                     not the back cover (ADR-007). --}}
-                @if ($book->description_origin === Origin::Ai)
-                    <x-ai-badge label="Descripción generada por IA" data-test="description-by-ai" />
-                @endif
+                <p class="text-lg leading-relaxed whitespace-pre-line">{{ $book->description }}{{-- 
+                    --}}@if ($book->description_origin === Origin::Ai)
+                        {{-- Inline, al final del último renglón: un resumen generado
+                             puede confundir dos libros del mismo título o inventar una
+                             trama, y quien lo lee tiene que saber que no es la
+                             contraportada (ADR-007). --}}
+                        <x-ai-badge label="Descripción generada por IA" text="IA" data-test="description-by-ai" class="align-middle" />
+                    @endif</p>
             </section>
         @endif
 
@@ -114,7 +114,11 @@
 
                 <div class="flex flex-col gap-10">
                     @foreach ($book->quotes as $quote)
-                        <x-quote-card :quote="$quote" :standalone="false" />
+                        {{-- La página de la Quote existe (BIB-31) y hasta hoy nada
+                             llevaba a ella: la tarjeta se dibujaba sin puerta. --}}
+                        <a href="{{ route('showcase.quote', $quote) }}" class="group">
+                            <x-quote-card :quote="$quote" :standalone="false" />
+                        </a>
                     @endforeach
                 </div>
             </section>
