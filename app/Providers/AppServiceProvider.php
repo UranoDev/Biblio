@@ -2,12 +2,14 @@
 
 namespace App\Providers;
 
+use App\Ai\LocalServer;
 use App\Covers\CoverStore;
 use App\Jobs\ProposeForBook;
 use App\Sources\GoogleBooks;
 use App\Sources\OpenLibrary;
 use App\Sources\Source;
 use App\Sources\SourceResolver;
+use Carbon\Carbon;
 use Carbon\CarbonImmutable;
 use Illuminate\Cache\RateLimiting\Limit;
 use Illuminate\Support\Facades\Date;
@@ -31,6 +33,10 @@ class AppServiceProvider extends ServiceProvider
                 titleOrder: $this->sources('sources.title_order'),
             ),
         );
+
+        // One instance for the whole request, so that the Settings screen asks
+        // the local server whether it is up once and not once per question.
+        $this->app->singleton(LocalServer::class);
 
         $this->app->singleton(
             CoverStore::class,
@@ -113,6 +119,14 @@ class AppServiceProvider extends ServiceProvider
     protected function configureDefaults(): void
     {
         Date::use(CarbonImmutable::class);
+
+        /*
+         * Relative dates follow the app locale too (BIB-26). Laravel points the
+         * translator at it and stops there, so without this a passkey added an
+         * hour ago reads «1 hour ago» on a screen that is otherwise in Spanish.
+         */
+        Carbon::setLocale(config('app.locale'));
+        CarbonImmutable::setLocale(config('app.locale'));
 
         DB::prohibitDestructiveCommands(
             app()->isProduction(),

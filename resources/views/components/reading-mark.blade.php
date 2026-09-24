@@ -1,30 +1,29 @@
-@props(['status', 'showcase' => false])
+@props(['book', 'showcase' => false])
 
 {{--
-    Which of the three Reading states a Book is in, wherever it is shown.
+    The line above the title: which of the three Reading states a Book is in,
+    and, in the back office, the year it was read (BIB-38).
 
-    HOW THIS LOOKS IS NOT DECIDED YET. Marginalia wrote the Reading as text in
-    its samples and never designed it, and the constraints rule out the two
-    usual ways out: there is no accent color in this system, and a tick mark is
-    the device it does not want. See CONTEXT.md, «Lo que sigue abierto».
+    The stamp over the Cover answers «¿lo leí?» from across the grid; this line
+    answers «¿cuándo?», and that is why the two are not the same thing written
+    twice. A Book read without a date does not say «Leído» here and «Leído»
+    again underneath: the line says it once and the stamp is two centimetres
+    away.
 
-    So this is the text the samples used, and nothing more. The whole visual is
-    in this one file on purpose: whatever gets decided is a change here and
-    nowhere else, and no screen writes the mark by hand.
+    The Ink is the muted one, like the rest of the labels of the sheet. The
+    Link ochre was the other candidate and it is the one colour of the system,
+    so a line set in it reads as a link and invites a click it has nothing to
+    do with; full Ink was tried too and it takes the eye before the title does.
 
-    The Ink is the muted one of the direction, which is what reads on paper;
-    under the appearance switch of the back office it keeps the zinc it had.
-
-    The Showcase says the same three states in its own words: there the read
-    date is not shown, so the two read ones read alike.
-
-    All three states say their name, including the unread one. Marking only the
-    read Books would make the unread ones and the ones nobody has looked at yet
-    the same thing on screen, which is the distinction the three states exist
-    for.
+    The whole state, the three of them, is written here and in the stamp beside
+    it, and nowhere else: no screen draws the mark by hand.
 --}}
+@php
+    $status = $book->readingStatus();
+@endphp
+
 <span
     {{ $attributes->class(['type-section-heading text-ink-muted dark:text-zinc-400']) }}
     data-test="reading-mark"
     data-reading="{{ $status->value }}"
->{{ $showcase ? $status->publicLabel() : $status->label() }}</span>
+>{{ $showcase ? $status->publicLabel() : $status->markLabel($book->read_on?->year) }}</span>

@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Showcase\Meta;
 use App\Showcase\Showcase;
 use Illuminate\Contracts\View\View;
 
@@ -20,9 +21,16 @@ final class ShowShowcase extends Controller
 {
     public function __invoke(): View
     {
+        $onShelf = Showcase::onShelf();
+        $wanted = Showcase::wanted();
+
         return view('showcase.index', [
-            'onShelf' => Showcase::onShelf(),
-            'wanted' => Showcase::wanted(),
+            'onShelf' => $onShelf,
+            'wanted' => $wanted,
+            'meta' => Meta::showcase(
+                books: $onShelf->count() + $wanted->count(),
+                quotes: Showcase::quoteCount(),
+            ),
         ]);
     }
 }

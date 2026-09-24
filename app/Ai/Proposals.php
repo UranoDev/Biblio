@@ -3,6 +3,7 @@
 namespace App\Ai;
 
 use App\Enums\Origin;
+use App\Enums\RegenerationTarget;
 use App\Jobs\ProposeForBook;
 use App\Models\Book;
 use App\Models\Category;
@@ -30,9 +31,11 @@ final class Proposals
      *
      * Queueing it again is also how a Book is regenerated —because the AiModel
      * changed, because the provider failed— since nothing is written until the
-     * whole answer is there.
+     * whole answer is there. What is asked for again travels with the job: a
+     * Book queued for its Description alone must not have its Categories
+     * rewritten on the way through (BIB-22).
      */
-    public function queueFor(Book $book): bool
+    public function queueFor(Book $book, RegenerationTarget $target = RegenerationTarget::Both): bool
     {
         $chosen = AiModel::chosen();
 
@@ -40,11 +43,11 @@ final class Proposals
             return false;
         }
 
-        // A Book that had given up is waiting its turn again, and its sheet has
-        // to say so from this moment and not once the answer arrives.
+        // The Book is waiting its turn, and its sheet has to say so from this
+        // moment and not once the answer arrives.
         $book->generationQueued();
 
-        ProposeForBook::dispatch($book, $chosen->provider, $chosen->name);
+        ProposeForBook::dispatch($book, $chosen->provider, $chosen->name, $target);
 
         return true;
     }
@@ -62,12 +65,18 @@ final class Proposals
      * told that no Category exists yet, and every one of them would invent its
      * own spelling — exactly the fragmentation ADR-006 is about.
      */
-    public function askFor(Book $book, string $provider, string $aiModel): void
-    {
-        $response = (new BookAgent($book->acceptsAiDescription()))
-            ->prompt($this->promptFor($book), provider: $provider, model: $aiModel);
+    public function askFor(
+        Book $book,
+        string $provider,
+        string $aiModel,
+        RegenerationTarget $target = RegenerationTarget::Both,
+    ): void {
+        $withDescription = $target->includesDescriptions() && $book->acceptsAiDescription();
 
-        $this->store($book, $response);
+        $response = (new BookAgent($withDescription))
+            ->prompt($this->promptFor($book, $withDescription), provider: $provider, model: $aiModel);
+
+        $this->store($book, $response, $target);
     }
 
     /**
@@ -77,7 +86,7 @@ final class Proposals
      * failure leaves the Book untouched —not half written— and pending, which
      * is what makes queueing it again safe.
      */
-    private function store(Book $book, AgentResponse $response): void
+    private function store(Book $book, AgentResponse $response, RegenerationTarget $target): void
     {
         $proposal = Proposal::from($response);
 
@@ -85,19 +94,33 @@ final class Proposals
             throw UnusableAnswer::for($book, (string) $response);
         }
 
-        DB::transaction(function () use ($book, $proposal): void {
-            $book->categories()->sync($this->categoryIds($proposal->categories));
+        DB::transaction(function () use ($book, $proposal, $target): void {
+            // The answer arrived: the Book is no longer waiting its turn,
+            // whichever half of it was asked for (BIB-22).
+            $attributes = ['generation_queued_at' => null];
 
-            $attributes = [
-                'categories_provider' => $proposal->provider,
-                'categories_ai_model' => $proposal->aiModel,
-            ];
+            // A regeneration of Descriptions alone leaves the Categories where
+            // they were. The answer carries them anyway —the agent always
+            // proposes them, and it is the same single request either way—, and
+            // what decides is what was asked for, not what came back.
+            if ($target->includesCategories()) {
+                $book->categories()->sync($this->categoryIds($proposal->categories));
+
+                $attributes['categories_provider'] = $proposal->provider;
+                $attributes['categories_ai_model'] = $proposal->aiModel;
+
+                // What the AI just wrote is the AI's again: the corrections by
+                // hand were the ones there were before, and they are gone. The
+                // warning that asked whether to replace them belongs to the
+                // press of the button, not to the whole life of the Book.
+                $attributes['categories_edited_at'] = null;
+            }
 
             // The Description of the Source and mine are never overwritten, not
             // even by a regeneration (ADR-007). The check is made again here
             // and not only before prompting, because in between somebody may
             // have written one by hand.
-            if ($proposal->description !== null && $book->acceptsAiDescription()) {
+            if ($target->includesDescriptions() && $proposal->description !== null && $book->acceptsAiDescription()) {
                 $attributes['description'] = $proposal->description;
                 $attributes['description_origin'] = Origin::Ai;
                 $attributes['description_provider'] = $proposal->provider;
@@ -113,7 +136,7 @@ final class Proposals
      * exist so that they get reused instead of being invented again with
      * another spelling (ADR-006).
      */
-    private function promptFor(Book $book): string
+    private function promptFor(Book $book, bool $withDescription): string
     {
         $lines = ['Title: '.$book->title];
 
@@ -144,7 +167,7 @@ final class Proposals
             ? 'There are no categories yet, so propose the first ones.'
             : "Existing categories, reuse the ones that fit before proposing a new one:\n- ".implode("\n- ", $existing);
 
-        if ($book->acceptsAiDescription()) {
+        if ($withDescription) {
             $lines[] = '';
             $lines[] = 'No source brought a description for this edition. Write one.';
         }

@@ -49,8 +49,10 @@ use Illuminate\Support\Str;
  * @property bool $is_hidden
  * @property string|null $categories_provider
  * @property string|null $categories_ai_model
+ * @property Carbon|null $categories_edited_at
  * @property string|null $description_provider
  * @property string|null $description_ai_model
+ * @property Carbon|null $generation_queued_at
  * @property Carbon|null $generation_failed_at
  * @property string|null $generation_failure
  * @property Carbon|null $created_at
@@ -96,6 +98,8 @@ class Book extends Model
             'read_on' => 'date',
             'lent_on' => 'date',
             'is_hidden' => 'boolean',
+            'categories_edited_at' => 'datetime',
+            'generation_queued_at' => 'datetime',
             'generation_failed_at' => 'datetime',
         ];
     }
@@ -180,6 +184,14 @@ class Book extends Model
             return GenerationStatus::Failed;
         }
 
+        // Waiting its turn comes before what it already has: a Book whose
+        // Categories were written months ago and that was queued again is in
+        // the queue, and the sheet has to say so from the moment the button was
+        // pressed and not once the answer arrives (BIB-22).
+        if ($this->generation_queued_at !== null) {
+            return GenerationStatus::Pending;
+        }
+
         if ($this->categories_ai_model !== null) {
             return GenerationStatus::Generated;
         }
@@ -189,17 +201,45 @@ class Book extends Model
             : GenerationStatus::Off;
     }
 
+    /** Whether the Book is in the queue waiting for what the AI writes for it. */
+    public function isGenerationQueued(): bool
+    {
+        return $this->generation_queued_at !== null;
+    }
+
     /**
-     * The Book is waiting its turn again: whatever the queue gave up on is off
-     * the record, because a new request is on its way (BIB-33).
+     * Whether the Categories of the Book were corrected by hand.
+     *
+     * It is what the warning before a regeneration is built on: the AI
+     * overwrites its own work without asking, and mine only after a yes
+     * (BIB-22).
+     */
+    public function categoriesEditedByHand(): bool
+    {
+        return $this->categories_edited_at !== null;
+    }
+
+    /**
+     * The Categories of the Book were just corrected by hand: one was added or
+     * one was taken out.
+     */
+    public function categoriesCorrected(): void
+    {
+        $this->forceFill(['categories_edited_at' => now()])->save();
+    }
+
+    /**
+     * The Book is waiting its turn: the request is on its way and whatever the
+     * queue gave up on before is off the record (BIB-33).
+     *
+     * The mark is written when the button is pressed and not when the answer
+     * arrives, because between the two there are two hundred Books ahead of it
+     * and the screen cannot stay silent for that long (BIB-22).
      */
     public function generationQueued(): void
     {
-        if ($this->generation_failed_at === null) {
-            return;
-        }
-
         $this->forceFill([
+            'generation_queued_at' => now(),
             'generation_failed_at' => null,
             'generation_failure' => null,
         ])->save();
@@ -213,6 +253,7 @@ class Book extends Model
     public function generationFailed(string $reason): void
     {
         $this->forceFill([
+            'generation_queued_at' => null,
             'generation_failed_at' => now(),
             'generation_failure' => Str::limit(Str::squish($reason), 250),
         ])->save();
@@ -465,6 +506,82 @@ class Book extends Model
                 $query->where('description_ai_model', '!=', $chosen->name)
                     ->orWhere('description_provider', '!=', $chosen->provider);
             });
+    }
+
+    /**
+     * The Books left on another AiModel, on either of the two halves: the
+     * candidates to regenerate after changing the model (ADR-006).
+     *
+     * @param  Builder<$this>  $query
+     */
+    #[Scope]
+    protected function fromAnotherAiModel(Builder $query, AiModel $chosen): void
+    {
+        $query->where(function (Builder $query) use ($chosen): void {
+            $query->categoriesFromAnotherAiModel($chosen)
+                ->orWhere(fn (Builder $query) => $query->descriptionFromAnotherAiModel($chosen));
+        });
+    }
+
+    /**
+     * The Books waiting their turn in the queue (BIB-22). The grid asks so that
+     * it only keeps looking while there is something on its way.
+     *
+     * @param  Builder<$this>  $query
+     */
+    #[Scope]
+    protected function awaitingGeneration(Builder $query): void
+    {
+        $query->whereNotNull('generation_queued_at');
+    }
+
+    /**
+     * The Books the AI may write a Description for (ADR-007): the ones with
+     * none, and the ones whose Description the AI wrote itself.
+     *
+     * It is the query form of acceptsAiDescription(), and it is what keeps a
+     * mass regeneration from ever reaching the Description of the Source or
+     * mine: those never enter the run in the first place.
+     *
+     * @param  Builder<$this>  $query
+     */
+    #[Scope]
+    protected function descriptionWritable(Builder $query): void
+    {
+        $query->where(function (Builder $query): void {
+            $query->whereNull('description')
+                ->orWhere('description', '')
+                ->orWhere('description_origin', Origin::Ai);
+        });
+    }
+
+    /**
+     * The other side: the Books whose Description no regeneration touches,
+     * because the Source brought it or I wrote it (ADR-007).
+     *
+     * They get counted before launching, so that the run says out loud how many
+     * it is leaving out and why, instead of quietly skipping them.
+     *
+     * @param  Builder<$this>  $query
+     */
+    #[Scope]
+    protected function descriptionKept(Builder $query): void
+    {
+        $query->whereNotNull('description')
+            ->where('description', '!=', '')
+            ->whereIn('description_origin', [Origin::Source, Origin::Owner]);
+    }
+
+    /**
+     * The Books the queue gave up on. They are the ones a regeneration can be
+     * thrown at again without touching the rest (BIB-33).
+     *
+     * @param  Builder<$this>  $query
+     */
+    #[Scope]
+    protected function withFailedGeneration(Builder $query): void
+    {
+        $query->whereNotNull('generation_failed_at');
     }
 
     /**

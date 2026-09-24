@@ -3,6 +3,8 @@
 use App\Ai\Providers;
 use App\Models\AiSetting;
 use App\Models\User;
+use Illuminate\Http\Client\ConnectionException;
+use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Queue;
 use Livewire\Livewire;
 
@@ -34,6 +36,19 @@ beforeEach(function () {
         'ai.providers.anthropic.key' => 'llave-de-anthropic',
         'ai.providers.openai.key' => null,
     ]);
+
+    // Ollama corre en la computadora de quien lo usa, y la pantalla le pregunta
+    // si está encendido en vez de buscarle una llave (BIB-27). Aquí contesta
+    // que sí; la prueba que lo apaga baja la bandera antes de abrir la pantalla.
+    $this->ollamaRunning = true;
+
+    Http::fake(function () {
+        if ($this->ollamaRunning !== true) {
+            throw new ConnectionException('El servidor de Ollama no responde.');
+        }
+
+        return Http::response('Ollama is running');
+    });
 
     $this->actingAs(User::factory()->create());
 });

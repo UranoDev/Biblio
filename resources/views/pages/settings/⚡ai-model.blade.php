@@ -1,6 +1,7 @@
 <?php
 
 use App\Ai\AiModel;
+use App\Ai\LocalServer;
 use App\Ai\Provider;
 use App\Ai\Providers;
 use App\Ai\SuggestedAiModel;
@@ -21,6 +22,10 @@ use Livewire\Component;
  * deploy. The API keys go the other way around: they stay in the environment,
  * and this screen only reads *which* Providers have one — never the value, which
  * it neither shows nor lets anybody type.
+ *
+ * One Provider runs on this machine and reads no key, so the screen asks it
+ * something else: whether its server is answering where it is configured
+ * (BIB-27). The answer changes what the screen says, never what it offers.
  */
 new #[Title('Modelo de IA')] class extends Component
 {
@@ -62,7 +67,7 @@ new #[Title('Modelo de IA')] class extends Component
     #[Computed]
     public function providers(): array
     {
-        return Providers::withKey();
+        return Providers::choosable();
     }
 
     /**
@@ -73,7 +78,52 @@ new #[Title('Modelo de IA')] class extends Component
     #[Computed]
     public function missing(): array
     {
-        return Providers::withoutKey();
+        return Providers::waitingForKey();
+    }
+
+    /**
+     * What to say about each Provider that runs on this machine: where its
+     * server is, and whether it is answering there right now.
+     *
+     * Only the local ones get a line. The rest depend on a key, and that is
+     * already said where the key is missing.
+     *
+     * @return array<string, string>
+     */
+    #[Computed]
+    public function notes(): array
+    {
+        $notes = [];
+
+        foreach ($this->providers as $provider) {
+            if (! $provider->local) {
+                continue;
+            }
+
+            $where = $provider->url === null ? '' : ' en '.$provider->url;
+
+            $notes[$provider->name] = app(LocalServer::class)->responds($provider->url)
+                ? 'Corre en tu computadora'.$where.', así que no necesita llave.'
+                : 'Corre en tu computadora'.$where.', así que no necesita llave. '
+                    .'El servidor no responde ahí: puedes elegirlo ahora y encenderlo después.';
+        }
+
+        return $notes;
+    }
+
+    /**
+     * Whether the chosen Provider runs here and its server is not answering.
+     * Choosing it stays valid; what is off is the generation, until it is
+     * turned on.
+     */
+    #[Computed]
+    public function chosenServerIsDown(): bool
+    {
+        $provider = $this->chosenProvider;
+
+        return $provider instanceof Provider
+            && $provider->local
+            && ! app(LocalServer::class)->responds($provider->url);
     }
 
     /**
@@ -170,7 +220,13 @@ new #[Title('Modelo de IA')] class extends Component
 
         AiSetting::choose($this->provider, $name);
 
-        unset($this->chosen, $this->chosenProvider, $this->categoriesFromBefore, $this->descriptionFromBefore);
+        unset(
+            $this->chosen,
+            $this->chosenProvider,
+            $this->chosenServerIsDown,
+            $this->categoriesFromBefore,
+            $this->descriptionFromBefore,
+        );
 
         $this->notice = 'Las categorías y las descripciones las escribe '
             .Providers::labelOf($this->provider).' con '.$name.'.';
@@ -195,7 +251,7 @@ new #[Title('Modelo de IA')] class extends Component
                 'required',
                 Rule::in(array_map(
                     static fn (Provider $provider): string => $provider->name,
-                    Providers::withKey(),
+                    Providers::choosable(),
                 )),
             ],
             'model' => ['required', Rule::in([...$this->namedModels(), self::OTHER])],
@@ -213,7 +269,7 @@ new #[Title('Modelo de IA')] class extends Component
     {
         return [
             'provider.required' => 'Falta elegir el proveedor.',
-            'provider.in' => 'Ese proveedor no tiene su llave en el entorno.',
+            'provider.in' => 'Ese proveedor no se puede elegir: le falta su llave en el entorno.',
             'model.required' => 'Falta elegir el modelo.',
             'model.in' => 'Elige uno de los modelos del proveedor, o escribe el nombre de otro.',
             'otherModel.required' => 'Falta el nombre del modelo.',
@@ -239,11 +295,18 @@ new #[Title('Modelo de IA')] class extends Component
                         <span class="font-medium">{{ $this->chosen->name }}</span>.
                     </flux:text>
 
-                    @if ($this->chosenProvider === null || ! $this->chosenProvider->hasKey)
+                    @if ($this->chosenProvider === null || ! $this->chosenProvider->canBeChosen())
                         <flux:callout variant="warning" icon="key" data-test="chosen-without-key">
                             <flux:callout.text>
                                 Falta su llave en el entorno{{ $this->chosenProvider?->keyVariable ? ' ('.$this->chosenProvider->keyVariable.')' : '' }}.
                                 Hasta que esté puesta, no se generan categorías ni descripciones.
+                            </flux:callout.text>
+                        </flux:callout>
+                    @elseif ($this->chosenServerIsDown)
+                        <flux:callout variant="warning" icon="server" data-test="chosen-server-down">
+                            <flux:callout.text>
+                                El servidor no responde{{ $this->chosenProvider->url ? ' en '.$this->chosenProvider->url : '' }}.
+                                Corre en tu computadora, y mientras esté apagado no se generan categorías ni descripciones.
                             </flux:callout.text>
                         </flux:callout>
                     @endif
@@ -271,6 +334,7 @@ new #[Title('Modelo de IA')] class extends Component
                                 wire:key="provider-{{ $option->name }}"
                                 value="{{ $option->name }}"
                                 label="{{ $option->label }}"
+                                :description="$this->notes[$option->name] ?? null"
                                 data-test="provider-{{ $option->name }}"
                             />
                         @endforeach

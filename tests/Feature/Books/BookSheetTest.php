@@ -5,11 +5,13 @@ use App\Enums\Origin;
 use App\Enums\ReadingStatus;
 use App\Enums\Source;
 use App\Enums\Status;
+use App\Jobs\ProposeForBook;
 use App\Models\AiSetting;
 use App\Models\Book;
 use App\Models\Category;
 use App\Models\Quote;
 use App\Models\User;
+use Illuminate\Support\Facades\Queue;
 use Livewire\Features\SupportTesting\Testable;
 use Livewire\Livewire;
 
@@ -444,6 +446,46 @@ it('dice que falta elegir el AiModel cuando no hay ninguno', function () {
     sheetOf($book)
         ->assertSet('categoriesStatus', GenerationStatus::Off)
         ->assertSee('Falta elegir el modelo');
+});
+
+it('vuelve a pedirle las Categories a la IA', function () {
+    Queue::fake();
+    AiSetting::choose('gemini', 'gemini-2.5-flash');
+
+    $book = Book::factory()->categoriesGenerated('gemini', 'gemini-2.5-flash')->create();
+
+    sheetOf($book)
+        ->call('regenerateCategories')
+        ->assertSee('volvió a la cola');
+
+    Queue::assertPushed(ProposeForBook::class, fn (ProposeForBook $job) => $job->book->is($book));
+});
+
+it('el Book que había fallado deja de estar señalado al volver a la cola', function () {
+    Queue::fake();
+    AiSetting::choose('gemini', 'gemini-2.5-flash');
+
+    $book = Book::factory()->generationFailed('la API no contestó')->create();
+
+    sheetOf($book)
+        ->call('regenerateCategories')
+        ->assertSet('categoriesStatus', GenerationStatus::Pending);
+
+    expect($book->fresh()->generation_failed_at)->toBeNull();
+});
+
+it('sin AiModel elegido el botón sigue ahí y dice que la generación está apagada', function () {
+    Queue::fake();
+
+    $book = Book::factory()->create(['categories_ai_model' => null, 'categories_provider' => null]);
+
+    sheetOf($book)
+        ->assertSeeHtml('data-test="regenerate-'.$book->getKey().'"')
+        ->assertSee('La generación está apagada')
+        ->call('regenerateCategories')
+        ->assertSee('La generación está apagada');
+
+    Queue::assertNothingPushed();
 });
 
 it('abre con un Book sin Categories y sin Description', function () {

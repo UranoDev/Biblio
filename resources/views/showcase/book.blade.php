@@ -10,26 +10,33 @@
     layout — they are not in the page at all, which is what makes the rule
     checkable from the served HTML.
 --}}
-<x-showcase.layout :title="$book->title">
-    <a href="{{ route('showcase') }}" class="type-section-heading text-link" data-test="back">
-        Toda la biblioteca
-    </a>
-
+{{-- The way back to the whole library is the first item of the navigation the
+     layout draws, so it is not written again here. --}}
+<x-showcase.layout :meta="$meta">
     <article class="flex flex-col gap-14">
         <header class="flex flex-col gap-10 md:flex-row md:items-start md:gap-14">
             <div class="w-36 shrink-0 md:w-56">
-                {{-- The heading beside it says the title and the Authors,
-                     which is everything the Cover would have announced. --}}
-                <x-cover
-                    :book="$book"
-                    size="full"
-                    decorative
-                    class="rotate-(--cover-tilt) shadow-(--shadow-cover)"
-                />
+                {{-- The stamp of the Reading goes inside the box that leans, so
+                     the word stays parallel to the Cover (BIB-38). --}}
+                <div class="relative rotate-(--cover-tilt)">
+                    {{-- The heading beside it says the title and the Authors,
+                         which is everything the Cover would have announced. --}}
+                    <x-cover :book="$book" size="full" decorative class="shadow-(--shadow-cover)" />
+
+                    {{-- The line above the title says it in words. --}}
+                    <x-reading-stamp :book="$book" decorative />
+                </div>
             </div>
 
             <div class="flex min-w-0 flex-col gap-5">
-                <h1 class="text-3xl leading-tight font-bold tracking-tight md:text-4xl">{{ $book->title }}</h1>
+                {{-- The Reading goes above the title, close to it, and out
+                     here without the year: the read date does not leave the
+                     back office (ADR-003). --}}
+                <div class="flex flex-col gap-2">
+                    <x-reading-mark :book="$book" showcase />
+
+                    <h1 class="text-3xl leading-tight font-bold tracking-tight md:text-4xl">{{ $book->title }}</h1>
+                </div>
 
                 @if (filled($book->authors))
                     <p class="type-authors text-ink-muted" data-test="authors">
@@ -50,15 +57,11 @@
                     </p>
                 @endif
 
-                <div class="flex flex-wrap items-center gap-x-5 gap-y-2">
-                    <x-reading-mark :status="$book->readingStatus()" showcase />
-
-                    @if ($book->status === Status::Wanted)
-                        <span class="type-section-heading text-ink-muted" data-test="wanted-mark">
-                            Todavía no lo tengo
-                        </span>
-                    @endif
-                </div>
+                @if ($book->status === Status::Wanted)
+                    <span class="type-section-heading text-ink-muted" data-test="wanted-mark">
+                        Todavía no lo tengo
+                    </span>
+                @endif
             </div>
         </header>
 
@@ -81,7 +84,18 @@
             <section class="flex flex-col gap-3" data-test="categories">
                 <h2 class="type-section-heading text-ink-muted">Categorías</h2>
 
-                <p class="text-lg">{{ $book->categories->pluck('name')->join(' · ') }}</p>
+                {{-- Each one leads to the other Books of the same subject
+                     (BIB-19). Every Category of a visible Book has at least
+                     this Book in it, so none of these links lands on a 404. --}}
+                <ul class="flex flex-wrap items-baseline gap-x-5 gap-y-2 text-lg">
+                    @foreach ($book->categories as $category)
+                        <li>
+                            <a href="{{ route('showcase.category', $category) }}" class="text-link">
+                                {{ $category->name }}
+                            </a>
+                        </li>
+                    @endforeach
+                </ul>
             </section>
         @endif
 

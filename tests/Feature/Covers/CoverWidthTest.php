@@ -94,11 +94,14 @@ it('la pieza generada se mide igual cuando se usa por su cuenta', function () {
 it('la Portada de la ficha mide los 160 px que la ficha le pide', function (string $kind) {
     $html = Livewire::test('book-cover', ['book' => coverOf($kind)])->html();
 
+    // The 160 px are on the box that holds the Cover together with the stamp
+    // of the Reading drawn over it (BIB-38). Inside that box the Cover fills
+    // what it is given, which is the same width it used to carry itself.
+    expect($html)->toMatch('/<div class="relative w-40 shrink-0">(?:\s|<!--\[if BLOCK\]><!\[endif\]-->)*<(?:img|svg)/');
+
     // Only the Cover is looked at: the rest of the block has controls with
     // widths of their own, and they are not what is being measured here.
     preg_match('/<(?:img|svg)\b[^>]*cover-edge[^>]*>/', $html, $cover);
 
-    expect($cover[0] ?? '')
-        ->toContain('w-40')
-        ->not->toContain('w-full');
+    expect($cover[0] ?? '')->toContain('w-full');
 })->with('las dos Portadas');

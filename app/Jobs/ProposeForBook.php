@@ -4,8 +4,10 @@ namespace App\Jobs;
 
 use App\Ai\Proposals;
 use App\Ai\ProviderFailure;
+use App\Enums\RegenerationTarget;
 use App\Models\Book;
 use DateTimeInterface;
+use Illuminate\Bus\Batchable;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Queue\Queueable;
 use Illuminate\Queue\Middleware\RateLimited;
@@ -34,7 +36,7 @@ use Throwable;
  */
 class ProposeForBook implements ShouldQueue
 {
-    use Queueable;
+    use Batchable, Queueable;
 
     /** The name of the limiter, registered in AppServiceProvider. */
     public const LIMITER = 'ai-provider';
@@ -52,11 +54,17 @@ class ProposeForBook implements ShouldQueue
      * The provider and the AiModel are taken at the moment of queueing and
      * travel with the job: choosing another one on the Settings screen changes
      * what gets queued from then on, not the two hundred already in line.
+     *
+     * So does what is being asked for. A mass regeneration of Descriptions
+     * alone (BIB-21) must not rewrite the Categories of two hundred Books on
+     * its way through, and by the time the job runs the screen that decided it
+     * is long gone.
      */
     public function __construct(
         public Book $book,
         public string $provider,
         public string $aiModel,
+        public RegenerationTarget $target = RegenerationTarget::Both,
     ) {}
 
     /**
@@ -81,7 +89,7 @@ class ProposeForBook implements ShouldQueue
     public function handle(Proposals $proposals): void
     {
         try {
-            $proposals->askFor($this->book, $this->provider, $this->aiModel);
+            $proposals->askFor($this->book, $this->provider, $this->aiModel, $this->target);
         } catch (Throwable $failure) {
             if (ProviderFailure::isTransient($failure)) {
                 $this->waitAndTryAgain();

@@ -81,22 +81,35 @@ it('dibuja la pieza generada del Book que no tiene imagen guardada, sin dejar hu
 |--------------------------------------------------------------------------
 */
 
-it('distingue los tres estados de Reading, uno por Book', function () {
+it('sella los Books leídos y deja sin sellar los que faltan por leer', function () {
     Book::factory()->create(['title' => 'Sin leer']);
     Book::factory()->readUndated()->create(['title' => 'Leído hace años']);
     Book::factory()->read()->create(['title' => 'Leído con fecha']);
 
     $html = $this->get(route('shelf'))->assertOk()->getContent();
 
-    foreach (ReadingStatus::cases() as $state) {
-        expect($html)->toContain('data-reading="'.$state->value.'"');
-    }
+    expect(substr_count($html, 'data-test="reading-stamp"'))->toBe(2)
+        ->and($html)->toContain('data-reading="'.ReadingStatus::ReadUndated->value.'"')
+        ->and($html)->toContain('data-reading="'.ReadingStatus::ReadDated->value.'"')
+        ->and($html)->not->toContain('data-reading="'.ReadingStatus::Unread->value.'"');
 });
 
-it('nombra cada estado de Reading con su etiqueta', function () {
-    Book::factory()->readUndated()->create(['title' => 'Cartucho']);
+it('no escribe el año de la Lectura en la retícula', function () {
+    Book::factory()->read()->create([
+        'title' => 'Cartucho',
+        'read_on' => '2019-03-14',
+        'year' => 1931,
+    ]);
 
-    shelf()->assertSee(ReadingStatus::ReadUndated->label());
+    // The grid answers «¿lo leí?» and the sheet answers «¿cuándo?»: a Book read
+    // in 2019 and one read without a date carry the same stamp (BIB-38).
+    shelf()->assertDontSee('2019');
+});
+
+it('deja filtrar por los tres estados con su nombre', function () {
+    foreach (ReadingStatus::cases() as $state) {
+        shelf()->assertSee($state->label());
+    }
 });
 
 /*

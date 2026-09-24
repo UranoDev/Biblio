@@ -35,10 +35,59 @@ it('separa los Providers con llave de los que la esperan', function () {
         'ai.providers.openai.key' => null,
     ]);
 
-    expect(providerNames(Providers::withKey()))->toContain('gemini')
-        ->and(providerNames(Providers::withKey()))->not->toContain('openai')
-        ->and(providerNames(Providers::withoutKey()))->toContain('openai')
-        ->and(providerNames(Providers::withoutKey()))->not->toContain('gemini');
+    expect(providerNames(Providers::choosable()))->toContain('gemini')
+        ->and(providerNames(Providers::choosable()))->not->toContain('openai')
+        ->and(providerNames(Providers::waitingForKey()))->toContain('openai')
+        ->and(providerNames(Providers::waitingForKey()))->not->toContain('gemini');
+});
+
+it('Ollama se puede elegir sin llave, y no espera ninguna', function () {
+    // Corre en la máquina de quien lo usa y no autentica nada: la variable de
+    // entorno existe en el SDK para ponerlo detrás de un proxy, no para usarlo
+    // en casa.
+    config(['ai.providers.ollama.key' => null]);
+
+    expect(providerNames(Providers::choosable()))->toContain('ollama')
+        ->and(providerNames(Providers::waitingForKey()))->not->toContain('ollama');
+
+    $ollama = Providers::find('ollama');
+
+    expect($ollama->local)->toBeTrue()
+        ->and($ollama->canBeChosen())->toBeTrue()
+        // No hay variable que nombrar, porque no falta ninguna.
+        ->and($ollama->keyVariable)->toBeNull();
+});
+
+it('lo que condiciona a Ollama es la URL de su servidor', function () {
+    config(['ai.providers.ollama.url' => 'http://localhost:11434']);
+
+    expect(Providers::find('ollama')->url)->toBe('http://localhost:11434');
+
+    config(['ai.providers.ollama.url' => '']);
+
+    expect(Providers::find('ollama')->url)->toBeNull();
+});
+
+it('ningún otro Provider deja de depender de su llave', function () {
+    config([
+        'ai.providers.openai.key' => null,
+        'ai.providers.gemini.key' => null,
+        'ai.providers.anthropic.key' => null,
+    ]);
+
+    $waiting = providerNames(Providers::waitingForKey());
+
+    expect($waiting)->toContain('openai', 'gemini', 'anthropic');
+
+    foreach (Providers::all() as $provider) {
+        if ($provider->name === 'ollama') {
+            continue;
+        }
+
+        expect($provider->local)->toBeFalse()
+            ->and($provider->url)->toBeNull()
+            ->and($provider->canBeChosen())->toBe($provider->hasKey);
+    }
 });
 
 it('los AiModels que ofrece son los que nombra el SDK, sin repetirlos', function () {

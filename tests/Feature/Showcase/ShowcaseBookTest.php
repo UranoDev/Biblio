@@ -87,18 +87,29 @@ it('enseña todas las Citas de un Libro, sin tope', function () {
 });
 
 it('no gasta una consulta por Cita', function () {
-    $book = Book::factory()->create();
-
-    foreach (range(1, 40) as $page) {
-        $book->addQuote("La cita número {$page}.", $page);
-    }
+    $one = Book::factory()->create();
+    $one->addQuote('La única cita de este Libro.', 1);
 
     DB::enableQueryLog();
-    $this->get(route('showcase.book', $book))->assertOk();
-    $queries = count(DB::getQueryLog());
+    $this->get(route('showcase.book', $one))->assertOk();
+    $withOne = count(DB::getQueryLog());
+
+    $forty = Book::factory()->create();
+
+    foreach (range(1, 40) as $page) {
+        $forty->addQuote("La cita número {$page}.", $page);
+    }
+
+    DB::flushQueryLog();
+    $this->get(route('showcase.book', $forty))->assertOk();
+    $withForty = count(DB::getQueryLog());
+
     DB::disableQueryLog();
 
-    expect($queries)->toBeLessThanOrEqual(4);
+    // Two Books and not a ceiling: what this page may not do is grow with the
+    // Quotes. What the page costs in total is another question, and a number
+    // written down here goes stale the next time the layout gains anything.
+    expect($withForty)->toBe($withOne);
 });
 
 it('no existe la página de un Libro oculto', function () {

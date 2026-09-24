@@ -3,6 +3,8 @@
 use App\Http\Controllers\ServeCover;
 use App\Http\Controllers\ShowShowcase;
 use App\Http\Controllers\ShowShowcaseBook;
+use App\Http\Controllers\ShowShowcaseCategory;
+use App\Http\Controllers\ShowSitemap;
 use Illuminate\Support\Facades\Route;
 
 /*
@@ -20,6 +22,16 @@ Route::get('book/{book}', ShowShowcaseBook::class)
     ->name('showcase.book');
 
 /*
+ * Walking the Showcase by Category (BIB-19). The address carries the slug and
+ * not the id, because it gets shared: `/category/poesia` says where it leads.
+ *
+ * Singular, like `book/{id}`, and the back office list is `categories`: the two
+ * are three letters apart, so `robots.txt` declares each one explicitly.
+ */
+Route::get('category/{category}', ShowShowcaseCategory::class)
+    ->name('showcase.category');
+
+/*
  * The Covers are served by the application and not by the disk (BIB-32). The
  * route lives here, and not where the framework puts the one for `/storage`,
  * so that caching the routes does not take it away; and its address carries no
@@ -28,10 +40,21 @@ Route::get('book/{book}', ShowShowcaseBook::class)
  */
 Route::get('covers/{book}/{size}', ServeCover::class)->name('cover');
 
+/*
+ * The sitemap (BIB-37). It is generated and not a file in `public/`, so that
+ * hiding a Book takes it out of the index without anybody remembering to
+ * rebuild anything.
+ */
+Route::get('sitemap.xml', ShowSitemap::class)->name('sitemap');
+
 Route::middleware(['auth', 'verified'])->group(function () {
     Route::view('dashboard', 'dashboard')->name('dashboard');
 
     Route::livewire('shelf', 'pages::shelf')->name('shelf');
+
+    Route::livewire('quote-search', 'pages::quote-search')->name('quote-search');
+
+    Route::livewire('categories', 'pages::categories')->name('categories');
 
     Route::livewire('scan', 'pages::scan')->name('scan');
 

@@ -8,7 +8,7 @@
     «Por comprar» is the name this system uses inside; a visitor is told «los
     que me faltan», which needs nothing explained (ADR-003).
 --}}
-<x-showcase.layout>
+<x-showcase.layout :meta="$meta">
     <header class="flex max-w-prose flex-col gap-5">
         <h1 class="text-4xl font-bold tracking-tight md:text-5xl">{{ config('app.name') }}</h1>
 

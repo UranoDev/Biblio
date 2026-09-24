@@ -60,6 +60,22 @@
     --text-section-heading--letter-spacing: 0.34em;
 
     /*
+     * The stamp of a read Book, over its Cover (BIB-38). The ink is the Ink of
+     * the direction -- there is no accent colour here either -- and the field
+     * is the paper it is stamped on, which the stamp brings with it: dark ink
+     * over a dark photograph is not there at all.
+     *
+     * The field is laid down at `--stamp-field-alpha`, so over a black Cover it
+     * lands on `--color-stamp-field-floor` and no darker. That floor, and not
+     * the clean field, is what the ink is measured against; the measurement is
+     * in tests/Unit/Design/StampTest.php.
+     */
+    --color-stamp-ink: #1a1a18;
+    --color-stamp-field: #faf6ee;
+    --color-stamp-field-floor: #e6e2db;
+    --stamp-field-alpha: 0.92;
+
+    /*
      * The Cover leans six degrees counterclockwise, like a spine sticking out
      * of the shelf. The angle is measured from the piece the direction came
      * from, so it is a token: no screen gets to round it to five or ten.

@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Showcase\Meta;
 use App\Showcase\Showcase;
 use Illuminate\Contracts\View\View;
 
@@ -18,8 +19,11 @@ final class ShowShowcaseBook extends Controller
 {
     public function __invoke(int $book): View
     {
+        $found = Showcase::book($book);
+
         return view('showcase.book', [
-            'book' => Showcase::book($book),
+            'book' => $found,
+            'meta' => Meta::book($found),
         ]);
     }
 }

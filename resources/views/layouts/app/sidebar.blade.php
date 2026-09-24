@@ -20,6 +20,14 @@
                         Acervo
                     </flux:sidebar.item>
 
+                    <flux:sidebar.item icon="magnifying-glass" :href="route('quote-search')" :current="request()->routeIs('quote-search')" wire:navigate>
+                        Búsqueda de citas
+                    </flux:sidebar.item>
+
+                    <flux:sidebar.item icon="tag" :href="route('categories')" :current="request()->routeIs('categories')" wire:navigate>
+                        Categorías
+                    </flux:sidebar.item>
+
                     <flux:sidebar.item icon="plus" :href="route('scan')" :current="request()->routeIs('scan')" wire:navigate>
                         Escaneo
                     </flux:sidebar.item>

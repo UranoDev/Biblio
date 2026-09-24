@@ -178,6 +178,30 @@ class BookFactory extends Factory
     }
 
     /**
+     * Waiting its turn in the queue: the button was pressed and the answer has
+     * not arrived (BIB-22).
+     */
+    public function generationQueued(): static
+    {
+        return $this->state(fn (array $attributes) => [
+            'generation_queued_at' => now(),
+            'generation_failed_at' => null,
+            'generation_failure' => null,
+        ]);
+    }
+
+    /**
+     * With the Categories corrected by hand, which a regeneration asks about
+     * before replacing (BIB-22).
+     */
+    public function categoriesEditedByHand(): static
+    {
+        return $this->state(fn (array $attributes) => [
+            'categories_edited_at' => now(),
+        ]);
+    }
+
+    /**
      * With the generation given up on: the queue tried for hours and the
      * provider never got through (BIB-33).
      */

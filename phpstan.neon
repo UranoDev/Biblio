@@ -21,3 +21,11 @@ parameters:
         -
             identifier: trait.unused
             path: app/Concerns/ProfileValidationRules.php
+
+        # Same thing: RegeneratesBooks is used by the Shelf grid and by the
+        # Book sheet, and both are Blade. The trait exists precisely so that
+        # those two screens press the same button (BIB-22), so its only
+        # consumers are files phpstan does not read.
+        -
+            identifier: trait.unused
+            path: app/Concerns/RegeneratesBooks.php

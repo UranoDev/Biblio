@@ -15,6 +15,10 @@ enum ReadingStatus: string
     case ReadUndated = 'read_undated';
     case ReadDated = 'read_dated';
 
+    /**
+     * The state as the filter of the Shelf names it, where the three have to
+     * tell themselves apart from one another and nothing else is on the line.
+     */
     public function label(): string
     {
         return match ($this) {
@@ -25,16 +29,34 @@ enum ReadingStatus: string
     }
 
     /**
+     * The state as the mark above the title says it, with the year of the
+     * Reading riding in the same line.
+     *
+     * The year has no field of its own with its own label underneath: this line
+     * answers «¿cuándo?», and the year is that answer, so it goes where the
+     * answer already is. Given no year — because there is none, or because the
+     * surface does not get to know it — the two read states read alike, which
+     * is the whole distance between this line and the filter above.
+     */
+    public function markLabel(?int $year = null): string
+    {
+        return match (true) {
+            $this === self::Unread => 'Por leer',
+            $year === null => 'Leído',
+            default => 'Leído, '.$year,
+        };
+    }
+
+    /**
      * The Reading as the Showcase says it.
      *
      * Out there the read date does not exist -- it is one of the things that
-     * never leaves the back office (ADR-003) -- so the two read states say the
-     * same thing. Announcing «leído, sin fecha» to a visitor names a field they
-     * are not being shown.
+     * never leaves the back office (ADR-003) -- so the year is not handed over
+     * and the two read states say the same thing.
      */
     public function publicLabel(): string
     {
-        return $this->isRead() ? 'Leído' : 'No leído';
+        return $this->markLabel();
     }
 
     public function isRead(): bool

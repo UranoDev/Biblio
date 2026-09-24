@@ -1,8 +1,9 @@
 <?php
 
-use App\Ai\AiModel;
+use App\Concerns\RegeneratesBooks;
 use App\Domain\Isbn;
 use App\Enums\GenerationStatus;
+use App\Enums\RegenerationTarget;
 use App\Enums\Status;
 use App\Models\Book;
 use App\Models\Category;
@@ -22,13 +23,17 @@ use Livewire\Component;
  * publisher has nothing to do with writing the Note, and one long form would
  * make them share their validation and their save.
  *
- * The screen does not regenerate anything: the buttons for that are on their own
- * issue, so this sheet does not depend on generation existing. What it does do
- * is say which of the three situations the Categories are in, because a Book
- * without them is not one thing but two (ADR-006).
+ * The sheet says which of the situations the Categories are in, because a Book
+ * without them is not one thing but several (ADR-006), and it can put the Book
+ * back in the queue —its Categories, its Description or both— when what the AI
+ * wrote came out poor or was written with another AiModel (BIB-22). It is the
+ * same button the grid of the Shelf carries, and the same rule holds on both:
+ * the Description of the Source and mine are never overwritten (ADR-007).
  */
 new #[Title('Ficha del Libro')] class extends Component
 {
+    use RegeneratesBooks;
+
     public Book $book;
 
     // The Record, as it can be corrected.
@@ -90,14 +95,7 @@ new #[Title('Ficha del Libro')] class extends Component
         $this->fillFromBook();
     }
 
-    /** The AiModel chosen on the Settings screen, or null while there is none. */
-    #[Computed]
-    public function aiModel(): ?AiModel
-    {
-        return AiModel::chosen();
-    }
-
-    /** Which of the three situations the Categories of this Book are in. */
+    /** Which of the four situations the Categories of this Book are in. */
     #[Computed]
     public function categoriesStatus(): GenerationStatus
     {
@@ -219,6 +217,10 @@ new #[Title('Ficha del Libro')] class extends Component
 
         $this->fillFromBook();
 
+        // The stamp over the Cover is drawn by its own component, which does
+        // not re-render just because this one did.
+        $this->dispatch('reading-saved');
+
         $this->notice = 'La lectura quedó en «'.$this->book->readingStatus()->label().'».';
     }
 
@@ -305,6 +307,10 @@ new #[Title('Ficha del Libro')] class extends Component
 
         $this->book->categories()->syncWithoutDetaching([$category->getKey()]);
 
+        // From here on the Categories are mine too, and a regeneration asks
+        // before replacing them (BIB-22).
+        $this->book->categoriesCorrected();
+
         $this->reset('category');
         $this->resetValidation();
 
@@ -317,9 +323,32 @@ new #[Title('Ficha del Libro')] class extends Component
     {
         $this->book->categories()->detach($id);
 
+        $this->book->categoriesCorrected();
+
         $this->book->load('categories');
 
         $this->notice = 'La Categoría salió de este Libro.';
+    }
+
+    /**
+     * Puts the Book back in the queue for its Categories alone, which is the
+     * shortcut of the section they are corrected in.
+     */
+    public function regenerateCategories(): void
+    {
+        $this->regenerate((int) $this->book->getKey(), RegenerationTarget::Categories->value);
+    }
+
+    /** The sheet asks about its own Book and about no other. */
+    protected function bookToRegenerate(int $id): ?Book
+    {
+        return (int) $this->book->getKey() === $id ? $this->book : null;
+    }
+
+    /** Everything on the sheet is read again, with the Book back in line. */
+    protected function afterRegenerating(Book $book): void
+    {
+        $this->fillFromBook();
     }
 
     /**
@@ -483,8 +512,18 @@ new #[Title('Ficha del Libro')] class extends Component
     }
 }; ?>
 
-<div class="flex w-full max-w-3xl flex-col gap-10">
+{{--
+    While the Book is in line the sheet keeps looking: the answer arrives when
+    the queue gets to it, and until then nothing here changes on its own
+    (BIB-22). With nothing in line it stops asking.
+--}}
+<div class="flex w-full max-w-3xl flex-col gap-10" @if ($book->isGenerationQueued()) wire:poll.5s @endif>
     <div class="flex min-w-0 flex-col gap-2">
+        {{-- The state of the Reading, with the year of it, above the title. The
+             stamp over the Cover further down says that it was read; this line
+             is where it says when (BIB-38). --}}
+        <x-reading-mark :book="$book" />
+
         <flux:heading size="xl">{{ $book->title }}</flux:heading>
 
         @if (filled($book->authors))
@@ -496,8 +535,12 @@ new #[Title('Ficha del Libro')] class extends Component
         </flux:text>
 
         <flux:text class="text-sm">
-            {{ $book->status->label() }} · {{ $book->readingStatus()->label() }}
+            {{ $book->status->label() }}
         </flux:text>
+
+        <div class="flex flex-wrap items-center gap-2">
+            <x-generation-mark :book="$book" />
+        </div>
     </div>
 
     @if ($notice)
@@ -679,6 +722,23 @@ new #[Title('Ficha del Libro')] class extends Component
         @else
             <flux:text>Este Libro no tiene Categorías.</flux:text>
         @endif
+
+        {{--
+            The same button the grid of the Shelf carries: the Categories, the
+            Description or both. It stays here without a chosen AiModel and says
+            that generation is off (BIB-22).
+        --}}
+        <div class="flex flex-col gap-3">
+            <x-regenerate-book :book="$book" :chosen="$this->aiModel" size="sm" />
+
+            @if ($this->confirmingBook)
+                <x-regeneration-confirm :book="$this->confirmingBook" />
+            @endif
+
+            @if ($regenerationNotice)
+                <flux:text class="text-base" data-test="regeneration-notice">{{ $regenerationNotice }}</flux:text>
+            @endif
+        </div>
 
         <form wire:submit="addCategory" class="flex items-end gap-3">
             <flux:input

@@ -13,6 +13,13 @@ Route::middleware(['auth', 'verified'])->group(function () {
 
     Route::livewire('settings/ai-model', 'pages::settings.ai-model')->name('ai-model.edit');
 
+    /*
+     * The mass regeneration (BIB-21). The name is `regenerate` and not
+     * `regenerate.edit` because the AiModel screen asks for it by that name to
+     * decide whether it has anywhere to send the person.
+     */
+    Route::livewire('settings/regenerate', 'pages::settings.regenerate')->name('regenerate');
+
     Route::livewire('settings/security', 'pages::settings.security')
         ->middleware([
             'password.confirm',

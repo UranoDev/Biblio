@@ -294,6 +294,13 @@ con su inclinación y su sombra. Es la misma razón por la que la retícula no l
 recortar una fotografía se ve editorial y recortar tipografía nada más parte palabras, y
 las que parte son el título que el pie de la tarjeta ya dice.
 
+**Sobre el Cover de un libro leído va el sello**, arriba a la derecha: doble aro, tinta,
+la palabra `LEÍDO` adentro, y girado con la portada para que el texto quede paralelo a
+ella. Va arriba porque la pieza generada cuelga su título y sus autores de abajo. Trae su
+propio campo de papel, traslúcido: la tinta oscura sobre una fotografía oscura no se ve, y
+el contraste no puede depender de qué libro tocó — se mide contra lo más oscuro que ese
+campo puede quedar, que es sobre una portada negra.
+
 **Todo Cover lleva un filo de un píxel.** No es adorno: las portadas claras —y son
 comunes— se disuelven en el papel sin él. Comprobado con portadas reales.
 
@@ -374,20 +381,13 @@ Las nueve primeras tienen ADR en `docs/adr/`, porque son las costosas de reverti
 23. **Las pruebas no usan respuestas inventadas.** Lo que se guarda en `tests/Fixtures` es
     una grabación real del catálogo, sin recortar, y hay pruebas de contrato aparte que
     verifican que la Source sigue respondiendo como el día que se grabó.
+24. **El Reading se ve como un sello sobre el Cover y una etiqueta arriba del título.**
+    El sello —doble aro, la palabra `LEÍDO`— dice que el libro se leyó y **no lleva el
+    año**: soltarlo es lo que dejó la palabra en un tamaño que se lee de lejos. La
+    etiqueta dice el estado completo —`Por leer`, `Leído`, `Leído, 2024`—, y ahí vive el
+    año. En la retícula va el sello y nada más, así que ahí «leído en 2019» y «leído sin
+    fecha» se ven igual: la retícula contesta si lo leí y la ficha contesta cuándo.
 
-## Lo que sigue abierto
-
-1. **Cómo se ve el Reading en la dirección visual.** Marginalia no lo resuelve: quedó
-   escrito como texto en las muestras, no como diseño. Son tres estados —sin leer, leído
-   sin fecha, leído con fecha— y hay que distinguirlos de un vistazo en una retícula de
-   doscientas portadas, sin color de acento y sin una palomita, que es el recurso que este
-   sistema no quiere. La otra dirección lo resolvía con un sello; aquí falta decidirlo.
-
-   La retícula ya existe y ya la necesita (BIB-13). Mientras se decide, el Acervo dibuja
-   los tres estados con su etiqueta escrita, que es lo que hacían las muestras, y lo hace
-   en un solo archivo —`resources/views/components/reading-mark.blade.php`—: lo que se
-   decida se cambia ahí y en ninguna otra parte, porque ninguna pantalla escribe la marca
-   a mano. BIB-13 está en `ready-for-human` por esto y sólo por esto.
-
-Cuando aparezca una decisión que no se pueda tomar sobre la marcha, va aquí, y la tarea
-que dependa de ella se marca `ready-for-human` con la explicación en el comentario.
+Cuando aparezca una decisión que no se pueda tomar sobre la marcha, se abre otra vez una
+sección de lo que sigue abierto al final de este archivo, y la tarea que dependa de ella
+se marca `ready-for-human` con la explicación en el comentario. Hoy no hay ninguna.

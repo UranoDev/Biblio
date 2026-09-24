@@ -1,5 +1,6 @@
 <?php
 
+use App\Covers\CoverStore;
 use App\Enums\CoverOrigin;
 use App\Jobs\DownloadCover;
 use App\Models\Book;
@@ -154,4 +155,66 @@ it('dice por qué no sirve la imagen, en vez de decir que no se pudo leer', func
         ->set('file', UploadedFile::fake()->createWithContent('miniatura.jpg', testImage(162, 198)))
         ->call('save')
         ->assertHasErrors(['file' => 'La imagen mide 162 px de lado corto y el mínimo es 300.']);
+});
+
+it('quita la Portada guardada y borra sus archivos del disco', function () {
+    $book = Book::factory()->coverPending()->create();
+
+    app(CoverStore::class)->store($book, testImage(400, 600));
+
+    $path = $book->cover_path;
+    $thumbnail = $book->cover_thumbnail_path;
+    $url = $book->cover_source_url;
+
+    Livewire::test('book-cover', ['book' => $book])
+        ->call('remove')
+        ->assertSet('notice', 'Se quitó la Portada.')
+        ->assertSee('Está generada con el título y los autores')
+        ->assertSee('Reintentar la descarga');
+
+    $book->refresh();
+
+    expect($book->hasCover())->toBeFalse()
+        ->and($book->cover_origin)->toBe(CoverOrigin::Generated)
+        ->and($book->cover_source_url)->toBe($url)
+        ->and($book->canRetryCover())->toBeTrue();
+
+    Storage::disk()->assertMissing($path);
+    Storage::disk()->assertMissing($thumbnail);
+});
+
+it('quita también la foto que subió el dueño', function () {
+    $book = Book::factory()->coverGenerated()->create();
+
+    Livewire::test('book-cover', ['book' => $book])
+        ->set('file', UploadedFile::fake()->createWithContent('portada.jpg', testImage(400, 600)))
+        ->call('save');
+
+    $book->refresh();
+
+    expect($book->cover_origin)->toBe(CoverOrigin::Owner);
+
+    $path = $book->cover_path;
+
+    Livewire::test('book-cover', ['book' => $book])
+        ->call('remove');
+
+    expect($book->fresh()->hasCover())->toBeFalse()
+        ->and($book->fresh()->cover_origin)->toBe(CoverOrigin::Generated);
+
+    Storage::disk()->assertMissing($path);
+});
+
+it('pide confirmación antes de quitar la Portada', function () {
+    Livewire::test('book-cover', ['book' => Book::factory()->create()])
+        ->assertSee('Quitar la Portada')
+        ->assertSee('¿Quitar la Portada?');
+});
+
+it('no ofrece quitar la Portada de un Book que no tiene ninguna guardada', function () {
+    Livewire::test('book-cover', ['book' => Book::factory()->coverGenerated()->create()])
+        ->assertDontSee('Quitar la Portada')
+        ->call('remove')
+        ->assertHasNoErrors()
+        ->assertSet('notice', null);
 });

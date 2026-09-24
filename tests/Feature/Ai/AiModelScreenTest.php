@@ -7,6 +7,8 @@ use App\Jobs\ProposeForBook;
 use App\Models\AiSetting;
 use App\Models\Book;
 use App\Models\User;
+use Illuminate\Http\Client\ConnectionException;
+use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Queue;
 use Illuminate\Support\Facades\Route;
 use Livewire\Features\SupportTesting\Testable;
@@ -23,6 +25,19 @@ beforeEach(function () {
         'ai.providers.anthropic.key' => 'llave-de-anthropic',
         'ai.providers.openai.key' => null,
     ]);
+
+    // Ollama corre en la computadora de quien lo usa, y la pantalla le pregunta
+    // si está encendido en vez de buscarle una llave (BIB-27). Aquí contesta
+    // que sí; la prueba que lo apaga baja la bandera antes de abrir la pantalla.
+    $this->ollamaRunning = true;
+
+    Http::fake(function () {
+        if ($this->ollamaRunning !== true) {
+            throw new ConnectionException('El servidor de Ollama no responde.');
+        }
+
+        return Http::response('Ollama is running');
+    });
 
     $this->actingAs(User::factory()->create());
 });
@@ -93,7 +108,7 @@ it('el agente escribe con el AiModel guardado y no con uno del entorno', functio
     );
 });
 
-it('sólo ofrece los Providers que tienen su llave en el entorno', function () {
+it('no ofrece un Provider que sigue esperando su llave', function () {
     screen()
         ->assertSeeHtml('data-test="provider-gemini"')
         ->assertSeeHtml('data-test="provider-anthropic"')
@@ -228,4 +243,77 @@ it('borra el reclamo del modelo en cuanto se elige uno', function () {
         ->assertHasErrors('model')
         ->set('model', namedModel('anthropic'))
         ->assertHasNoErrors();
+});
+
+/*
+|--------------------------------------------------------------------------
+| Ollama, el que corre en tu computadora (BIB-27)
+|--------------------------------------------------------------------------
+|
+| Es el único de la lista que no depende de un servicio de afuera: su servidor
+| escucha en la red local y no autentica nada, así que no lee ninguna llave. Lo
+| que sí lo condiciona es que haya algo encendido en la URL configurada, y eso
+| es lo que la pantalla le pregunta.
+|
+*/
+
+it('ofrece a Ollama sin exigirle llave', function () {
+    config(['ai.providers.ollama.key' => null]);
+
+    screen()->assertSeeHtml('data-test="provider-ollama"');
+});
+
+it('no mete a Ollama en la lista de los que esperan su llave', function () {
+    config(['ai.providers.ollama.key' => null]);
+
+    screen()
+        ->assertDontSee('OLLAMA_API_KEY')
+        ->assertDontSee('Ollama — falta');
+});
+
+it('dice en una línea que Ollama corre en tu computadora, con su URL', function () {
+    config(['ai.providers.ollama.url' => 'http://localhost:11434']);
+
+    screen()
+        ->assertSee('Corre en tu computadora en http://localhost:11434')
+        ->assertSee('no necesita llave');
+});
+
+it('dice que el servidor no responde, y lo deja elegir igual', function () {
+    $this->ollamaRunning = false;
+
+    screen()
+        ->assertSee('El servidor no responde ahí')
+        ->assertSee('puedes elegirlo ahora y encenderlo después')
+        // Y nunca le reclama una llave, que es lo que no le falta.
+        ->assertDontSee('OLLAMA_API_KEY')
+        ->assertSeeHtml('data-test="provider-ollama"');
+});
+
+it('guarda a Ollama aunque su servidor esté apagado', function () {
+    $this->ollamaRunning = false;
+
+    choose('ollama')->assertHasNoErrors();
+
+    expect(AiSetting::chosen()->provider)->toBe('ollama');
+});
+
+it('avisa que el servidor de Ollama no responde cuando es el elegido', function () {
+    AiSetting::choose('ollama', namedModel('ollama'));
+
+    $this->ollamaRunning = false;
+
+    screen()
+        ->assertSeeHtml('data-test="chosen-server-down"')
+        ->assertSee('El servidor no responde en http://localhost:11434')
+        ->assertDontSee('Falta su llave en el entorno')
+        ->assertDontSeeHtml('data-test="chosen-without-key"');
+});
+
+it('no avisa nada cuando Ollama es el elegido y su servidor contesta', function () {
+    AiSetting::choose('ollama', namedModel('ollama'));
+
+    screen()
+        ->assertDontSeeHtml('data-test="chosen-server-down"')
+        ->assertDontSeeHtml('data-test="chosen-without-key"');
 });

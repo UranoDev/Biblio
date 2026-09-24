@@ -1,5 +1,7 @@
 <?php
 
+use App\Ai\AiModel;
+use App\Concerns\RegeneratesBooks;
 use App\Enums\ReadingStatus;
 use App\Enums\Status;
 use App\Models\Book;
@@ -22,12 +24,15 @@ use Livewire\Component;
  * carries its mark, because that is the difference this screen cannot let get
  * guessed.
  *
- * It does not know anything about the AI: the buttons to regenerate are BIB-22.
- * The screen has to work on a library where nobody ever chose an AiModel, so
- * nothing here assumes a Book has Categories.
+ * The Book gets asked of the AI again from here, one by one and without
+ * leaving the grid (BIB-22): what came out poor is corrected where it is seen.
+ * The screen still has to work on a library where nobody ever chose an AiModel,
+ * so nothing here assumes a Book has Categories.
  */
 new #[Title('Acervo')] class extends Component
 {
+    use RegeneratesBooks;
+
     /** The Search, inside my own Books: title and Authors, never a Source. */
     public string $search = '';
 
@@ -40,6 +45,12 @@ new #[Title('Acervo')] class extends Component
     /** The slug of the Category being looked at; empty is all of them. */
     public string $category = '';
 
+    /**
+     * Whether the grid is narrowed to the Books left on another AiModel: the
+     * candidates to regenerate after changing the model (ADR-006).
+     */
+    public bool $fromAnotherAiModel = false;
+
     public function mount(): void
     {
         // The screen is called Acervo and opens on it. What is Wanted is not
@@ -50,7 +61,7 @@ new #[Title('Acervo')] class extends Component
     /** Back to the first sight of the screen. */
     public function clearFilters(): void
     {
-        $this->reset('search', 'reading', 'category');
+        $this->reset('search', 'reading', 'category', 'fromAnotherAiModel');
 
         $this->status = Status::Owned->value;
     }
@@ -143,7 +154,33 @@ new #[Title('Acervo')] class extends Component
         return trim($this->search) !== ''
             || $this->reading !== ''
             || $this->category !== ''
+            || $this->fromAnotherAiModel
             || $this->status !== Status::Owned->value;
+    }
+
+    /**
+     * Whether any of the Books on screen is waiting for the AI.
+     *
+     * It is what decides whether the grid keeps looking: an answer arrives when
+     * the queue gets to it, and until then nothing on this screen changes. With
+     * nothing in line there is nothing to wait for, and the screen stops asking.
+     */
+    #[Computed]
+    public function awaiting(): bool
+    {
+        return $this->books->contains(fn (Book $book): bool => $book->isGenerationQueued());
+    }
+
+    /** The Book the grid is allowed to ask the AI about: any of its own. */
+    protected function bookToRegenerate(int $id): ?Book
+    {
+        return Book::query()->find($id);
+    }
+
+    /** The grid is drawn again, with the Book that just went back in line. */
+    protected function afterRegenerating(Book $book): void
+    {
+        unset($this->books, $this->counts, $this->categories, $this->awaiting, $this->elsewhere);
     }
 
     /**
@@ -168,6 +205,12 @@ new #[Title('Acervo')] class extends Component
             $query->inCategory($this->category);
         }
 
+        // The Books left on another AiModel. Without a chosen one there is
+        // nothing to compare against, and the filter is not offered either.
+        if ($this->fromAnotherAiModel && $this->aiModel instanceof AiModel) {
+            $query->fromAnotherAiModel($this->aiModel);
+        }
+
         if ($byStatus && $this->statusFilter() instanceof Status) {
             $query->where('status', $this->statusFilter());
         }
@@ -185,6 +228,13 @@ new #[Title('Acervo')] class extends Component
         return ReadingStatus::tryFrom($this->reading);
     }
 }; ?>
+
+{{--
+    The chosen AiModel is read once and handed to every Book: asking for it
+    inside the loop is the same question two hundred times, which is the one
+    thing a grid of two hundred Covers cannot do.
+--}}
+@php($chosen = $this->aiModel)
 
 <div class="flex w-full max-w-6xl flex-col gap-8">
     <div class="flex flex-col gap-2">
@@ -243,6 +293,19 @@ new #[Title('Acervo')] class extends Component
                 </flux:select>
             @endif
 
+            {{--
+                Only with a chosen AiModel: «otro modelo» has nothing to mean
+                while there is no current one to be other than (ADR-006).
+            --}}
+            @if ($chosen)
+                <flux:checkbox
+                    wire:model.live="fromAnotherAiModel"
+                    label="Con otro modelo"
+                    description="Los que quedaron con un modelo distinto al de ahora."
+                    data-test="another-ai-model-filter"
+                />
+            @endif
+
             @if ($this->filtering)
                 <flux:button variant="subtle" wire:click="clearFilters" data-test="clear-filters">
                     Quitar los filtros
@@ -250,6 +313,14 @@ new #[Title('Acervo')] class extends Component
             @endif
         </div>
     </div>
+
+    @if ($this->confirmingBook)
+        <x-regeneration-confirm :book="$this->confirmingBook" />
+    @endif
+
+    @if ($regenerationNotice)
+        <flux:text class="text-base" data-test="regeneration-notice">{{ $regenerationNotice }}</flux:text>
+    @endif
 
     <flux:separator />
 
@@ -282,6 +353,7 @@ new #[Title('Acervo')] class extends Component
         <ul
             class="grid grid-cols-2 gap-x-6 gap-y-10 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6"
             data-test="grid"
+            @if ($this->awaiting) wire:poll.5s @endif
         >
             @foreach ($this->books as $book)
                 <li wire:key="book-{{ $book->getKey() }}" class="flex flex-col gap-3">
@@ -298,10 +370,14 @@ new #[Title('Acervo')] class extends Component
                             the same six degrees everywhere.
                         --}}
                         <div class="px-2 pt-1">
-                            <x-cover
-                                :book="$book"
-                                class="rotate-(--cover-tilt) shadow-(--shadow-cover) transition-transform group-hover:rotate-0"
-                            />
+                            {{-- The stamp of the Reading goes inside the box
+                                 that leans, not next to it: that is what keeps
+                                 the word parallel to the Cover (BIB-38). --}}
+                            <div class="relative rotate-(--cover-tilt) transition-transform group-hover:rotate-0">
+                                <x-cover :book="$book" class="shadow-(--shadow-cover)" />
+
+                                <x-reading-stamp :book="$book" />
+                            </div>
                         </div>
 
                         <div class="flex min-w-0 flex-col gap-1">
@@ -315,9 +391,11 @@ new #[Title('Acervo')] class extends Component
                         </div>
                     </a>
 
+                    {{-- Here the Reading is the stamp and nothing else: the
+                         grid does not show the year, so a Book read in 2019 and
+                         one read without a date look alike, and the sheet is
+                         where they stop looking alike. --}}
                     <div class="flex flex-wrap items-center gap-x-3 gap-y-1">
-                        <x-reading-mark :status="$book->readingStatus()" />
-
                         @if ($book->status === \App\Enums\Status::Wanted)
                             <flux:badge size="sm" data-test="wanted-mark">Por comprar</flux:badge>
                         @endif
@@ -325,6 +403,12 @@ new #[Title('Acervo')] class extends Component
                         @if ($book->is_hidden)
                             <flux:badge size="sm" data-test="hidden-mark">Oculto</flux:badge>
                         @endif
+
+                        <x-generation-mark :book="$book" />
+                    </div>
+
+                    <div class="flex">
+                        <x-regenerate-book :book="$book" :chosen="$chosen" />
                     </div>
                 </li>
             @endforeach

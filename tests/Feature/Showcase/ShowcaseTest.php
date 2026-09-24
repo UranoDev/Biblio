@@ -1,6 +1,8 @@
 <?php
 
 use App\Models\Book;
+use App\Models\Category;
+use App\Showcase\Showcase;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
 
@@ -127,4 +129,54 @@ it('no le hace leer el Libro dos veces a quien oye la página', function () {
     Book::factory()->create(['title' => 'Pedro Páramo']);
 
     $this->get(route('showcase'))->assertDontSee('Portada de Pedro Páramo');
+});
+
+/*
+|--------------------------------------------------------------------------
+| The Categories a visitor can navigate by
+|--------------------------------------------------------------------------
+|
+| The navigation itself is BIB-19. What is settled here is which Categories it
+| may name, because that is the part that errs outwards: a Category whose Books
+| are all Hidden would say out loud, by its name alone, that there is something
+| behind it (ADR-003).
+*/
+
+it('ofrece las Categorías que tienen algún Libro visible', function () {
+    $category = Category::factory()->named('Narrativa')->create();
+    $category->books()->attach(Book::factory()->count(2)->create());
+
+    $offered = Showcase::categories();
+
+    expect($offered->pluck('name')->all())->toBe(['Narrativa'])
+        ->and((int) $offered->first()->books_count)->toBe(2);
+});
+
+it('no ofrece la Categoría cuyos Libros están todos ocultos', function () {
+    $category = Category::factory()->named('Narrativa')->create();
+    $category->books()->attach(Book::factory()->count(2)->create(['is_hidden' => true]));
+
+    expect(Showcase::categories())->toHaveCount(0);
+});
+
+it('cuenta sólo los Libros visibles de cada Categoría', function () {
+    $category = Category::factory()->named('Narrativa')->create();
+    $category->books()->attach(Book::factory()->create());
+    $category->books()->attach(Book::factory()->create(['is_hidden' => true]));
+
+    expect((int) Showcase::categories()->first()->books_count)->toBe(1);
+});
+
+it('no ofrece la Categoría que se quedó sin Libros', function () {
+    Category::factory()->named('Ensayo')->create();
+
+    expect(Showcase::categories())->toHaveCount(0);
+});
+
+it('ofrece las Categorías por nombre', function () {
+    foreach (['Poesía', 'Ensayo', 'Narrativa'] as $name) {
+        Category::factory()->named($name)->create()->books()->attach(Book::factory()->create());
+    }
+
+    expect(Showcase::categories()->pluck('name')->all())->toBe(['Ensayo', 'Narrativa', 'Poesía']);
 });

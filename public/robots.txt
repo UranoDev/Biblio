@@ -5,17 +5,31 @@ User-agent: *
 Disallow: /login
 Disallow: /forgot-password
 Disallow: /reset-password
+Disallow: /two-factor-challenge
+Disallow: /email/verify
+Disallow: /user/
+Disallow: /passkeys/
 Disallow: /dashboard
 Disallow: /shelf
 Disallow: /scan
 Disallow: /title-lookup
 Disallow: /manual-entry
+Disallow: /quote-search
 # La página pública de un libro es /book/123 y la del back office es /books/123:
 # se distinguen por una sola letra, así que la pública se declara explícita.
 Allow: /book/
 Disallow: /books/
+# Lo mismo con las categorías: /category/poesia es por donde se recorre el
+# acervo, y /categories es la pantalla donde se renombran y se fusionan.
+Allow: /category/
+Disallow: /categories
 Disallow: /settings
 Disallow: /storage/
 
-# El sitemap se declara acá cuando exista (BIB-37). Anunciar uno que todavía no
-# se sirve sólo consigue que Search Console lo reporte como error.
+# Este archivo se escribe a mano, y por eso hay una prueba que lo recorre contra
+# la lista de rutas de la aplicación: una pantalla nueva detrás del login no
+# edita este archivo, y nada en la pantalla lo diría (BIB-37).
+
+# La dirección del sitemap va completa porque el estándar la pide así, y un
+# archivo estático no sabe en qué dominio lo están sirviendo.
+Sitemap: https://biblio.urano.dev/sitemap.xml

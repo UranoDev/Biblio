@@ -19,6 +19,17 @@ use LogicException;
  */
 final class Providers
 {
+    /**
+     * The Providers that run on the machine this is installed on.
+     *
+     * Ollama is the only one on the list that does not talk to an outside
+     * service: its server listens on the local network and authenticates
+     * nothing, so it reads no key (BIB-27). `OLLAMA_API_KEY` exists in the SDK
+     * for putting it behind an authenticating proxy, or for Ollama Cloud, and
+     * neither of those is what happens when somebody runs it at home.
+     */
+    private const LOCAL = ['ollama'];
+
     /** @return list<Provider> */
     public static function all(): array
     {
@@ -34,12 +45,18 @@ final class Providers
                 continue;
             }
 
+            $local = in_array($name, self::LOCAL, true);
+
             $providers[] = new Provider(
                 name: $name,
                 label: self::labelOf($name),
-                keyVariable: ApiKeyVariables::of($name),
+                // A Provider that runs here waits for no variable, so naming
+                // one would be pointing at something that is not missing.
+                keyVariable: $local ? null : ApiKeyVariables::of($name),
                 hasKey: filled($configured[$name]['key'] ?? null),
                 models: self::modelsOf($text),
+                local: $local,
+                url: $local ? self::urlOf($configured[$name]) : null,
             );
         }
 
@@ -47,29 +64,31 @@ final class Providers
     }
 
     /**
-     * The Providers that can be chosen: their key is in the environment.
+     * The Providers that can be chosen: their key is in the environment, or
+     * they run here and read none.
      *
      * @return list<Provider>
      */
-    public static function withKey(): array
+    public static function choosable(): array
     {
         return array_values(array_filter(
             self::all(),
-            static fn (Provider $provider): bool => $provider->hasKey,
+            static fn (Provider $provider): bool => $provider->canBeChosen(),
         ));
     }
 
     /**
      * The Providers that cannot be chosen yet, for the screen to name the
-     * variable each one is waiting for.
+     * variable each one is waiting for. The ones that run here are never among
+     * them: they are not waiting for anything.
      *
      * @return list<Provider>
      */
-    public static function withoutKey(): array
+    public static function waitingForKey(): array
     {
         return array_values(array_filter(
             self::all(),
-            static fn (Provider $provider): bool => ! $provider->hasKey,
+            static fn (Provider $provider): bool => ! $provider->canBeChosen(),
         ));
     }
 
@@ -101,6 +120,19 @@ final class Providers
         ];
 
         return $spelling[$name] ?? Str::headline($name);
+    }
+
+    /**
+     * Where the server of a Provider that runs here is reached, as
+     * `config/ai.php` has it, or null when nothing is configured.
+     *
+     * @param  array<string, mixed>  $configuration
+     */
+    private static function urlOf(array $configuration): ?string
+    {
+        $url = $configuration['url'] ?? null;
+
+        return is_string($url) && trim($url) !== '' ? trim($url) : null;
     }
 
     /**
