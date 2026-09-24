@@ -80,16 +80,28 @@ it('un Libro sin Citas no dice «0 citas»', function () {
 });
 
 it('la ficha de un Libro declara su tarjeta entera, sin dejar que la red adivine', function () {
-    $book = Book::factory()->create(['title' => 'Pedro Páramo']);
+    bookRendererDraws();
+
+    $book = Book::factory()->coverGenerated()->create(['title' => 'Pedro Páramo']);
+
+    // La tarjeta se dibuja cuando llega la Portada (BIB-50), y es ella —y no la
+    // portada vertical— la que se anuncia: una red dibuja la tarjeta grande
+    // apaisada, y recortaría la portada hasta dejar una franja con las letras
+    // cortadas.
+    $book->forceFill(['cover_path' => 'covers/1/abc.jpg'])->save();
+
+    $book->refresh();
 
     $this->get(route('showcase.book', $book))
         ->assertSee('property="og:type" content="book"', escape: false)
         ->assertSee('property="og:title" content="Pedro Páramo"', escape: false)
         ->assertSee('property="og:url" content="'.route('showcase.book', $book).'"', escape: false)
         ->assertSee('property="og:site_name" content="'.config('app.name').'"', escape: false)
-        ->assertSee('property="og:image" content="'.$book->coverUrl().'"', escape: false)
+        ->assertSee('property="og:image" content="'.$book->shareImageUrl().'"', escape: false)
         ->assertSee('property="og:image:alt" content="Portada de Pedro Páramo"', escape: false)
         ->assertSee('name="twitter:card" content="summary_large_image"', escape: false);
+
+    expect($book->shareImageUrl())->not->toBe($book->coverUrl());
 });
 
 it('un Libro cuya Portada es la pieza generada no anuncia una imagen que no existe', function () {

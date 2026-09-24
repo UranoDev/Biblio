@@ -3,6 +3,7 @@
 namespace App\Providers;
 
 use App\Ai\LocalServer;
+use App\Books\ShareImage;
 use App\Covers\CoverStore;
 use App\Jobs\ProposeForBook;
 use App\Quotes\Html2Img;
@@ -62,6 +63,18 @@ class AppServiceProvider extends ServiceProvider
             fn (): ShareImages => new ShareImages(
                 renderer: $this->app->make(ImageRenderer::class),
                 directory: (string) config('quotes.directory', 'quotes'),
+            ),
+        );
+
+        /*
+         * The shareable card of a Book (BIB-50). It is drawn by the same
+         * renderer and written to a folder of its own.
+         */
+        $this->app->singleton(
+            ShareImage::class,
+            fn (): ShareImage => new ShareImage(
+                renderer: $this->app->make(ImageRenderer::class),
+                directory: (string) config('books.share_image.directory', 'books'),
             ),
         );
 

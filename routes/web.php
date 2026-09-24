@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\DownloadQuoteImage;
+use App\Http\Controllers\ServeBookImage;
 use App\Http\Controllers\ServeCover;
 use App\Http\Controllers\ServeQuoteImage;
 use App\Http\Controllers\ShowPrivacyNotice;
@@ -25,6 +26,21 @@ Route::get('/', ShowShowcase::class)->name('showcase');
 Route::get('book/{book}', ShowShowcaseBook::class)
     ->whereNumber('book')
     ->name('showcase.book');
+
+/*
+ * The card a network draws when the link of a Book is pasted (BIB-50).
+ *
+ * The address carries a signature of what the card was drawn from, for the same
+ * reason the images of a Quote do: the networks cache `og:image` by URL and with
+ * a will, and without it changing the card keeps showing the old one for days.
+ *
+ * It hangs off `book/{id}` and not off an address of its own, so `robots.txt`
+ * lets it through with the sheet it belongs to and there is nothing new to
+ * declare by hand.
+ */
+Route::get('book/{book}/card/{fingerprint}', ServeBookImage::class)
+    ->whereNumber('book')
+    ->name('book.card');
 
 /*
  * Walking the Showcase by Category (BIB-19). The address carries the slug and

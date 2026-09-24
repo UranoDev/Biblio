@@ -13,6 +13,7 @@ use App\Enums\Origin;
 use App\Enums\ReadingStatus;
 use App\Enums\Source;
 use App\Enums\Status;
+use App\Jobs\RenderBookImage;
 use Carbon\CarbonInterface;
 use Database\Factories\BookFactory;
 use Illuminate\Database\Eloquent\Attributes\Scope;
@@ -23,6 +24,7 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Support\Carbon;
+use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
 
 /**
@@ -45,6 +47,11 @@ use Illuminate\Support\Str;
  * @property string|null $cover_source_url
  * @property string|null $cover_thumbnail_path
  * @property CoverOrigin $cover_origin
+ * @property string|null $share_image_path
+ * @property string|null $share_image_fingerprint
+ * @property Carbon|null $share_image_queued_at
+ * @property Carbon|null $share_image_failed_at
+ * @property string|null $share_image_failure
  * @property Status $status
  * @property bool $is_read
  * @property Carbon|null $read_on
@@ -89,6 +96,21 @@ class Book extends Model
     ];
 
     /**
+     * Whether this write owes a shareable card, carried from the `saving` hook
+     * to the `saved` one. It is not a column: the row already says the card is
+     * owed, and what this adds is that **this write** is the one that has to
+     * put the job in the queue.
+     */
+    public bool $shareImageOwed = false;
+
+    /**
+     * The card file this write left behind, carried the same way. A Book that
+     * lost its Cover has no card any more, and the file is deleted once the row
+     * that pointed at it is down.
+     */
+    public ?string $shareImageOrphan = null;
+
+    /**
      * Get the attributes that should be cast.
      *
      * @return array<string, string>
@@ -109,12 +131,15 @@ class Book extends Model
             'categories_edited_at' => 'datetime',
             'generation_queued_at' => 'datetime',
             'generation_failed_at' => 'datetime',
+            'share_image_queued_at' => 'datetime',
+            'share_image_failed_at' => 'datetime',
         ];
     }
 
     /**
-     * Anything that shows in the image of a Quote and lives on the Book sends
-     * its Quotes back to the queue (ADR-009).
+     * Anything that shows in a shareable image and lives on the Book sends what
+     * shows it back to the queue: its Quotes (ADR-009) and its own card
+     * (BIB-50).
      *
      * The Cover is the one that costs: replacing a generated piece with a
      * photograph of my own (ADR-008) invalidates the shareable image of every
@@ -122,6 +147,12 @@ class Book extends Model
      * hundred Quotes — two hundred renders. Without this rule the library fills
      * up in silence with images of the Cover it used to have, and it is only
      * found out when somebody shares one.
+     *
+     * It hangs off `updated` and not off every save because a Book is never
+     * born with a stored Cover: it is registered first and its Cover arrives
+     * afterwards, downloaded from the Source or photographed by hand, and both
+     * of those are updates. The Books that were already there when this was
+     * written are the business of `books:backfill-cards`, not of a hook.
      */
     protected static function booted(): void
     {
@@ -139,12 +170,49 @@ class Book extends Model
                 : null;
         });
 
+        /*
+         * The card of the Book itself is owed on the same write and not on a
+         * second one (BIB-50).
+         *
+         * A hook that saved the Book again to write the mark would be saving
+         * from inside a save, where `wasChanged` still carries what the outer
+         * one changed — so it would queue, and save, and queue again, forever.
+         * Here the mark is an attribute like any other and the job is
+         * dispatched once the row is down, which is how the Quotes do it.
+         */
+        static::saving(function (Book $book): void {
+            // A Book is never born with a stored Cover: it is registered first
+            // and its Cover arrives afterwards, which is an update.
+            if (! $book->exists || ! $book->isDirty(['title', 'authors', 'cover_path'])) {
+                return;
+            }
+
+            $book->markShareImageOwed();
+        });
+
         static::updated(function (Book $book): void {
             if (! $book->wasChanged(['title', 'authors', 'cover_path'])) {
                 return;
             }
 
             $book->quotes()->each(fn (Quote $quote) => $quote->queueImages());
+        });
+
+        static::saved(function (Book $book): void {
+            if ($book->shareImageOwed) {
+                $book->shareImageOwed = false;
+
+                RenderBookImage::dispatch($book);
+            }
+
+            // The Cover it was drawn from is gone, so the file is too. It goes
+            // after the row is down: the other order leaves a Book pointing at
+            // nothing under an address its page still prints.
+            if ($book->shareImageOrphan !== null) {
+                Storage::disk()->delete($book->shareImageOrphan);
+
+                $book->shareImageOrphan = null;
+            }
         });
     }
 
@@ -683,6 +751,128 @@ class Book extends Model
             CoverSize::Full => $this->cover_path,
             CoverSize::Thumbnail => $this->cover_thumbnail_path ?? $this->cover_path,
         };
+    }
+
+    /**
+     * Puts the shareable card of the Book in the queue (BIB-50). Storing a Book
+     * never waits for it, so this writes down that it is owed and leaves.
+     *
+     * It is called from outside — from the command that picks up the Books that
+     * were there before any of this existed. The hook that watches the title,
+     * the Authors and the Cover does not go through here: it is already inside
+     * a save, and it marks the write that is happening.
+     */
+    public function queueShareImage(): void
+    {
+        $this->markShareImageOwed();
+
+        $this->save();
+    }
+
+    /**
+     * Writes down that the card is owed, on the write that is already
+     * happening. Whatever the queue gave up on before is off the record: this
+     * is a fresh request.
+     */
+    public function markShareImageOwed(): void
+    {
+        // Without a stored Cover there is no card to draw: a Book that shows
+        // the generated piece goes out without `og:image`, which is the
+        // behaviour of ADR-008 and what BIB-50 leaves alone. Whatever card it
+        // had was drawn from a Cover it no longer has, so it stops being
+        // served and its file is left for the `saved` hook to sweep.
+        if (! $this->hasCover()) {
+            $this->shareImageOrphan = $this->share_image_path;
+            $this->shareImageOwed = false;
+
+            $this->forceFill([
+                'share_image_path' => null,
+                'share_image_fingerprint' => null,
+                'share_image_queued_at' => null,
+                'share_image_failed_at' => null,
+                'share_image_failure' => null,
+            ]);
+
+            return;
+        }
+
+        $this->forceFill([
+            'share_image_queued_at' => now(),
+            'share_image_failed_at' => null,
+            'share_image_failure' => null,
+        ]);
+
+        $this->shareImageOwed = true;
+    }
+
+    /** The card is drawn and stored; nothing is owed any more. */
+    public function shareImageStored(string $path, string $fingerprint): void
+    {
+        $this->forceFill([
+            'share_image_path' => $path,
+            'share_image_fingerprint' => $fingerprint,
+            'share_image_queued_at' => null,
+            'share_image_failed_at' => null,
+            'share_image_failure' => null,
+        ])->save();
+    }
+
+    /**
+     * The renderer will not draw this one, and waiting is not going to change
+     * that. The mark stays **next to** the one that says the card is owed, not
+     * instead of it: the Book still has none, and what is pending is what says
+     * how much a mass regeneration would cost.
+     */
+    public function shareImageFailed(string $reason): void
+    {
+        $this->forceFill([
+            'share_image_failed_at' => now(),
+            'share_image_failure' => Str::limit(Str::squish($reason), 250),
+        ])->save();
+    }
+
+    /**
+     * The signature of everything the card shows: the title, the Authors and
+     * the Cover.
+     *
+     * It is what the address of the card carries, because the networks cache
+     * `og:image` by URL and with a will: an address that stays the same after
+     * the card changed keeps showing the one from a month ago.
+     */
+    public function shareImageFingerprint(): string
+    {
+        return md5(implode('|', [
+            $this->title,
+            implode(',', $this->authors),
+            (string) $this->cover_path,
+            $this->coverOrigin()->value,
+        ]));
+    }
+
+    /** Whether the card of this Book is drawn and stored. */
+    public function hasShareImage(): bool
+    {
+        return $this->hasCover()
+            && $this->share_image_path !== null
+            && $this->share_image_fingerprint !== null;
+    }
+
+    /**
+     * Where the card is served from: a route of the application, never the URL
+     * of the disk. The disk is private, and the application is the only place
+     * that knows whether the Book is Hidden — which its card obeys too
+     * (ADR-003).
+     */
+    public function shareImageUrl(): ?string
+    {
+        if (! $this->hasShareImage()) {
+            return null;
+        }
+
+        return route('book.card', [
+            'book' => $this,
+            'fingerprint' => $this->share_image_fingerprint,
+        ]);
     }
 
     /**

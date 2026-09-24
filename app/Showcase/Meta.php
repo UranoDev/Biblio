@@ -95,15 +95,23 @@ final readonly class Meta
             description: Str::limit($about, 180).($quotes === null ? '' : ' · '.$quotes),
             canonical: route('showcase.book', $book),
             type: 'book',
-            // The generated piece is not an image on a disk (ADR-008): it is
-            // drawn in the page, and no network can take it from there. So a
-            // Book without a stored Cover goes out without `og:image` and with
-            // the small card, which is the honest one — declaring an address
-            // that answers 404 is worse than declaring nothing. The day the
-            // rasterizer of ADR-009 is in place, the generated piece can have
-            // an address of its own too.
-            image: $book->hasCover() ? $book->coverUrl() : null,
-            imageAlt: $book->hasCover() ? 'Portada de '.$book->title : null,
+            // The horizontal card, and nothing else (BIB-50). A network draws
+            // `summary_large_image` in about 1.91:1, and handing it the Cover
+            // —which is a book, so about 2:3— makes it zoom into that frame
+            // until what is left is a strip of the middle with the letters cut
+            // off. The card is drawn at 1200x630, which is the shape it is
+            // going to be shown in.
+            //
+            // While the card is still in the queue the Cover is **not** put in
+            // its place: the networks cache `og:image` by URL and for days, so
+            // a link shared during that window would keep the very cut this
+            // came from. Without a card the Book goes out with the small card
+            // and no image, which is the honest one — and it is also where a
+            // Book with no stored Cover stays for good, because the generated
+            // piece is drawn in the page and no network can take it from there
+            // (ADR-008).
+            image: $book->shareImageUrl(),
+            imageAlt: $book->hasShareImage() ? 'Portada de '.$book->title : null,
         );
     }
 

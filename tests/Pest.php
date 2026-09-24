@@ -1,5 +1,6 @@
 <?php
 
+use App\Books\ShareImage;
 use App\Domain\Isbn;
 use App\Enums;
 use App\Quotes\ImageRenderer;
@@ -137,6 +138,35 @@ function rendererDraws(?Throwable $failure = null): FakeImageRenderer
     app()->instance(ShareImages::class, new ShareImages(
         renderer: $renderer,
         directory: (string) config('quotes.directory', 'quotes'),
+    ));
+
+    // La tarjeta de un Libro se dibuja con el mismo renderizador (BIB-50), y va
+    // a parar a un falso aparte: si compartieran uno, una prueba que cuenta lo
+    // que se dibujó de una Cita contaría además la tarjeta del Libro que la
+    // tiene, y el número no diría lo que dice.
+    app()->instance(ShareImage::class, new ShareImage(
+        renderer: new FakeImageRenderer,
+        directory: (string) config('books.share_image.directory', 'books'),
+    ));
+
+    return $renderer;
+}
+
+/**
+ * The same thing for the card of a Book: a fake renderer, handed back so the
+ * test can ask what it was sent (BIB-50).
+ */
+function bookRendererDraws(?Throwable $failure = null): FakeImageRenderer
+{
+    $renderer = $failure instanceof Throwable
+        ? FakeImageRenderer::failingWith($failure)
+        : new FakeImageRenderer;
+
+    app()->instance(ImageRenderer::class, $renderer);
+
+    app()->instance(ShareImage::class, new ShareImage(
+        renderer: $renderer,
+        directory: (string) config('books.share_image.directory', 'books'),
     ));
 
     return $renderer;

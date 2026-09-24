@@ -75,6 +75,31 @@
     --text-section-heading--letter-spacing: 0.34em;
 
     /*
+     * The title and the Authors on the card a network draws of a Book (BIB-50).
+     *
+     * They are the same two roles as above and they are not the same sizes,
+     * because they are not read on the same thing: on a screen the title of a
+     * Book is a caption under the Quote, and on that card it is the whole
+     * message, seen at the size a timeline draws a link. Set at 17px it comes
+     * out as a line of small print beside a large Cover.
+     *
+     * The canvas is fixed -- 1200x630 -- so the two sizes of the title are for
+     * the one thing that varies: a title of four words and one of thirty go on
+     * the same card, and the long one set large outweighs the Cover beside it.
+     * Which of the two a Book gets is read off the title by App\Books\ShareCard,
+     * never written by hand on a screen.
+     */
+    --text-book-card-title: 54px;
+    --text-book-card-title--line-height: 1.16;
+    --text-book-card-title--letter-spacing: -0.02em;
+    --text-book-card-title-small: 38px;
+    --text-book-card-title-small--line-height: 1.22;
+    --text-book-card-title-small--letter-spacing: -0.015em;
+    --text-book-card-authors: 20px;
+    --text-book-card-authors--line-height: 1.4;
+    --text-book-card-authors--letter-spacing: 0.2em;
+
+    /*
      * The stamp of a read Book, over its Cover (BIB-38). The ink is the Ink of
      * the direction -- there is no accent colour here either -- and the field
      * is the paper it is stamped on, which the stamp brings with it: dark ink
@@ -250,6 +275,38 @@
     font-size: var(--text-authors);
     line-height: var(--text-authors--line-height);
     letter-spacing: var(--text-authors--letter-spacing);
+    text-transform: uppercase;
+}
+
+/*
+ * The same two roles on the card of a Book, at the sizes that card is read at
+ * (BIB-50). Each one is written out whole instead of layering a size over
+ * `type-book-title`: which of two utilities on one element wins is decided by
+ * their order in the compiled stylesheet, and an element that reads one size in
+ * the markup and another in the picture is not worth the four lines saved.
+ */
+@utility type-book-card-title {
+    font-family: var(--font-sans);
+    font-weight: var(--text-book-title--font-weight);
+    font-size: var(--text-book-card-title);
+    line-height: var(--text-book-card-title--line-height);
+    letter-spacing: var(--text-book-card-title--letter-spacing);
+}
+
+@utility type-book-card-title-small {
+    font-family: var(--font-sans);
+    font-weight: var(--text-book-title--font-weight);
+    font-size: var(--text-book-card-title-small);
+    line-height: var(--text-book-card-title-small--line-height);
+    letter-spacing: var(--text-book-card-title-small--letter-spacing);
+}
+
+@utility type-book-card-authors {
+    font-family: var(--font-sans);
+    font-weight: 400;
+    font-size: var(--text-book-card-authors);
+    line-height: var(--text-book-card-authors--line-height);
+    letter-spacing: var(--text-book-card-authors--letter-spacing);
     text-transform: uppercase;
 }
 
