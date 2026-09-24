@@ -11,6 +11,10 @@ return [
     | order or removing a Source is done here and touches no screen (ADR-002).
     | The keys are the ones of the arrays below.
     |
+    | Whoever wins does not necessarily give the Cover: when the Record arrives
+    | without one, the Sources after it get asked for that field alone. Which
+    | one wins the Record does not change.
+    |
     */
 
     'order' => ['open_library', 'google_books'],

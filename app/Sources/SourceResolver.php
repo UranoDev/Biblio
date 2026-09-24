@@ -7,6 +7,10 @@ use App\Domain\Isbn;
 /**
  * Queries the Sources in order and returns the first thing that shows up.
  *
+ * The Record is the first one to show up; its Cover need not be. When the
+ * catalog that answered has no image of that edition, the next ones are asked
+ * for that single field.
+ *
  * The order lives in the configuration, not here nor on the screens: that is
  * what allows adding, removing or reordering catalogs without touching anything
  * else (ADR-002). There is one order per operation, because they do not answer
@@ -33,11 +37,11 @@ final class SourceResolver
     {
         $unanswered = [];
 
-        foreach ($this->sources as $source) {
+        foreach ($this->sources as $position => $source) {
             $result = $source->byIsbn($isbn);
 
             if ($result->hasRecord()) {
-                return $result;
+                return $this->withBorrowedCover($result, $isbn, $position);
             }
 
             if (! $result->answered()) {
@@ -51,6 +55,47 @@ final class SourceResolver
         return $unanswered === []
             ? LookupResult::withoutRecord()
             : LookupResult::unavailable(implode(' · ', $unanswered));
+    }
+
+    /**
+     * The Record of the Source that won, with the Cover of the next one that
+     * has any.
+     *
+     * A catalog answering the ISBN and having no image of that edition is the
+     * normal case and not the rare one —Open Library does it often—, and a
+     * small Cover beats none. Only `coverUrl` is borrowed: title, authors,
+     * publisher and year stay the ones that already answered, and which Source
+     * they came from stays on record. Which Source wins the whole cascade is a
+     * separate matter, decided in the configuration.
+     *
+     * Only the Sources **after** the winner get asked: the earlier ones either
+     * did not know the ISBN —so they have no Cover of it either— or could not
+     * answer at all.
+     *
+     * A Book whose Source brought a Cover returns without spending anything
+     * extra, so the cost is one request per Book that has none. Google Books is
+     * queried with a key of our own (ADR-002), so that quota is ours to spend,
+     * and this is exactly what it is for.
+     *
+     * @param  int  $position  where in the order the Source that answered is
+     */
+    private function withBorrowedCover(LookupResult $result, Isbn $isbn, int $position): LookupResult
+    {
+        $record = $result->record;
+
+        if (! $record instanceof Record || $record->coverUrl !== null) {
+            return $result;
+        }
+
+        foreach (array_slice($this->sources, $position + 1) as $source) {
+            $coverUrl = $source->byIsbn($isbn)->record?->coverUrl;
+
+            if ($coverUrl !== null) {
+                return LookupResult::withRecord($record->withCover($coverUrl));
+            }
+        }
+
+        return $result;
     }
 
     /**

@@ -31,6 +31,28 @@ final readonly class Record
     ) {}
 
     /**
+     * The same Record with the Cover of another Source, for when the one that
+     * answered brought none.
+     *
+     * `source` does not move: it says which catalog the Record came from, and
+     * that keeps being this one. The Cover is the only borrowed field.
+     */
+    public function withCover(string $coverUrl): self
+    {
+        return new self(
+            isbn: $this->isbn,
+            title: $this->title,
+            authors: $this->authors,
+            publisher: $this->publisher,
+            year: $this->year,
+            edition: $this->edition,
+            coverUrl: $coverUrl,
+            description: $this->description,
+            source: $this->source,
+        );
+    }
+
+    /**
      * A Record without a Description is valid: the Book is registered anyway and
      * left for the AI to write it later (ADR-007).
      */

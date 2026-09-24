@@ -62,7 +62,7 @@ function fakeCandidate(Enums\Source $source): Candidate
     );
 }
 
-function fakeRecord(Enums\Source $source): Record
+function fakeRecord(Enums\Source $source, ?string $coverUrl = null): Record
 {
     return new Record(
         isbn: Isbn::from('9788437604176'),
@@ -71,14 +71,17 @@ function fakeRecord(Enums\Source $source): Record
         publisher: 'Editorial RM',
         year: 2005,
         edition: null,
-        coverUrl: null,
+        coverUrl: $coverUrl,
         description: null,
         source: $source,
     );
 }
 
 it('se queda con la primera Source que conoce el ISBN y no consulta las demás', function () {
-    $first = sourceThat(LookupResult::withRecord(fakeRecord(Enums\Source::OpenLibrary)), Enums\Source::OpenLibrary);
+    $first = sourceThat(
+        LookupResult::withRecord(fakeRecord(Enums\Source::OpenLibrary, 'https://covers.openlibrary.org/b/id/1-L.jpg')),
+        Enums\Source::OpenLibrary,
+    );
     $second = sourceThat(LookupResult::withoutRecord(), Enums\Source::GoogleBooks);
 
     $result = (new SourceResolver([$first, $second]))->byIsbn(Isbn::from('9788437604176'));
@@ -130,6 +133,86 @@ it('sigue consultando cuando la primera Source no pudo contestar', function () {
     expect($resolver->byIsbn(Isbn::from('9788437604176'))->hasRecord())->toBeTrue();
 });
 
+it('le pide la portada a la siguiente Fuente cuando la que contestó no trae ninguna', function () {
+    $first = sourceThat(LookupResult::withRecord(fakeRecord(Enums\Source::OpenLibrary)), Enums\Source::OpenLibrary);
+    $second = sourceThat(
+        LookupResult::withRecord(fakeRecord(Enums\Source::GoogleBooks, 'https://books.google.com/portada.jpg')),
+        Enums\Source::GoogleBooks,
+    );
+
+    $result = (new SourceResolver([$first, $second]))->byIsbn(Isbn::from('9788437604176'));
+
+    expect($result->record->coverUrl)->toBe('https://books.google.com/portada.jpg')
+        ->and($second->lookups)->toBe(1);
+});
+
+it('la ficha prestada sigue siendo de la Fuente que contestó, sólo cambia la portada', function () {
+    $first = sourceThat(LookupResult::withRecord(fakeRecord(Enums\Source::OpenLibrary)), Enums\Source::OpenLibrary);
+    $second = sourceThat(
+        LookupResult::withRecord(new Record(
+            isbn: Isbn::from('9788437604176'),
+            title: 'Otro título',
+            authors: ['Otro autor'],
+            publisher: 'Otra editorial',
+            year: 1999,
+            edition: null,
+            coverUrl: 'https://books.google.com/portada.jpg',
+            description: 'Otra descripción',
+            source: Enums\Source::GoogleBooks,
+        )),
+        Enums\Source::GoogleBooks,
+    );
+
+    $record = (new SourceResolver([$first, $second]))->byIsbn(Isbn::from('9788437604176'))->record;
+
+    expect($record->source)->toBe(Enums\Source::OpenLibrary)
+        ->and($record->title)->toBe('Pedro Páramo')
+        ->and($record->publisher)->toBe('Editorial RM')
+        ->and($record->description)->toBeNull()
+        ->and($record->coverUrl)->toBe('https://books.google.com/portada.jpg');
+});
+
+it('no le pregunta nada de más a la siguiente Fuente cuando la portada ya vino', function () {
+    $first = sourceThat(
+        LookupResult::withRecord(fakeRecord(Enums\Source::OpenLibrary, 'https://covers.openlibrary.org/b/id/1-L.jpg')),
+        Enums\Source::OpenLibrary,
+    );
+    $second = sourceThat(
+        LookupResult::withRecord(fakeRecord(Enums\Source::GoogleBooks, 'https://books.google.com/portada.jpg')),
+        Enums\Source::GoogleBooks,
+    );
+
+    $result = (new SourceResolver([$first, $second]))->byIsbn(Isbn::from('9788437604176'));
+
+    expect($result->record->coverUrl)->toBe('https://covers.openlibrary.org/b/id/1-L.jpg')
+        ->and($second->lookups)->toBe(0);
+});
+
+it('registra el Libro sin portada cuando ninguna Fuente tiene una', function () {
+    $resolver = new SourceResolver([
+        sourceThat(LookupResult::withRecord(fakeRecord(Enums\Source::OpenLibrary)), Enums\Source::OpenLibrary),
+        sourceThat(LookupResult::withoutRecord(), Enums\Source::GoogleBooks),
+    ]);
+
+    $result = $resolver->byIsbn(Isbn::from('9788437604176'));
+
+    expect($result->hasRecord())->toBeTrue()
+        ->and($result->record->coverUrl)->toBeNull();
+});
+
+it('registra el Libro sin portada cuando la siguiente Fuente no pudo contestar', function () {
+    $resolver = new SourceResolver([
+        sourceThat(LookupResult::withRecord(fakeRecord(Enums\Source::OpenLibrary)), Enums\Source::OpenLibrary),
+        sourceThat(LookupResult::unavailable('HTTP 429'), Enums\Source::GoogleBooks),
+    ]);
+
+    $result = $resolver->byIsbn(Isbn::from('9788437604176'));
+
+    expect($result->hasRecord())->toBeTrue()
+        ->and($result->record->coverUrl)->toBeNull()
+        ->and($result->record->source)->toBe(Enums\Source::OpenLibrary);
+});
+
 it('rechaza un ISBN con el dígito de control inválido antes de salir a la red', function () {
     Http::fake();
 
@@ -140,7 +223,8 @@ it('rechaza un ISBN con el dígito de control inválido antes de salir a la red'
 
 it('queda armado desde la configuración, con Open Library primero', function () {
     Http::fake([
-        'openlibrary.org/isbn/*' => Http::response(recorded('open-library-edition-without-work')),
+        'openlibrary.org/isbn/*' => Http::response(recorded('open-library-edition')),
+        'openlibrary.org/works/*' => Http::response(recorded('open-library-work')),
         'openlibrary.org/authors/*' => Http::response(recorded('open-library-author-garcia-marquez')),
     ]);
 
@@ -161,6 +245,20 @@ it('usa Google Books de respaldo cuando Open Library no conoce el ISBN', functio
 
     expect($record->source)->toBe(Enums\Source::GoogleBooks)
         ->and($record->title)->toBe('Cien años de soledad / One Hundred Years of Solitude');
+});
+
+it('trae la portada de Google Books cuando Open Library conoce el ISBN pero no la tiene', function () {
+    Http::fake([
+        'openlibrary.org/isbn/*' => Http::response(recorded('open-library-edition-without-work')),
+        'openlibrary.org/authors/*' => Http::response(recorded('open-library-author-garcia-marquez')),
+        'www.googleapis.com/*' => Http::response(recorded('google-books-volume')),
+    ]);
+
+    $record = app(SourceResolver::class)->byIsbn(Isbn::from('9788420471839'))->record;
+
+    expect($record->source)->toBe(Enums\Source::OpenLibrary)
+        ->and($record->title)->toBe('Cien Anos De Soledad')
+        ->and($record->coverUrl)->toContain('books.google.com');
 });
 
 it('se queda con los Candidates de la primera Source que tenga alguno', function () {
