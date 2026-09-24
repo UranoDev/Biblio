@@ -51,5 +51,7 @@
     { "Id": "BIB-52", "ResolvedAt": "2026-09-24 15:14:01", "Type": "Bug", "Summary": "Una descarga de Portada que falla no deja ninguna marca visible" },
     { "Id": "BIB-53", "ResolvedAt": "2026-09-24 15:22:00", "Type": "Bug", "Summary": "isFlat() rechaza una portada real de fondo minimalista como si fuera un marcador" },
     { "Id": "BIB-54", "ResolvedAt": "2026-09-24 16:25:48", "Type": "Bug", "Summary": "Reanudar tras quedarse sin créditos no alcanza la tarjeta de un Libro" },
-    { "Id": "BIB-55", "ResolvedAt": "2026-09-24 16:31:23", "Type": "Feature", "Summary": "Si la Fuente del registro no trae portada, no se le pregunta a la siguiente" }
+    { "Id": "BIB-55", "ResolvedAt": "2026-09-24 16:31:23", "Type": "Feature", "Summary": "Si la Fuente del registro no trae portada, no se le pregunta a la siguiente" },
+    { "Id": "BIB-56", "ResolvedAt": "2026-09-24 16:53:42", "Type": "Task", "Summary": "\"Configuración\" pasa a llamarse \"Ajustes\" y se muda a la barra lateral" },
+    { "Id": "BIB-57", "ResolvedAt": "2026-09-24 17:07:55", "Type": "Feature", "Summary": "Botón para reintentar en cascada (Open Library, luego Google) las Portadas que faltan" }
 ]

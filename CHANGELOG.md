@@ -1,5 +1,10 @@
 # Changelog
 
+## [2026.09.24.2] - 2026 sep 24
+### Features
+- **BIB-57**: Botón para reintentar en cascada (Open Library, luego Google) las Portadas que faltan
+- **BIB-56**: "Configuración" pasa a llamarse "Ajustes" y se muda a la barra lateral
+
 ## [2026.09.24.1] - 2026 sep 24
 ### Fix / Bugs
 - **BIB-54**: Reanudar tras quedarse sin créditos no alcanza la tarjeta de un Libro
