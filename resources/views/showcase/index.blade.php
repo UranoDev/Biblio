@@ -11,10 +11,6 @@
 <x-showcase.layout :meta="$meta">
     <header class="flex max-w-prose flex-col gap-5">
         <h1 class="text-4xl font-bold tracking-tight md:text-5xl">{{ config('app.name') }}</h1>
-
-        <p class="text-lg leading-relaxed text-ink-muted">
-            Los libros que tengo, los que quiero tener y las citas que guardé de ellos.
-        </p>
     </header>
 
     <section class="flex flex-col gap-8" data-test="shelf">
