@@ -112,7 +112,8 @@ final class Regenerations
 
         if (! $target->includesCategories()) {
             return $onlyPrevious && $chosen instanceof AiModel
-                ? $query->descriptionFromAnotherAiModel($chosen)
+                ? $query->where(fn (Builder $query) => $query->descriptionFromAnotherAiModel($chosen)
+                    ->orWhere(fn (Builder $query) => $query->descriptionAwaitingTranslation()))
                 : $query->descriptionWritable();
         }
 
@@ -124,7 +125,12 @@ final class Regenerations
 
         return $query->where(function (Builder $query) use ($chosen): void {
             $query->categoriesFromAnotherAiModel($chosen)
-                ->orWhere(fn (Builder $query) => $query->descriptionFromAnotherAiModel($chosen));
+                ->orWhere(fn (Builder $query) => $query->descriptionFromAnotherAiModel($chosen))
+                // A Book waiting on a translation was never written by an
+                // AiModel (ADR-007), so "left on another model" never reaches
+                // it — narrowing to the previous model would silently drop the
+                // one case BIB-45 exists for.
+                ->orWhere(fn (Builder $query) => $query->descriptionAwaitingTranslation());
         });
     }
 

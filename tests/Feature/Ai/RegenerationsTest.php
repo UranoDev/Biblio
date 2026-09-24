@@ -240,6 +240,30 @@ it('una corrida de sólo descripciones alcanza la que vino en otro idioma', func
         ->and($mine->fresh()->generation_queued_at)->toBeNull();
 });
 
+/**
+ * La casilla «Sólo los libros que quedaron con otro modelo» viene marcada por
+ * defecto en la pantalla (BIB-46). Una Description del Source nunca la
+ * escribió ningún AiModel, así que "quedó con otro modelo" no le aplica —y sin
+ * esta regla, la casilla marcada de fábrica deja fuera justo lo que BIB-45
+ * existe para alcanzar.
+ */
+it('una corrida acotada a lo que quedó con otro modelo alcanza igual la que vino en otro idioma', function () {
+    Queue::fake();
+
+    $english = Book::factory()->descriptionInAnotherLanguage()->create();
+
+    $plan = regenerations()->plan(RegenerationTarget::Descriptions, onlyPrevious: true);
+
+    expect($plan->books)->toBe(1)
+        ->and($plan->translated)->toBe(1);
+
+    regenerations()->start(RegenerationTarget::Descriptions, onlyPrevious: true);
+
+    Queue::assertPushed(
+        fn (ProposeForBook $job): bool => (int) $job->book->getKey() === (int) $english->getKey()
+    );
+});
+
 it('una corrida de sólo descripciones vuelve a traducir la ya traducida', function () {
     Queue::fake();
 
