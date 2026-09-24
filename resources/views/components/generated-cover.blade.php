@@ -1,3 +1,4 @@
+@use('App\Covers\CoverAttributes')
 @use('App\Covers\GeneratedCover')
 
 @props(['piece'])
@@ -18,7 +19,7 @@
     viewBox="0 0 {{ GeneratedCover::WIDTH }} {{ GeneratedCover::HEIGHT }}"
     role="img"
     aria-label="{{ $piece->label() }}"
-    {{ $attributes->class(['cover-edge aspect-2/3 w-full rounded-lg']) }}
+    {{ $attributes->class(CoverAttributes::classes($attributes, 'cover-edge aspect-2/3 rounded-lg')) }}
 >
     <rect width="{{ GeneratedCover::WIDTH }}" height="{{ GeneratedCover::HEIGHT }}" fill="{{ $piece->field() }}" />
 

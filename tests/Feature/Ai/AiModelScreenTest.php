@@ -3,6 +3,7 @@
 use App\Ai\BookAgent;
 use App\Ai\Proposals;
 use App\Ai\Providers;
+use App\Jobs\ProposeForBook;
 use App\Models\AiSetting;
 use App\Models\Book;
 use App\Models\User;
@@ -86,8 +87,9 @@ it('el agente escribe con el AiModel guardado y no con uno del entorno', functio
 
     app(Proposals::class)->queueFor(Book::factory()->create());
 
-    BookAgent::assertQueued(
-        fn ($prompt): bool => $prompt->provider === 'anthropic' && $prompt->model === $model
+    Queue::assertPushed(
+        ProposeForBook::class,
+        fn (ProposeForBook $job): bool => $job->provider === 'anthropic' && $job->aiModel === $model,
     );
 });
 
@@ -196,7 +198,7 @@ it('cambiar de AiModel no regenera nada por sí solo', function () {
 
     expect($book->fresh()->categories_ai_model)->toBe('gemini-de-antes');
 
-    BookAgent::assertNeverQueued();
+    Queue::assertNotPushed(ProposeForBook::class);
 });
 
 it('ofrece ir a regenerar en cuanto exista esa pantalla', function () {

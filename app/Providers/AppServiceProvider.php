@@ -3,13 +3,16 @@
 namespace App\Providers;
 
 use App\Covers\CoverStore;
+use App\Jobs\ProposeForBook;
 use App\Sources\GoogleBooks;
 use App\Sources\OpenLibrary;
 use App\Sources\Source;
 use App\Sources\SourceResolver;
 use Carbon\CarbonImmutable;
+use Illuminate\Cache\RateLimiting\Limit;
 use Illuminate\Support\Facades\Date;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\RateLimiter;
 use Illuminate\Support\ServiceProvider;
 use Illuminate\Validation\Rules\Password;
 use InvalidArgumentException;
@@ -46,6 +49,25 @@ class AppServiceProvider extends ServiceProvider
     public function boot(): void
     {
         $this->configureDefaults();
+        $this->configureTheAiPace();
+    }
+
+    /**
+     * How fast the AI gets asked (BIB-33).
+     *
+     * Every provider puts a ceiling on it, and capturing the shelf is two
+     * hundred Books in one sitting. The count lives in the cache and not in the
+     * memory of a process, which is what makes several workers add up to one
+     * rhythm instead of one each.
+     */
+    protected function configureTheAiPace(): void
+    {
+        RateLimiter::for(
+            ProposeForBook::LIMITER,
+            fn (): Limit => Limit::perMinute(
+                (int) config('proposals.requests_per_minute', 5)
+            )->by(ProposeForBook::LIMITER),
+        );
     }
 
     /**

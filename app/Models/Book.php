@@ -51,6 +51,8 @@ use Illuminate\Support\Str;
  * @property string|null $categories_ai_model
  * @property string|null $description_provider
  * @property string|null $description_ai_model
+ * @property Carbon|null $generation_failed_at
+ * @property string|null $generation_failure
  * @property Carbon|null $created_at
  * @property Carbon|null $updated_at
  * @property-read Collection<int, Quote> $quotes
@@ -94,6 +96,7 @@ class Book extends Model
             'read_on' => 'date',
             'lent_on' => 'date',
             'is_hidden' => 'boolean',
+            'generation_failed_at' => 'datetime',
         ];
     }
 
@@ -160,15 +163,23 @@ class Book extends Model
     }
 
     /**
-     * Which of the three situations the Categories of the Book are in
-     * (ADR-006).
+     * Which of the four situations the Categories of the Book are in (ADR-006).
      *
-     * A Book without Categories is not one thing but two: one that is waiting
-     * in the queue, and one that is not going to get any until somebody chooses
-     * an AiModel. The screen that shows them says which.
+     * A Book without Categories is not one thing but three: one waiting its
+     * turn in the queue, one the queue gave up on after hours of trying, and
+     * one that is not going to get any until somebody chooses an AiModel. The
+     * screen that shows them says which.
+     *
+     * The failure comes first, even over Categories written earlier: what it
+     * describes is the last thing that happened with the AI for this Book, and
+     * that is a regeneration that did not get through.
      */
     public function categoriesStatus(): GenerationStatus
     {
+        if ($this->generation_failed_at !== null) {
+            return GenerationStatus::Failed;
+        }
+
         if ($this->categories_ai_model !== null) {
             return GenerationStatus::Generated;
         }
@@ -176,6 +187,35 @@ class Book extends Model
         return AiModel::chosen() instanceof AiModel
             ? GenerationStatus::Pending
             : GenerationStatus::Off;
+    }
+
+    /**
+     * The Book is waiting its turn again: whatever the queue gave up on is off
+     * the record, because a new request is on its way (BIB-33).
+     */
+    public function generationQueued(): void
+    {
+        if ($this->generation_failed_at === null) {
+            return;
+        }
+
+        $this->forceFill([
+            'generation_failed_at' => null,
+            'generation_failure' => null,
+        ])->save();
+    }
+
+    /**
+     * The queue gave up on what the AI writes for this Book, and this is what
+     * the provider said last. It is written down so that the sheet can tell it
+     * apart from a Book that is still in line (BIB-33).
+     */
+    public function generationFailed(string $reason): void
+    {
+        $this->forceFill([
+            'generation_failed_at' => now(),
+            'generation_failure' => Str::limit(Str::squish($reason), 250),
+        ])->save();
     }
 
     /**

@@ -1,3 +1,5 @@
+@use('App\Covers\CoverAttributes')
+
 @props([
     'book',
     'size' => 'thumbnail',
@@ -16,7 +18,7 @@
         src="{{ $url }}"
         alt="Portada de {{ $book->title }}"
         loading="lazy"
-        {{ $attributes->class(['cover-edge aspect-2/3 w-full rounded-lg object-cover']) }}
+        {{ $attributes->class(CoverAttributes::classes($attributes, 'cover-edge aspect-2/3 rounded-lg object-cover')) }}
     >
 @else
     <x-generated-cover :piece="$book->generatedCover()" {{ $attributes }} />

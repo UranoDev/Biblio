@@ -178,6 +178,18 @@ class BookFactory extends Factory
     }
 
     /**
+     * With the generation given up on: the queue tried for hours and the
+     * provider never got through (BIB-33).
+     */
+    public function generationFailed(string $reason = 'AI provider [gemini] is overloaded.'): static
+    {
+        return $this->state(fn (array $attributes) => [
+            'generation_failed_at' => now(),
+            'generation_failure' => $reason,
+        ]);
+    }
+
+    /**
      * Lent out, with the date it left.
      */
     public function lent(?string $to = null): static

@@ -3,10 +3,10 @@
 namespace App\Ai;
 
 use App\Enums\Origin;
+use App\Jobs\ProposeForBook;
 use App\Models\Book;
 use App\Models\Category;
 use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Str;
 use Laravel\Ai\Responses\AgentResponse;
 
@@ -29,8 +29,8 @@ final class Proposals
      * is queued, and registering a Book goes on working exactly the same.
      *
      * Queueing it again is also how a Book is regenerated —because the AiModel
-     * changed, or because the provider failed— since nothing is written until
-     * the whole answer is there.
+     * changed, because the provider failed— since nothing is written until the
+     * whole answer is there.
      */
     public function queueFor(Book $book): bool
     {
@@ -40,19 +40,34 @@ final class Proposals
             return false;
         }
 
-        $bookId = $book->getKey();
+        // A Book that had given up is waiting its turn again, and its sheet has
+        // to say so from this moment and not once the answer arrives.
+        $book->generationQueued();
 
-        (new BookAgent($book->acceptsAiDescription()))
-            ->queue(
-                $this->promptFor($book),
-                provider: $chosen->provider,
-                model: $chosen->name,
-            )
-            ->then(static function (AgentResponse $response) use ($bookId): void {
-                app(Proposals::class)->store($bookId, $response);
-            });
+        ProposeForBook::dispatch($book, $chosen->provider, $chosen->name);
 
         return true;
+    }
+
+    /**
+     * Asks the AI and stores what came back.
+     *
+     * This is what runs inside the queued job, and everything it throws is that
+     * job's business: whether to wait or to fail is decided there, with the
+     * whole request in front of it.
+     *
+     * The prompt is built here and not when the Book was queued, which is what
+     * makes the list of existing Categories the one there is at the moment of
+     * asking. Two hundred Books queued in one sitting would otherwise all be
+     * told that no Category exists yet, and every one of them would invent its
+     * own spelling — exactly the fragmentation ADR-006 is about.
+     */
+    public function askFor(Book $book, string $provider, string $aiModel): void
+    {
+        $response = (new BookAgent($book->acceptsAiDescription()))
+            ->prompt($this->promptFor($book), provider: $provider, model: $aiModel);
+
+        $this->store($book, $response);
     }
 
     /**
@@ -62,24 +77,12 @@ final class Proposals
      * failure leaves the Book untouched —not half written— and pending, which
      * is what makes queueing it again safe.
      */
-    public function store(int $bookId, AgentResponse $response): void
+    private function store(Book $book, AgentResponse $response): void
     {
-        $book = Book::query()->find($bookId);
-
-        if (! $book instanceof Book) {
-            // The Book was deleted while it waited in the queue.
-            return;
-        }
-
         $proposal = Proposal::from($response);
 
         if (! $proposal instanceof Proposal) {
-            Log::warning('The AI answered nothing usable for a Book.', [
-                'book' => $bookId,
-                'answer' => (string) $response,
-            ]);
-
-            return;
+            throw UnusableAnswer::for($book, (string) $response);
         }
 
         DB::transaction(function () use ($book, $proposal): void {

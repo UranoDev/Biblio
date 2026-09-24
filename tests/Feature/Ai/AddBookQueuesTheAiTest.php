@@ -2,9 +2,9 @@
 
 use App\Ai\BookAgent;
 use App\Intake\AddBook;
+use App\Jobs\ProposeForBook;
 use App\Models\AiSetting;
 use Illuminate\Support\Facades\Queue;
-use Laravel\Ai\Jobs\InvokeAgent;
 
 it('encola la generación al registrar un Book, sin esperar la respuesta', function () {
     AiSetting::choose('gemini', 'gemini-2.5-flash');
@@ -12,11 +12,14 @@ it('encola la generación al registrar un Book, sin esperar la respuesta', funct
     BookAgent::fake();
     Queue::fake();
 
-    app(AddBook::class)->fromRecord(recordOf('9789707802186'));
+    $book = app(AddBook::class)->fromRecord(recordOf('9789707802186'));
 
-    Queue::assertPushed(InvokeAgent::class);
-
-    BookAgent::assertQueued(fn ($prompt) => $prompt->contains('Pedro Páramo'));
+    Queue::assertPushed(
+        ProposeForBook::class,
+        fn (ProposeForBook $job): bool => $job->book->is($book)
+            && $job->provider === 'gemini'
+            && $job->aiModel === 'gemini-2.5-flash',
+    );
 
     // Nothing answered yet: registering the Book did not wait for the API.
     BookAgent::assertNeverPrompted();
@@ -30,4 +33,5 @@ it('registral Book igual cuando todavía no hay AiModel elegido', function () {
     expect($book->exists)->toBeTrue();
 
     BookAgent::assertNeverQueued();
+    BookAgent::assertNeverPrompted();
 });

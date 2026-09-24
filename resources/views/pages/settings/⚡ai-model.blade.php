@@ -268,6 +268,7 @@ new #[Title('Modelo de IA')] class extends Component
                     <flux:radio.group wire:model.live="provider" label="Proveedor">
                         @foreach ($this->providers as $option)
                             <flux:radio
+                                wire:key="provider-{{ $option->name }}"
                                 value="{{ $option->name }}"
                                 label="{{ $option->label }}"
                                 data-test="provider-{{ $option->name }}"
@@ -277,8 +278,15 @@ new #[Title('Modelo de IA')] class extends Component
 
                     @if ($provider)
                         <flux:radio.group wire:model.live="model" label="Modelo">
+                            {{-- Each radio is keyed so that changing Provider builds new
+                                 ones instead of rewriting these. A radio reads its value
+                                 once, when the browser creates it, and never looks at that
+                                 attribute again: without the key the list would show the
+                                 names of the new Provider while still sending back the
+                                 names of the previous one. --}}
                             @foreach ($this->models as $option)
                                 <flux:radio
+                                    wire:key="model-{{ $provider }}-{{ $option->name }}"
                                     value="{{ $option->name }}"
                                     label="{{ $option->name }}"
                                     description="{{ $option->rolesLabel() }}"
@@ -287,6 +295,7 @@ new #[Title('Modelo de IA')] class extends Component
                             @endforeach
 
                             <flux:radio
+                                wire:key="model-other"
                                 value="{{ $this->other }}"
                                 label="Otro"
                                 description="Un modelo que el proveedor no nombra aquí."

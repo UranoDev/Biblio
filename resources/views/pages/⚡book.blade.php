@@ -641,6 +641,15 @@ new #[Title('Ficha del Libro')] class extends Component
                     @case(\App\Enums\GenerationStatus::Pending)
                         Están en la cola de {{ $this->aiModel?->name }}.
                         @break
+                    @case(\App\Enums\GenerationStatus::Failed)
+                        La IA dejó de intentar con este Libro.
+                        @if ($book->generation_failure !== null)
+                            Lo último que contestó el proveedor: «{{ $book->generation_failure }}».
+                        @endif
+                        @if ($book->categories_ai_model !== null && $book->categories->isNotEmpty())
+                            Las que se ven las escribió {{ $book->categories_ai_model }}.
+                        @endif
+                        @break
                     @case(\App\Enums\GenerationStatus::Off)
                         Falta elegir el modelo para que la IA las proponga.
                         @break

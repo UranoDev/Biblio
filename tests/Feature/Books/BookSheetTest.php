@@ -419,6 +419,25 @@ it('dice que las Categories están en la cola cuando hay AiModel elegido', funct
         ->assertSee('Están en la cola');
 });
 
+it('distingue al Book que espera turno del que falló', function () {
+    AiSetting::choose('gemini', 'gemini-2.5-flash');
+
+    $waiting = Book::factory()->create(['categories_ai_model' => null, 'categories_provider' => null]);
+    $failed = Book::factory()->generationFailed('gemini-3.6-flash is currently experiencing high demand')
+        ->create(['categories_ai_model' => null, 'categories_provider' => null]);
+
+    sheetOf($waiting)
+        ->assertSet('categoriesStatus', GenerationStatus::Pending)
+        ->assertSee('Están en la cola')
+        ->assertDontSee('dejó de intentar');
+
+    sheetOf($failed)
+        ->assertSet('categoriesStatus', GenerationStatus::Failed)
+        ->assertSee('dejó de intentar')
+        ->assertSee('high demand')
+        ->assertDontSee('Están en la cola');
+});
+
 it('dice que falta elegir el AiModel cuando no hay ninguno', function () {
     $book = Book::factory()->create(['categories_ai_model' => null, 'categories_provider' => null]);
 

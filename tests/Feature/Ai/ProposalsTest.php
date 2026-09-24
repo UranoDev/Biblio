@@ -158,10 +158,12 @@ it('no dejal Book a medias cuando la respuesta no trae Categories', function () 
 
     $book = $book->fresh();
 
+    // La mitad de una respuesta no se guarda, y el job no se queda esperando a
+    // que la próxima sea distinta: falla y se ve (BIB-33).
     expect($book->categories)->toBeEmpty()
         ->and($book->categories_ai_model)->toBeNull()
         ->and($book->description)->toBeNull()
-        ->and($book->categoriesStatus())->toBe(GenerationStatus::Pending);
+        ->and($book->categoriesStatus())->toBe(GenerationStatus::Failed);
 });
 
 it('se puede volver a encolar después de una respuesta inservible', function () {
@@ -198,14 +200,14 @@ it('no dejal Book a medias cuando el proveedor truena, y se puede reintentar', f
 
     $book = Book::factory()->withoutDescription()->create();
 
-    expect(fn () => proposals()->queueFor($book))->toThrow(RuntimeException::class);
+    proposals()->queueFor($book);
 
     $book = $book->fresh();
 
     expect($book->categories)->toBeEmpty()
         ->and($book->categories_ai_model)->toBeNull()
         ->and($book->description)->toBeNull()
-        ->and($book->categoriesStatus())->toBe(GenerationStatus::Pending);
+        ->and($book->categoriesStatus())->toBe(GenerationStatus::Failed);
 
     BookAgent::fake([
         ['categories' => ['Novela mexicana'], 'description' => 'La historia de Comala.'],
