@@ -2,6 +2,13 @@
 
 ## [2026.09.24] - 2026 sep 24
 ### Fix / Bugs
+- **BIB-53**: isFlat() rechaza una portada real de fondo minimalista como si fuera un marcador
+- **BIB-52**: Una descarga de Portada que falla no deja ninguna marca visible
+- **BIB-49**: La imagen horizontal deja demasiado aire arriba y abajo
+- **BIB-48**: Una Quote de antes de BIB-31 dice «no está lista» sin que nada esté en cola
+- **BIB-46**: Un Book dice «está en la cola» doce horas después de que su job murió
+- **BIB-43**: Las Categories tapan la página: crecen con el acervo y están impresas arriba de todo
+- **BIB-41**: La tarjeta de una Quote no sabe cuándo está en casa
 - **BIB-34**: Una Portada mala que vino de la Fuente no se puede quitar
 - **BIB-27**: Ollama no necesita llave, y la pantalla dice que le falta
 - **BIB-26**: Toda la interfaz del skeleton sigue en inglés
@@ -11,6 +18,13 @@
 - **BIB-32**: Los Covers nunca se sirven: la URL del disco privado va sin firma
 - **BIB-28**: Las Sources devuelven portadas falsas y DownloadCover las guarda
 ### Features
+- **BIB-51**: El mínimo de una Portada bajó de 300 a 64 px de lado corto
+- **BIB-50**: La ficha de un Libro no tiene tarjeta horizontal para compartir
+- **BIB-12**: Desplegar en biblio.urano.dev
+- **BIB-47**: Aviso de privacidad y términos de uso
+- **BIB-45**: Una Description en inglés se traduce, con el vocabulario de la materia
+- **BIB-42**: La página de una Quote admite romanos, y los preliminares van primero
+- **BIB-40**: El Dashboard dice dónde está el trabajo pendiente, y el login lleva al Acervo
 - **BIB-39**: Saber qué versión está corriendo
 - **BIB-31**: La página de una Quote y su imagen para compartir
 - **BIB-24**: Grabaciones reales de las Sources y pruebas de contrato
