@@ -15,7 +15,7 @@ it('sube un Cover a mano', function () {
     $book = Book::factory()->withoutCover()->create();
 
     Livewire::test('book-cover', ['book' => $book])
-        ->set('file', UploadedFile::fake()->image('portada.jpg', 400, 600))
+        ->set('file', UploadedFile::fake()->createWithContent('portada.jpg', testImage(400, 600)))
         ->call('save')
         ->assertHasNoErrors();
 
@@ -31,13 +31,13 @@ it('reemplazal Cover que ya tenía', function () {
     $book = Book::factory()->withoutCover()->create();
 
     Livewire::test('book-cover', ['book' => $book])
-        ->set('file', UploadedFile::fake()->image('primera.jpg', 400, 600))
+        ->set('file', UploadedFile::fake()->createWithContent('primera.jpg', testImage(400, 600)))
         ->call('save');
 
     $first = $book->fresh()->cover_path;
 
     Livewire::test('book-cover', ['book' => $book->fresh()])
-        ->set('file', UploadedFile::fake()->image('segunda.jpg', 500, 750))
+        ->set('file', UploadedFile::fake()->createWithContent('segunda.jpg', testImage(500, 750)))
         ->call('save');
 
     expect($book->fresh()->cover_path)->not->toBe($first);
@@ -109,4 +109,24 @@ it('muestra la miniatura cuando el Book tiene Cover', function () {
 
     $this->blade('<x-cover :book="$book" size="full" />', ['book' => $book])
         ->assertSee('covers/9/abc.jpg', false);
+});
+
+it('no acepta a mano el marcador que devuelve un catálogo', function () {
+    $book = Book::factory()->withoutCover()->create();
+
+    Livewire::test('book-cover', ['book' => $book])
+        ->set('file', UploadedFile::fake()->createWithContent('portada.png', recordedCover('google-books-not-available.png')))
+        ->call('save')
+        ->assertHasErrors('file');
+
+    expect($book->fresh()->hasCover())->toBeFalse();
+});
+
+it('dice por qué no sirve la imagen, en vez de decir que no se pudo leer', function () {
+    $book = Book::factory()->withoutCover()->create();
+
+    Livewire::test('book-cover', ['book' => $book])
+        ->set('file', UploadedFile::fake()->createWithContent('miniatura.jpg', testImage(80, 120)))
+        ->call('save')
+        ->assertHasErrors(['file' => 'La imagen mide 80 px de lado corto y el mínimo es 100.']);
 });

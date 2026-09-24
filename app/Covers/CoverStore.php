@@ -21,6 +21,7 @@ final readonly class CoverStore
         private string $directory,
         private int $thumbnailWidth,
         private int $maximumWeight,
+        private int $minimumSide,
     ) {}
 
     /**
@@ -39,6 +40,8 @@ final readonly class CoverStore
         }
 
         $image = Image::from($binary);
+
+        $this->refuseWhatIsNotACover($binary, $image);
 
         $previous = array_filter([$book->cover_path, $book->cover_thumbnail_path]);
 
@@ -85,6 +88,31 @@ final readonly class CoverStore
         ])->save();
 
         $this->deleteFiles($files);
+    }
+
+    /**
+     * A readable image is not yet a Cover. The catalogs answer an ISBN they
+     * have no Cover for with an image that is valid in every other way, and
+     * stored as it comes it looks like a bad Cover instead of like the mistake
+     * it is (BIB-28).
+     *
+     * @throws InvalidImage
+     */
+    private function refuseWhatIsNotACover(string $binary, Image $image): void
+    {
+        $marker = Marker::of($binary);
+
+        if ($marker !== null) {
+            throw InvalidImage::isAMarker($marker);
+        }
+
+        if ($image->shortestSide() < $this->minimumSide) {
+            throw InvalidImage::tooSmall($image->shortestSide(), $this->minimumSide);
+        }
+
+        if ($image->isFlat()) {
+            throw InvalidImage::isFlat();
+        }
     }
 
     private function path(Book $book, string $file): string

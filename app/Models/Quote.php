@@ -35,4 +35,30 @@ class Quote extends Model
     {
         return $this->belongsTo(Book::class);
     }
+
+    /**
+     * Corrects the Quote: a typo in the transcription, or the page that was
+     * missing. The words stay the Book's either way.
+     */
+    public function rewrite(string $text, ?int $page = null): void
+    {
+        $this->forceFill([
+            'text' => self::transcribe($text),
+            'page' => $page,
+        ])->save();
+    }
+
+    /**
+     * The text as it gets stored.
+     *
+     * The blank space around it goes, because it is typing and not the Book.
+     * The line breaks inside stay, because a quote of verse or dialogue is not
+     * the same thing once they are gone; the ones the browser sends as CRLF get
+     * written like every other, so that two Quotes typed the same are stored
+     * the same.
+     */
+    public static function transcribe(string $text): string
+    {
+        return trim(str_replace(["\r\n", "\r"], "\n", $text));
+    }
 }

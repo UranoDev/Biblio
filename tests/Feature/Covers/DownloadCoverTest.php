@@ -5,6 +5,7 @@ use App\Jobs\DownloadCover;
 use App\Models\Book;
 use Illuminate\Http\Client\ConnectionException;
 use Illuminate\Support\Facades\Http;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Queue;
 use Illuminate\Support\Facades\Storage;
 
@@ -144,4 +145,78 @@ it('no reintenta un Book que no tiene de dónde bajar el Cover', function () {
     expect(DownloadCover::retry($book))->toBeFalse();
 
     Queue::assertNothingPushed();
+});
+
+it('dejal Book sin Cover cuando Open Library devuelve su pixel de 1×1', function () {
+    Http::fake([
+        'covers.openlibrary.org/*' => Http::response(recordedCover('open-library-no-cover.gif'), 200, ['Content-Type' => 'image/gif']),
+    ]);
+
+    $book = Book::factory()->coverPending()->create([
+        'cover_source_url' => 'https://covers.openlibrary.org/b/isbn/9788437604176-L.jpg',
+    ]);
+
+    download($book);
+
+    $book->refresh();
+
+    expect($book->hasCover())->toBeFalse()
+        ->and($book->cover_source_url)->toBe('https://covers.openlibrary.org/b/isbn/9788437604176-L.jpg')
+        ->and($book->canRetryCover())->toBeTrue()
+        ->and(Storage::disk()->allFiles())->toBeEmpty();
+});
+
+it('dejal Book sin Cover cuando Google Books devuelve su «image not available»', function (string $file) {
+    Http::fake(['books.google.com/*' => Http::response(recordedCover($file), 200, ['Content-Type' => 'image/png'])]);
+
+    $book = Book::factory()->coverPending()->create([
+        'cover_source_url' => 'https://books.google.com/books/content?id=pEjU0QEACAAJ&printsec=frontcover&img=1&zoom=1',
+    ]);
+
+    download($book);
+
+    $book->refresh();
+
+    expect($book->hasCover())->toBeFalse()
+        ->and($book->cover_source_url)->toContain('books.google.com')
+        ->and($book->canRetryCover())->toBeTrue()
+        ->and(Storage::disk()->allFiles())->toBeEmpty();
+})->with([
+    'google-books-not-available.png',
+    'google-books-not-available-128x198.jpg',
+    'google-books-not-available-128x170.png',
+]);
+
+it('distingue en la bitácora el marcador de una descarga que falló', function () {
+    Log::spy();
+
+    Http::fake(['books.google.com/*' => Http::response(recordedCover('google-books-not-available.png'), 200)]);
+
+    $book = Book::factory()->coverPending()->create([
+        'cover_source_url' => 'https://books.google.com/books/content?id=pEjU0QEACAAJ',
+    ]);
+
+    download($book);
+
+    Log::shouldHaveReceived('warning')
+        ->once()
+        ->withArgs(fn (string $message, array $context): bool => $message === 'What the Source returned is not a Cover.'
+            && $context['book'] === $book->getKey()
+            && str_contains($context['reason'], 'image not available'));
+});
+
+it('no confunde una descarga que falló con un marcador', function () {
+    Log::spy();
+
+    Http::fake(['covers.openlibrary.org/*' => Http::response('', 404)]);
+
+    $book = Book::factory()->coverPending()->create([
+        'cover_source_url' => 'https://covers.openlibrary.org/b/id/42-L.jpg',
+    ]);
+
+    download($book);
+
+    Log::shouldHaveReceived('warning')
+        ->once()
+        ->withArgs(fn (string $message): bool => $message === 'The Cover could not be downloaded.');
 });

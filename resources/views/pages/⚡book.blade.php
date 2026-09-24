@@ -6,6 +6,7 @@ use App\Enums\GenerationStatus;
 use App\Enums\Status;
 use App\Models\Book;
 use App\Models\Category;
+use App\Models\Quote;
 use Illuminate\Support\Str;
 use Illuminate\Validation\Rule;
 use Livewire\Attributes\Computed;
@@ -70,6 +71,14 @@ new #[Title('Ficha del Libro')] class extends Component
 
     /** The Category about to be added, by name. */
     public string $category = '';
+
+    /** The Quote about to be written, and its page when it was written down. */
+    public string $quoteText = '';
+
+    public string $quotePage = '';
+
+    /** The Quote being corrected, or null while a new one is being typed. */
+    public ?int $editingQuote = null;
 
     /** What the last save did, read at a glance and never in a modal. */
     public ?string $notice = null;
@@ -311,6 +320,98 @@ new #[Title('Ficha del Libro')] class extends Component
         $this->book->load('categories');
 
         $this->notice = 'La Categoría salió de este Libro.';
+    }
+
+    /**
+     * Writes the Quote, and leaves the field ready for the next one.
+     *
+     * The Quotes get transcribed in one sitting, one after another, so the same
+     * form takes the new one and the correction of an old one: nothing reloads
+     * and nothing opens in between.
+     */
+    public function saveQuote(): void
+    {
+        $this->validate([
+            'quoteText' => ['required', 'string', 'max:5000'],
+            'quotePage' => ['nullable', 'integer', 'min:1', 'max:100000'],
+        ], [
+            'quoteText.required' => 'Falta el texto de la cita.',
+            'quoteText.max' => 'La cita no puede pasar de 5000 caracteres.',
+            'quotePage.integer' => 'La página se escribe con dígitos.',
+            'quotePage.min' => 'La página empieza en 1.',
+            'quotePage.max' => 'Esa página es demasiado alta.',
+        ]);
+
+        $page = trim($this->quotePage) === '' ? null : (int) trim($this->quotePage);
+
+        if ($this->editingQuote === null) {
+            $this->book->addQuote($this->quoteText, $page);
+
+            $this->notice = 'La cita quedó guardada.';
+        } else {
+            $this->quoteOfThisBook($this->editingQuote)->rewrite($this->quoteText, $page);
+
+            $this->notice = 'La cita quedó corregida.';
+        }
+
+        $this->resetQuoteForm();
+        $this->book->load('quotes');
+
+        // The next one gets typed right away, so the field takes the cursor back.
+        $this->dispatch('quote-written');
+    }
+
+    /** Brings an existing Quote into the same form, to correct it. */
+    public function editQuote(int $id): void
+    {
+        $quote = $this->quoteOfThisBook($id);
+
+        $this->editingQuote = $quote->getKey();
+        $this->quoteText = $quote->text;
+        $this->quotePage = $quote->page === null ? '' : (string) $quote->page;
+
+        $this->resetValidation();
+
+        $this->notice = null;
+
+        $this->dispatch('quote-written');
+    }
+
+    /** Leaves the Quote as it was and the form ready for a new one. */
+    public function cancelQuote(): void
+    {
+        $this->resetQuoteForm();
+
+        $this->notice = null;
+    }
+
+    public function deleteQuote(int $id): void
+    {
+        $this->quoteOfThisBook($id)->delete();
+
+        if ($this->editingQuote === $id) {
+            $this->resetQuoteForm();
+        }
+
+        $this->book->load('quotes');
+
+        $this->notice = 'La cita se borró.';
+    }
+
+    /**
+     * A Quote of this Book, by id. Going through the relation is what keeps the
+     * sheet of one Book from editing the Quotes of another.
+     */
+    private function quoteOfThisBook(int $id): Quote
+    {
+        return $this->book->quotes()->whereKey($id)->firstOrFail();
+    }
+
+    private function resetQuoteForm(): void
+    {
+        $this->reset('quoteText', 'quotePage', 'editingQuote');
+
+        $this->resetValidation();
     }
 
     /** Leaves every field showing what is stored, after a save. */
@@ -587,19 +688,88 @@ new #[Title('Ficha del Libro')] class extends Component
     <flux:separator />
 
     {{-- The Quotes: the words of the Book, and they get published. --}}
-    <section class="flex flex-col gap-4">
+    <section class="flex flex-col gap-6">
         <div class="flex flex-col gap-1">
             <x-visibility public :hidden="$book->is_hidden" />
             <flux:heading size="lg">Citas</flux:heading>
+
+            <flux:text>
+                Los fragmentos del Libro que quieres conservar, con su página. Se ordenan por página, y las que no la
+                traen van al final.
+            </flux:text>
         </div>
+
+        {{--
+            The same form writes the new Quote and corrects an old one: one
+            sitting goes through many of them, and a second form would be a
+            second place to look.
+        --}}
+        <form
+            wire:submit="saveQuote"
+            class="flex flex-col gap-3"
+            x-data
+            x-on:quote-written.window="$refs.quoteText?.focus()"
+        >
+            <flux:textarea
+                wire:model="quoteText"
+                x-ref="quoteText"
+                :label="$editingQuote ? 'Corregir la cita' : 'Cita'"
+                description="Los saltos de línea se conservan."
+                rows="4"
+                data-test="quote-field"
+            />
+
+            <div class="flex flex-wrap items-end gap-3">
+                <flux:input
+                    wire:model="quotePage"
+                    label="Página"
+                    placeholder="Opcional"
+                    inputmode="numeric"
+                    autocomplete="off"
+                    class="max-w-36"
+                    data-test="quote-page-field"
+                />
+
+                <flux:button type="submit" variant="primary" data-test="save-quote">
+                    {{ $editingQuote ? 'Guardar la cita' : 'Agregar cita' }}
+                </flux:button>
+
+                @if ($editingQuote)
+                    <flux:button type="button" variant="subtle" wire:click="cancelQuote" data-test="cancel-quote">
+                        Cancelar
+                    </flux:button>
+                @endif
+            </div>
+        </form>
 
         @forelse ($book->quotes as $quote)
             <figure wire:key="quote-{{ $quote->getKey() }}" class="flex flex-col gap-2">
-                <blockquote class="type-quote">{{ $quote->text }}</blockquote>
+                <blockquote class="type-quote whitespace-pre-line">{{ $quote->text }}</blockquote>
 
-                @if ($quote->page)
-                    <figcaption class="font-mono text-xs text-zinc-500 dark:text-zinc-400">p. {{ $quote->page }}</figcaption>
-                @endif
+                <figcaption class="flex flex-wrap items-center gap-3 pl-5">
+                    @if ($quote->page)
+                        <span class="font-mono text-xs text-zinc-500 dark:text-zinc-400">p. {{ $quote->page }}</span>
+                    @endif
+
+                    <flux:button
+                        size="xs"
+                        variant="subtle"
+                        wire:click="editQuote({{ $quote->getKey() }})"
+                        data-test="edit-quote"
+                    >
+                        Editar
+                    </flux:button>
+
+                    <flux:button
+                        size="xs"
+                        variant="subtle"
+                        wire:click="deleteQuote({{ $quote->getKey() }})"
+                        wire:confirm="¿Borrar esta cita?"
+                        data-test="delete-quote"
+                    >
+                        Borrar
+                    </flux:button>
+                </figcaption>
             </figure>
         @empty
             <flux:text data-test="quotes-empty">Este Libro no tiene Citas guardadas.</flux:text>

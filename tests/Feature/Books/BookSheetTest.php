@@ -459,7 +459,8 @@ it('no dice que algo se ve en la Vitrina cuando el Book está oculto', function 
         ->assertDontSee('>Se ve en la Vitrina', escape: false);
 });
 
-// Las Quotes son del Book y son públicas; aquí sólo se leen.
+// Las Quotes son del Book y son públicas. Capturarlas, editarlas y borrarlas
+// vive en QuotesTest; aquí sólo se verifica que la ficha las muestre.
 
 it('muestra las Quotes del Book', function () {
     $book = Book::factory()->create();

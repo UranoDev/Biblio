@@ -80,10 +80,19 @@ class Book extends Model
         ];
     }
 
-    /** @return HasMany<Quote, $this> */
+    /**
+     * The Quotes of the Book, in the order they go in the Book: by page, and
+     * the ones whose page was not written down at the end.
+     *
+     * The order lives on the relation and not on each screen, because the Shelf
+     * and the Showcase have to show the same Quotes in the same sequence, and a
+     * Quote typed later belongs where its page is, not at the bottom.
+     *
+     * @return HasMany<Quote, $this>
+     */
     public function quotes(): HasMany
     {
-        return $this->hasMany(Quote::class);
+        return $this->hasMany(Quote::class)->orderByRaw('page is null, page, id');
     }
 
     /** @return BelongsToMany<Category, $this> */
@@ -224,6 +233,20 @@ class Book extends Model
             'description_provider' => null,
             'description_ai_model' => null,
         ])->save();
+    }
+
+    /**
+     * Adds a Quote to the Book: the words of the Book, with its page when it
+     * was written down.
+     *
+     * @param  int|null  $page  the page it is on, or null when it was not written down
+     */
+    public function addQuote(string $text, ?int $page = null): Quote
+    {
+        return $this->quotes()->create([
+            'text' => Quote::transcribe($text),
+            'page' => $page,
+        ]);
     }
 
     /** The Note: mine, one per Book, and out of the Showcase. */

@@ -76,6 +76,16 @@ function recorded(string $name): string
 }
 
 /**
+ * A Cover as a catalog really answered it, recorded byte for byte. They are
+ * the images the catalogs hand back when they have no Cover, so the tests that
+ * refuse them run against the real file and not against an imitation of it.
+ */
+function recordedCover(string $file): string
+{
+    return file_get_contents(__DIR__."/Fixtures/covers/{$file}");
+}
+
+/**
  * A real image, made on the spot: the Cover tests do not go out to the internet
  * nor load binary files into the repo.
  */
@@ -83,10 +93,26 @@ function testImage(int $width = 400, int $height = 600, string $format = 'jpeg')
 {
     $canvas = imagecreatetruecolor($width, $height);
 
-    $color = imagecolorallocate($canvas, 190, 40, 40);
+    // Bands of different colors, and not one flat rectangle: a Cover of a
+    // single color is exactly what the catalogs answer when they have none, and
+    // the store refuses it (BIB-28).
+    $bands = [[190, 40, 40], [30, 30, 60], [240, 230, 200], [20, 110, 90]];
 
-    if ($color !== false) {
-        imagefilledrectangle($canvas, 0, 0, $width, $height, $color);
+    foreach ($bands as $index => [$red, $green, $blue]) {
+        $color = imagecolorallocate($canvas, $red, $green, $blue);
+
+        if ($color === false) {
+            continue;
+        }
+
+        imagefilledrectangle(
+            $canvas,
+            0,
+            (int) round($index * $height / count($bands)),
+            $width,
+            (int) round(($index + 1) * $height / count($bands)),
+            $color,
+        );
     }
 
     ob_start();

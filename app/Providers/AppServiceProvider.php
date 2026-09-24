@@ -35,6 +35,7 @@ class AppServiceProvider extends ServiceProvider
                 directory: (string) config('covers.directory', 'covers'),
                 thumbnailWidth: (int) config('covers.thumbnail_width', 320),
                 maximumWeight: (int) config('covers.max_weight', 5 * 1024 * 1024),
+                minimumSide: (int) config('covers.minimum_side', 100),
             ),
         );
     }

@@ -41,4 +41,18 @@ return [
 
     'max_weight' => (int) env('COVERS_MAX_WEIGHT', 5 * 1024 * 1024),
 
+    /*
+    |--------------------------------------------------------------------------
+    | How small an image stops being a Cover
+    |--------------------------------------------------------------------------
+    |
+    | The short side, in pixels, below which what arrived is refused: the
+    | catalogs answer an ISBN they have no Cover for with a valid image —a 1×1
+    | pixel, a thumbnail— and stored as it comes it looks like a bad Cover
+    | instead of like the mistake it is (BIB-28).
+    |
+    */
+
+    'minimum_side' => (int) env('COVERS_MINIMUM_SIDE', 100),
+
 ];

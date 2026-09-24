@@ -95,7 +95,7 @@ class DownloadCover implements ShouldQueue
             // one does get better by retrying.
             $store->store($this->book, $response->body());
         } catch (InvalidImage $failure) {
-            $this->giveUp($failure->getMessage());
+            $this->refused($failure->getMessage());
         }
     }
 
@@ -107,6 +107,26 @@ class DownloadCover implements ShouldQueue
     private function giveUp(string $reason): void
     {
         Log::warning('The Cover could not be downloaded.', [
+            'book' => $this->book->getKey(),
+            'url' => $this->book->cover_source_url,
+            'reason' => $reason,
+        ]);
+    }
+
+    /**
+     * The download went fine and what came back is not a Cover: the marker the
+     * catalog answers with when it has no image, or something too small to be
+     * one (BIB-28). It is logged apart from the failures above because it says
+     * something else —the Source has nothing, retrying changes nothing— and
+     * because a run of these is what tells you a catalog started answering that
+     * way.
+     *
+     * The Book is left the same as a failed download: without a Cover, with its
+     * `cover_source_url` intact.
+     */
+    private function refused(string $reason): void
+    {
+        Log::warning('What the Source returned is not a Cover.', [
             'book' => $this->book->getKey(),
             'url' => $this->book->cover_source_url,
             'reason' => $reason,

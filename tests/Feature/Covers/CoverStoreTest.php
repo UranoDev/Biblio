@@ -146,3 +146,82 @@ it('respetal directorio configurado', function () {
 
     expect($book->cover_path)->toStartWith('cubiertas/');
 });
+
+it('no guarda el pixel de 1×1 que Open Library devuelve cuando no tiene Cover', function () {
+    $book = Book::factory()->withoutCover()->create();
+
+    expect(fn () => $this->store->store($book, recordedCover('open-library-no-cover.gif')))
+        ->toThrow(InvalidImage::class);
+
+    expect($book->fresh()->hasCover())->toBeFalse()
+        ->and(Storage::disk()->allFiles())->toBeEmpty();
+});
+
+it('no guarda el marcador «image not available» de Google Books', function (string $file) {
+    $book = Book::factory()->withoutCover()->create();
+
+    expect(fn () => $this->store->store($book, recordedCover($file)))
+        ->toThrow(InvalidImage::class);
+
+    expect($book->fresh()->hasCover())->toBeFalse()
+        ->and(Storage::disk()->allFiles())->toBeEmpty();
+})->with([
+    'google-books-not-available.png',
+    'google-books-not-available-128x198.jpg',
+    'google-books-not-available-128x170.png',
+]);
+
+it('no guarda una imagen más chica que el mínimo, aunque sea una portada de verdad', function () {
+    $book = Book::factory()->withoutCover()->create();
+
+    expect(fn () => $this->store->store($book, testImage(80, 120)))
+        ->toThrow(InvalidImage::class, 'La imagen mide 80 px de lado corto y el mínimo es 100.');
+
+    expect(Storage::disk()->allFiles())->toBeEmpty();
+});
+
+it('mide el lado corto, no el largo', function () {
+    $book = Book::factory()->withoutCover()->create();
+
+    expect(fn () => $this->store->store($book, testImage(90, 1200)))
+        ->toThrow(InvalidImage::class);
+});
+
+it('sube el mínimo sin tocar código', function () {
+    config()->set('covers.minimum_side', 300);
+
+    $book = Book::factory()->withoutCover()->create();
+
+    expect(fn () => coverStore()->store($book, testImage(200, 300)))
+        ->toThrow(InvalidImage::class);
+});
+
+it('no guarda una imagen de un solo color plano, aunque mida lo suficiente', function () {
+    $book = Book::factory()->withoutCover()->create();
+
+    $canvas = imagecreatetruecolor(600, 900);
+    imagefilledrectangle($canvas, 0, 0, 600, 900, (int) imagecolorallocate($canvas, 250, 250, 250));
+    ob_start();
+    imagepng($canvas);
+    $blank = (string) ob_get_clean();
+    imagedestroy($canvas);
+
+    expect(fn () => $this->store->store($book, $blank))
+        ->toThrow(InvalidImage::class);
+
+    expect(Storage::disk()->allFiles())->toBeEmpty();
+});
+
+it('conserval Cover que ya teníal Book cuando lo que llega es un marcador', function () {
+    $book = Book::factory()->withoutCover()->create();
+
+    $this->store->store($book, testImage(400, 600));
+    $path = $book->cover_path;
+
+    expect(fn () => $this->store->store($book, recordedCover('google-books-not-available.png')))
+        ->toThrow(InvalidImage::class);
+
+    expect($book->fresh()->cover_path)->toBe($path);
+
+    Storage::disk()->assertExists($path);
+});

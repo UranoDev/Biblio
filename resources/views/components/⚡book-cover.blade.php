@@ -35,8 +35,10 @@ new class extends Component
 
         try {
             $store->storeUpload($this->book, $this->file);
-        } catch (InvalidImage) {
-            $this->addError('file', 'El archivo no se pudo leer como imagen.');
+        } catch (InvalidImage $failure) {
+            // The reason is worth showing: «no se pudo leer» is false when what
+            // was refused is a thumbnail or the marker of a catalog.
+            $this->addError('file', $failure->getMessage());
 
             return;
         } catch (CoverNotStored) {
