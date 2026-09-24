@@ -51,8 +51,13 @@ return [
     | pixel, a thumbnail— and stored as it comes it looks like a bad Cover
     | instead of like the mistake it is (BIB-28).
     |
+    | The bar is high on purpose. It also refuses real Covers that came too
+    | small to read in the grid, and that costs nothing: a Book without a Cover
+    | gets a generated one (ADR-008), which looks better than a 162 px scan
+    | stretched to size.
+    |
     */
 
-    'minimum_side' => (int) env('COVERS_MINIMUM_SIDE', 100),
+    'minimum_side' => (int) env('COVERS_MINIMUM_SIDE', 300),
 
 ];

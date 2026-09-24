@@ -174,8 +174,8 @@ it('no guarda el marcador «image not available» de Google Books', function (st
 it('no guarda una imagen más chica que el mínimo, aunque sea una portada de verdad', function () {
     $book = Book::factory()->withoutCover()->create();
 
-    expect(fn () => $this->store->store($book, testImage(80, 120)))
-        ->toThrow(InvalidImage::class, 'La imagen mide 80 px de lado corto y el mínimo es 100.');
+    expect(fn () => $this->store->store($book, testImage(162, 198)))
+        ->toThrow(InvalidImage::class, 'La imagen mide 162 px de lado corto y el mínimo es 300.');
 
     expect(Storage::disk()->allFiles())->toBeEmpty();
 });
@@ -188,11 +188,11 @@ it('mide el lado corto, no el largo', function () {
 });
 
 it('sube el mínimo sin tocar código', function () {
-    config()->set('covers.minimum_side', 300);
+    config()->set('covers.minimum_side', 600);
 
     $book = Book::factory()->withoutCover()->create();
 
-    expect(fn () => coverStore()->store($book, testImage(200, 300)))
+    expect(fn () => coverStore()->store($book, testImage(400, 600)))
         ->toThrow(InvalidImage::class);
 });
 
