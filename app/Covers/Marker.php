@@ -34,6 +34,12 @@ final readonly class Marker
         // The minimum side rejects it too; it is listed so the log says which
         // of the two it was.
         '546c5cf136073615afda5cab173feff341171a26a848cf7ce09bb8bd8b07ce89' => 'Open Library, el pixel de 1×1',
+        // Internet Archive, which is where Open Library serves its Covers from:
+        // when the file is gone it hands back its own logo —a white temple on
+        // black— with a 200. Landscape, so the minimum side refuses it too; it
+        // is listed so the log says which of the two it was, and so a bigger
+        // variant does not slip through.
+        '542210da157d122a7dcbd39438d61e3b8570b6b03787a5c7ee02405a38d5e389' => 'Internet Archive, el templete blanco sobre negro, 320×220',
     ];
 
     /**

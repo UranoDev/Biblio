@@ -11,6 +11,7 @@ y la prueba dejaría de probar lo único que importa acá, que es reconocer **es
 | `google-books-not-available.png` | `books.google.com/books/content?id=pEjU0QEACAAJ&…&zoom=3` | 575×750 | 9 103 |
 | `google-books-not-available-128x198.jpg` | el mismo volumen, `zoom=1` | 128×198 | 7 970 |
 | `google-books-not-available-128x170.png` | volumen `3TIctgEACAAJ`, `zoom=1` | 128×170 | 1 269 |
+| `internet-archive-placeholder.jpg` | `covers.openlibrary.org/b/id/15092702-L.jpg` | 320×220 | 5 045 |
 
 Tres cosas que se comprobaron bajándolas, y que no se ven en la tabla:
 
@@ -24,6 +25,12 @@ Tres cosas que se comprobaron bajándolas, y que no se ven en la tabla:
   archivo por proporción, así que la lista de hashes cubre los que se vieron y no todos.
   Los dos guardados acá salieron de libros distintos y son idénticos entre sí por
   proporción.
+
+El del templete apareció en producción el 2026-09-24, capturando de verdad: Open Library
+sirve sus portadas desde Internet Archive, y cuando el archivo ya no está devuelve el logo
+de Internet Archive con un 200. Es **apaisado**, 320×220, así que el mínimo de 300 px lo
+rechaza por su cuenta; está en la lista para que el log diga cuál de los dos motivos fue y
+para que una variante más grande no se cuele.
 
 `App\Covers\Marker` tiene el hash de cada uno. Para agregar el marcador de otro catálogo:
 bajarlo acá y poner su `sha256` en esa lista.

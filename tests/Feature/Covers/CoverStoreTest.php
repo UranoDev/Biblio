@@ -173,6 +173,16 @@ it('no guarda el marcador «image not available» de Google Books', function (st
     'google-books-not-available-128x170.png',
 ]);
 
+it('no guarda el logo de Internet Archive, que es lo que Open Library sirve cuando el archivo ya no está', function () {
+    $book = Book::factory()->coverGenerated()->create();
+
+    expect(fn () => $this->store->store($book, recordedCover('internet-archive-placeholder.jpg')))
+        ->toThrow(InvalidImage::class);
+
+    expect($book->fresh()->hasCover())->toBeFalse()
+        ->and(Storage::disk()->allFiles())->toBeEmpty();
+});
+
 it('no guarda una imagen más chica que el mínimo, aunque sea una portada de verdad', function () {
     $book = Book::factory()->coverGenerated()->create();
 
