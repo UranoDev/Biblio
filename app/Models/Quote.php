@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use App\Enums\ShareFormat;
+use App\Enums\ShareImageStatus;
 use App\Jobs\RenderQuoteImages;
 use App\Quotes\InvalidPageLabel;
 use App\Quotes\PageLabel;
@@ -287,6 +288,41 @@ class Quote extends Model
         return QuoteCard::for($this)->fitsInImage();
     }
 
+    /**
+     * Where the two images of this Quote stand right now.
+     *
+     * It exists because the page used to answer this with a single question —is
+     * there a file to hand over?— and said «todavía no está lista» to
+     * everything else. For the Quotes stored before anything queued a render
+     * that sentence was an invention: there was no job, there had never been
+     * one, and nothing was going to arrive (BIB-48).
+     *
+     * The order of the questions is the order of what settles the matter. A
+     * Quote too long for the canvas has no image and is not going to get one,
+     * whatever its columns say; and the files of a render that already happened
+     * are worth handing over even while a newer one is in the queue.
+     */
+    public function shareImageStatus(): ShareImageStatus
+    {
+        if (! $this->imagesFit()) {
+            return ShareImageStatus::TooLong;
+        }
+
+        if ($this->imagePathFor(ShareFormat::downloaded()) !== null) {
+            return ShareImageStatus::Ready;
+        }
+
+        if ($this->images_failed_at !== null) {
+            return ShareImageStatus::Failed;
+        }
+
+        if ($this->images_queued_at !== null) {
+            return ShareImageStatus::Queued;
+        }
+
+        return ShareImageStatus::NotAsked;
+    }
+
     /** Whether the image of that format is drawn and stored. */
     public function hasImageFor(ShareFormat $format): bool
     {
@@ -367,6 +403,26 @@ class Quote extends Model
     protected function withFailedImages(Builder $query): void
     {
         $query->whereNotNull('images_failed_at');
+    }
+
+    /**
+     * The Quotes nothing ever asked a render for: no image on the disk, no mark
+     * of the queue, and no failure either.
+     *
+     * They are not the ones waiting for credits — those carry the mark and are
+     * counted with what is pending. These are the ones stored before there was
+     * anything to queue them, and nothing in the application was ever going to
+     * come back for them (BIB-48).
+     *
+     * @param  Builder<$this>  $query
+     */
+    #[Scope]
+    protected function imagesNeverAsked(Builder $query): void
+    {
+        $query->whereNull('images_queued_at')
+            ->whereNull('images_failed_at')
+            ->whereNull('card_image_path')
+            ->whereNull('story_image_path');
     }
 
     /**

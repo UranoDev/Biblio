@@ -2,6 +2,7 @@
 
 use App\Models\Quote;
 use App\Quotes\Credits;
+use App\Quotes\MissingImages;
 use App\Quotes\ShareImages;
 use Livewire\Attributes\Computed;
 use Livewire\Attributes\Title;
@@ -37,6 +38,20 @@ new #[Title('Imágenes de las citas')] class extends Component
         return Quote::query()->withFailedImages()->count();
     }
 
+    /**
+     * The ones stored before anything queued a render for them: no image, no
+     * job, and nothing that was ever going to come back for them (BIB-48).
+     *
+     * They are counted apart from what is pending because they are not waiting
+     * for anything — and counting them with it would leave this screen saying
+     * the queue is longer than it is.
+     */
+    #[Computed]
+    public function neverAsked(): int
+    {
+        return MissingImages::count();
+    }
+
     /** What the renderer said when it stopped, or nothing while it is running. */
     #[Computed]
     public function stopped(): ?string
@@ -69,6 +84,25 @@ new #[Title('Imágenes de las citas')] class extends Component
             0 => 'No había ninguna cita esperando imagen.',
             1 => 'Una cita volvió a la cola.',
             default => $waiting->count().' citas volvieron a la cola.',
+        };
+    }
+
+    /**
+     * Puts the ones nobody ever asked about into the queue. It is the same
+     * thing `quotes:backfill-images` does, reachable from the screen that
+     * counts them: a screen that reports something and sends you to a terminal
+     * to fix it is half a screen.
+     */
+    public function backfill(): void
+    {
+        $queued = MissingImages::queue();
+
+        unset($this->pending, $this->neverAsked);
+
+        $this->notice = match ($queued) {
+            0 => 'No quedaba ninguna cita sin pedir sus imágenes.',
+            1 => 'Una cita entró a la cola.',
+            default => $queued.' citas entraron a la cola.',
         };
     }
 }; ?>
@@ -120,13 +154,32 @@ new #[Title('Imágenes de las citas')] class extends Component
                 <flux:heading size="lg">Lo que falta</flux:heading>
 
                 <flux:text data-test="pending-count">
-                    {{ match ($this->pending) {
-                        0 => 'Todas las citas tienen sus dos imágenes.',
-                        1 => 'Una cita espera sus imágenes: son dos dibujos.',
+                    {{ match (true) {
+                        $this->pending === 0 && $this->neverAsked === 0 => 'Todas las citas tienen sus dos imágenes.',
+                        $this->pending === 0 => 'Ninguna cita está esperando en la cola.',
+                        $this->pending === 1 => 'Una cita espera sus imágenes: son dos dibujos.',
                         default => $this->pending.' citas esperan sus imágenes: son '.($this->pending * 2).' dibujos.',
                     } }}
                 </flux:text>
             </div>
+
+            @if ($this->neverAsked)
+                <div class="flex flex-col gap-2" data-test="never-asked">
+                    <flux:heading>Nunca se les pidió la imagen</flux:heading>
+
+                    <flux:text data-test="never-asked-count">
+                        {{ $this->neverAsked === 1
+                            ? 'Una cita se guardó antes de que nada encolara su imagen. No hay nada en camino para ella.'
+                            : $this->neverAsked.' citas se guardaron antes de que nada encolara sus imágenes. No hay nada en camino para ellas.' }}
+                    </flux:text>
+
+                    <flux:button wire:click="backfill" variant="primary" class="self-start" data-test="backfill">
+                        {{ $this->neverAsked === 1
+                            ? 'Pedir esa imagen: son 2 dibujos'
+                            : 'Pedir esas imágenes: son '.($this->neverAsked * 2).' dibujos' }}
+                    </flux:button>
+                </div>
+            @endif
 
             @if ($this->failed)
                 <div class="flex flex-col gap-2" data-test="failed">

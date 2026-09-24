@@ -5,6 +5,7 @@ use App\Models\Book;
 use App\Models\Quote;
 use App\Models\User;
 use App\Quotes\Credits;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Queue;
 use Livewire\Livewire;
 
@@ -56,6 +57,41 @@ it('retomar la cola devuelve a ella las citas que esperaban', function () {
         ->assertSee('Una cita volvió a la cola.');
 
     expect(Credits::areOut())->toBeFalse();
+
+    Queue::assertPushed(RenderQuoteImages::class);
+});
+
+/*
+ * Las citas que nadie encoló nunca (BIB-48). No están esperando —no hay nada
+ * en camino para ellas—, así que se cuentan aparte de la cola y se piden desde
+ * acá.
+ */
+
+it('cuenta aparte las citas a las que nunca se les pidió la imagen', function () {
+    $quote = Book::factory()->create()->addQuote('Vine a Comala.');
+
+    DB::table('quotes')->where('id', $quote->id)->update(['images_queued_at' => null]);
+
+    Livewire::test('pages::settings.quote-images')
+        ->assertSee('Una cita se guardó antes de que nada encolara su imagen')
+        ->assertSee('Pedir esa imagen: son 2 dibujos')
+        // Y la cola queda dicha por lo que tiene, que es nada.
+        ->assertSee('Ninguna cita está esperando en la cola.')
+        ->assertDontSee('Todas las citas tienen sus dos imágenes.');
+});
+
+it('pedirlas desde la pantalla las manda a la cola', function () {
+    $quote = Book::factory()->create()->addQuote('Vine a Comala.');
+
+    DB::table('quotes')->where('id', $quote->id)->update(['images_queued_at' => null]);
+
+    Livewire::test('pages::settings.quote-images')
+        ->call('backfill')
+        ->assertSee('Una cita entró a la cola.')
+        // Ya no queda ninguna sin pedir: el bloque se va.
+        ->assertDontSee('Nunca se les pidió la imagen');
+
+    expect($quote->fresh()->images_queued_at)->not->toBeNull();
 
     Queue::assertPushed(RenderQuoteImages::class);
 });

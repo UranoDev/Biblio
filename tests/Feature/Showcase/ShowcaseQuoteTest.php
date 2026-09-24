@@ -1,8 +1,10 @@
 <?php
 
 use App\Enums\ShareFormat;
+use App\Enums\ShareImageStatus;
 use App\Models\Book;
 use App\Models\Quote;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
 
 /*
@@ -117,6 +119,60 @@ it('con la imagen lista, el botón la ofrece', function () {
         ->assertOk()
         ->assertSee(route('quote.download', $quote), false)
         ->assertDontSee('todavía no está lista');
+});
+
+/*
+ * Y la otra mitad: «todavía no está lista» sólo se dice de lo que de verdad
+ * está en camino (BIB-48). Las tres Citas escritas antes de que existiera la
+ * cola nunca despacharon un job, y la página les prometía una imagen que nadie
+ * había pedido.
+ */
+
+it('una Cita que nunca pasó por la cola no promete una imagen en camino', function () {
+    $quote = Book::factory()->create()->addQuote('Vine a Comala.');
+
+    // Así quedaron las que se guardaron antes de que el hook existiera: sin
+    // imagen, sin marca de la cola, y sin nada que fuera a volver por ellas.
+    DB::table('quotes')->where('id', $quote->id)->update(['images_queued_at' => null]);
+
+    expect($quote->fresh()->shareImageStatus())->toBe(ShareImageStatus::NotAsked);
+
+    $this->get($quote->shareUrl())
+        ->assertOk()
+        ->assertSee('Esta cita no tiene imagen para descargar.')
+        ->assertDontSee('todavía no está lista')
+        ->assertDontSee(route('quote.download', $quote), false);
+});
+
+it('la que sí está en la cola y la que nunca se pidió no dicen lo mismo', function () {
+    $waiting = Book::factory()->create()->addQuote('Nada es para siempre.');
+
+    $never = Book::factory()->create()->addQuote('Vine a Comala.');
+    DB::table('quotes')->where('id', $never->id)->update(['images_queued_at' => null]);
+
+    expect($waiting->fresh()->shareImageStatus())->toBe(ShareImageStatus::Queued)
+        ->and($never->fresh()->shareImageStatus())->toBe(ShareImageStatus::NotAsked);
+
+    $this->get($waiting->shareUrl())->assertOk()->assertSee('todavía no está lista');
+
+    $this->get($never->shareUrl())->assertOk()->assertDontSee('todavía no está lista');
+});
+
+it('la Cita que el renderizador rechazó tampoco dice que su imagen viene en camino', function () {
+    $quote = Book::factory()->create()->addQuote('Vine a Comala.');
+
+    $quote->imagesFailed('The renderer has no API key.');
+
+    // La marca de la cola sigue puesta —la deuda no se borra al fallar— y aun
+    // así no hay nada en camino: el job ya se rindió.
+    expect($quote->fresh()->images_queued_at)->not->toBeNull()
+        ->and($quote->fresh()->shareImageStatus())->toBe(ShareImageStatus::Failed);
+
+    $this->get($quote->shareUrl())
+        ->assertOk()
+        ->assertDontSee('todavía no está lista')
+        // Lo que dijo el servicio es cosa del back office, no del visitante.
+        ->assertDontSee('API key');
 });
 
 it('una Cita que no cabe en una imagen lo dice, en vez de decir que ya casi', function () {

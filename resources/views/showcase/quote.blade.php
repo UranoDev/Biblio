@@ -1,4 +1,4 @@
-@use('App\Enums\ShareFormat')
+@use('App\Enums\ShareImageStatus')
 
 {{--
     The page of one Quote (BIB-31).
@@ -40,33 +40,54 @@
                     {{ $quote->shareUrl() }}
                 </p>
 
-                @if ($quote->hasImageFor(ShareFormat::downloaded()))
-                    {{-- The vertical one, for where a link brings nothing.
-                         `download` and not `wire:navigate`: this is a file. --}}
-                    <a
-                        href="{{ route('quote.download', $quote) }}"
-                        class="text-link"
-                        download
-                        data-test="download-image"
-                    >
-                        Descargar la imagen
-                    </a>
-                @elseif (! $quote->imagesFit())
-                    {{-- Past the smallest legible size there is no image, and
-                         there is not going to be one later either (ADR-009), so
-                         this does not say it is on its way. --}}
-                    <p class="text-sm text-ink-muted" data-test="image-too-long">
-                        Esta cita no tiene imagen para descargar: es más larga de lo que cabe legible en una.
-                        Al compartir el enlace se ve la portada del libro.
-                    </p>
-                @else
-                    {{-- It gets drawn in the queue, so there is a while in which
-                         there is nothing to hand over. Saying so beats handing
-                         over a broken file. --}}
-                    <p class="text-sm text-ink-muted" data-test="image-pending">
-                        La imagen para compartir todavía no está lista.
-                    </p>
-                @endif
+                @switch ($quote->shareImageStatus())
+                    @case (ShareImageStatus::Ready)
+                        {{-- The vertical one, for where a link brings nothing.
+                             `download` and not `wire:navigate`: this is a file. --}}
+                        <a
+                            href="{{ route('quote.download', $quote) }}"
+                            class="text-link"
+                            download
+                            data-test="download-image"
+                        >
+                            Descargar la imagen
+                        </a>
+
+                        @break
+
+                    @case (ShareImageStatus::TooLong)
+                        {{-- Past the smallest legible size there is no image, and
+                             there is not going to be one later either (ADR-009), so
+                             this does not say it is on its way. --}}
+                        <p class="text-sm text-ink-muted" data-test="image-too-long">
+                            Esta cita no tiene imagen para descargar: es más larga de lo que cabe legible en una.
+                            Al compartir el enlace se ve la portada del libro.
+                        </p>
+
+                        @break
+
+                    @case (ShareImageStatus::Queued)
+                        {{-- It gets drawn in the queue, so there is a while in which
+                             there is nothing to hand over. Saying so beats handing
+                             over a broken file. --}}
+                        <p class="text-sm text-ink-muted" data-test="image-pending">
+                            La imagen para compartir todavía no está lista.
+                        </p>
+
+                        @break
+
+                    @default
+                        {{-- Nothing was ever queued for it, or the renderer gave
+                             up: either way there is no image on its way, and
+                             saying «todavía» would promise one (BIB-48). What
+                             brings it back is a run from Configuración, and the
+                             visitor is not the one who does that — so the page
+                             says what there is, and no more. --}}
+                        <p class="text-sm text-ink-muted" data-test="image-none">
+                            Esta cita no tiene imagen para descargar.
+                            Al compartir el enlace se ve la portada del libro.
+                        </p>
+                @endswitch
             </div>
         </div>
     </article>
