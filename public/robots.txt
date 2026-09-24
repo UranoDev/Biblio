@@ -1,2 +1,18 @@
 User-agent: *
-Disallow:
+
+# El acervo se indexa. Lo que queda fuera es el back office: son pantallas de
+# trabajo detrás del login, y no tienen por qué aparecer en un buscador.
+Disallow: /login
+Disallow: /forgot-password
+Disallow: /reset-password
+Disallow: /dashboard
+Disallow: /shelf
+Disallow: /scan
+Disallow: /title-lookup
+Disallow: /manual-entry
+Disallow: /books/
+Disallow: /settings
+Disallow: /storage/
+
+# El sitemap se declara acá cuando exista (BIB-37). Anunciar uno que todavía no
+# se sirve sólo consigue que Search Console lo reporte como error.
