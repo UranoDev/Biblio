@@ -3,11 +3,13 @@
 use App\Http\Controllers\DownloadQuoteImage;
 use App\Http\Controllers\ServeCover;
 use App\Http\Controllers\ServeQuoteImage;
+use App\Http\Controllers\ShowPrivacyNotice;
 use App\Http\Controllers\ShowShowcase;
 use App\Http\Controllers\ShowShowcaseBook;
 use App\Http\Controllers\ShowShowcaseCategory;
 use App\Http\Controllers\ShowShowcaseQuote;
 use App\Http\Controllers\ShowSitemap;
+use App\Http\Controllers\ShowTermsOfUse;
 use Illuminate\Support\Facades\Route;
 
 /*
@@ -83,6 +85,14 @@ Route::get('covers/{book}/{size}', ServeCover::class)->name('cover');
  * rebuild anything.
  */
 Route::get('sitemap.xml', ShowSitemap::class)->name('sitemap');
+
+/*
+ * The privacy notice and terms of use (BIB-47). Two static pages, one route
+ * each, reached from the footer of every Showcase page.
+ */
+Route::get('privacidad', ShowPrivacyNotice::class)->name('showcase.privacy');
+
+Route::get('terminos', ShowTermsOfUse::class)->name('showcase.terms');
 
 Route::middleware(['auth', 'verified'])->group(function () {
     /*

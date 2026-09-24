@@ -155,6 +155,30 @@ final readonly class Meta
     }
 
     /**
+     * The privacy notice (BIB-47).
+     */
+    public static function privacy(): self
+    {
+        return new self(
+            heading: 'Aviso de privacidad',
+            description: 'Qué datos recopila '.config('app.name').' y qué hace con ellos.',
+            canonical: route('showcase.privacy'),
+        );
+    }
+
+    /**
+     * The terms of use (BIB-47).
+     */
+    public static function terms(): self
+    {
+        return new self(
+            heading: 'Términos de uso',
+            description: 'Qué es '.config('app.name').' y qué puede hacer un visitante con su contenido.',
+            canonical: route('showcase.terms'),
+        );
+    }
+
+    /**
      * What goes in the `<title>`: the page and then the site, because the tab
      * and the search result get cut from the right.
      */

@@ -85,9 +85,16 @@
                     />
                 @endif
 
-                <a href="{{ route('showcase') }}" class="type-section-heading text-link">
-                    {{ config('app.name') }}
-                </a>
+                <div class="flex flex-wrap items-center justify-between gap-4">
+                    <a href="{{ route('showcase') }}" class="type-section-heading text-link">
+                        {{ config('app.name') }}
+                    </a>
+
+                    <nav class="flex gap-4 text-sm text-ink-muted">
+                        <a href="{{ route('showcase.privacy') }}" class="hover:text-link">Privacidad</a>
+                        <a href="{{ route('showcase.terms') }}" class="hover:text-link">Términos de uso</a>
+                    </nav>
+                </div>
             </footer>
         </div>
     </body>
