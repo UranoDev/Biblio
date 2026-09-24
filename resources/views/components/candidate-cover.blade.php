@@ -15,7 +15,7 @@
         alt="Portada de {{ $title }}"
         loading="lazy"
         referrerpolicy="no-referrer"
-        {{ $attributes->class(['aspect-2/3 w-full rounded-lg object-cover']) }}
+        {{ $attributes->class(['cover-edge aspect-2/3 w-full rounded-lg object-cover']) }}
     >
 @else
     <div
@@ -23,8 +23,8 @@
         aria-label="{{ $title }}, sin Portada"
         {{ $attributes->class([
             'flex aspect-2/3 w-full flex-col justify-end gap-1 rounded-lg',
-            'bg-zinc-100 p-2 ring-1 ring-zinc-200 ring-inset',
-            'dark:bg-zinc-800 dark:ring-zinc-700',
+            'cover-edge bg-zinc-100 p-2',
+            'dark:bg-zinc-800',
         ]) }}
     >
         <span class="line-clamp-4 text-xs font-medium text-zinc-800 dark:text-zinc-100">{{ $title }}</span>
