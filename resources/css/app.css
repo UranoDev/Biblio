@@ -48,6 +48,21 @@
     --text-quote-large--line-height: 1.7;
     --text-quote-small: 16px;
     --text-quote-small--line-height: 1.82;
+
+    /*
+     * The same three sizes again, for the card stacked on the tall canvas of a
+     * story (BIB-49). There the Quote has the whole width of the card instead
+     * of a column beside the Cover, and the sizes of the screen leave it a thin
+     * ribbon of short lines in the middle of a very large picture. They are the
+     * same face and the same range; what changes is that the measure is wider,
+     * so the type can be too.
+     */
+    --text-quote-story: 26px;
+    --text-quote-story--line-height: 1.7;
+    --text-quote-story-large: 32px;
+    --text-quote-story-large--line-height: 1.6;
+    --text-quote-story-small: 21px;
+    --text-quote-story-small--line-height: 1.75;
     --text-book-title: 17px;
     --text-book-title--line-height: 1.3;
     --text-book-title--letter-spacing: -0.01em;
@@ -190,6 +205,35 @@
     line-height: var(--text-quote-small--line-height);
     border-left: 1px solid var(--color-rule);
     padding-left: --spacing(5);
+}
+
+/*
+ * The Quote on the stacked card, which is the one the tall image draws.
+ *
+ * No Rule down the left, and that is the one thing that separates them from the
+ * three above: the block is centred there, and a rule on the left of centred
+ * type hangs off nothing. What stands in for it is the short rule the card
+ * draws under the Quote, above the title of the Book.
+ */
+@utility type-quote-story {
+    font-family: var(--font-mono);
+    font-weight: 400;
+    font-size: var(--text-quote-story);
+    line-height: var(--text-quote-story--line-height);
+}
+
+@utility type-quote-story-large {
+    font-family: var(--font-mono);
+    font-weight: 400;
+    font-size: var(--text-quote-story-large);
+    line-height: var(--text-quote-story-large--line-height);
+}
+
+@utility type-quote-story-small {
+    font-family: var(--font-mono);
+    font-weight: 400;
+    font-size: var(--text-quote-story-small);
+    line-height: var(--text-quote-story-small--line-height);
 }
 
 @utility type-book-title {

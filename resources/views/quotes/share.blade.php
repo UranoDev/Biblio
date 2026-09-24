@@ -40,17 +40,23 @@
     {{-- The paper is the page and not the card: the card carries its own, and
          the band around it is what keeps the picture from reading as a
          screenshot with the edges cut off. --}}
-    <body class="paper flex h-full w-full items-center justify-center text-ink antialiased">
-        {{-- The wide one is the card almost edge to edge, because a network
-             draws it small. The tall one leaves the paper showing above and
-             below, which is what makes it read as a page of a notebook in a
-             story and not as a cropped card. --}}
+    <body class="paper h-full w-full text-ink antialiased">
+        {{-- The band of paper, and nothing else: the card fills whatever is
+             left of the canvas. It used to be handed its own height and centred
+             in the middle, which left it sitting in the wide canvas at about
+             three quarters of its height with the rest empty — the card lost in
+             a blank space that BIB-49 is about.
+
+             The tall one gets the wider band, which is the margin of a page of
+             a notebook; the rest of the air it leaves comes from inside the
+             card, above the Quote and under the Cover, and it is the same
+             however long the Quote runs. --}}
         <div @class([
-            'w-full',
+            'h-full w-full',
             'px-10 py-8' => $format === ShareFormat::Card,
-            'px-12 py-24' => $format === ShareFormat::Story,
+            'p-10' => $format === ShareFormat::Story,
         ])>
-            <x-quote-card :quote="$quote" :cover="$cover" class="w-full" />
+            <x-quote-card :quote="$quote" :cover="$cover" :format="$format" class="w-full" />
         </div>
     </body>
 </html>

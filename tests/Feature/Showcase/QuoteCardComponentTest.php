@@ -1,5 +1,6 @@
 <?php
 
+use App\Enums\ShareFormat;
 use App\Models\Book;
 use App\Models\Quote;
 use Illuminate\Support\Facades\Storage;
@@ -14,6 +15,15 @@ beforeEach(function () {
 function quoteCard(Quote $quote): TestView
 {
     return test()->blade('<x-quote-card :quote="$quote" />', ['quote' => $quote]);
+}
+
+/** The card as one of the two canvases of an image draws it (ADR-009). */
+function quoteCardOn(Quote $quote, ShareFormat $format): TestView
+{
+    return test()->blade(
+        '<x-quote-card :quote="$quote" :format="$format" />',
+        ['quote' => $quote, 'format' => $format],
+    );
 }
 
 /** The card at home, inside the sheet of its own Book. */
@@ -214,4 +224,118 @@ it('la tarjeta trae su papel y su tinta, porque se comparte fuera de la pantalla
         ->assertSee('paper', false)
         ->assertSee('text-ink', false)
         ->assertSee('text-ink-muted', false);
+});
+
+/*
+ * La tercera variante (BIB-49): la tarjeta apilada, que es la que se dibuja en
+ * el lienzo vertical. No la elige el ancho en píxeles —1080 también pasa de
+ * `md:`— sino el formato que se le pasa.
+ */
+
+it('en el lienzo vertical la tarjeta se apila en vez de ponerse lado a lado', function () {
+    $book = bookWithPhotograph();
+
+    $html = quoteCardOn($book->addQuote('Vine a Comala.'), ShareFormat::Story)->__toString();
+
+    // El lienzo vertical mide 1080 px de ancho, que está por encima del punto
+    // de quiebre `md:`: preguntarle al ancho le daba el diseño de dos columnas.
+    expect(ShareFormat::Story->width())->toBeGreaterThan(768)
+        ->and($html)->not->toContain('md:flex')
+        ->and($html)->not->toContain('md:items-stretch')
+        ->and($html)->toContain('flex flex-col items-center')
+        ->and($html)->toContain('text-center');
+});
+
+it('en el lienzo horizontal conserva el diseño de dos columnas, que ahí sí corresponde', function () {
+    $book = bookWithPhotograph();
+
+    expect(quoteCardOn($book->addQuote('Vine a Comala.'), ShareFormat::Card)->__toString())
+        ->toContain('md:flex')
+        ->toContain('md:items-stretch');
+});
+
+it('apilada, la Cita se pone más grande y pierde la Regla de la izquierda', function () {
+    $book = Book::factory()->create();
+
+    $short = $book->addQuote('Todo lo sólido se desvanece en el aire.');
+    $long = $book->addQuote(str_repeat('La biblioteca de Babel es ilimitada y periódica. ', 12));
+
+    // La misma escala de siempre —la lee QuoteCard, no la pantalla—, en la
+    // familia de tamaños que el lienzo vertical usa.
+    quoteCardOn($short, ShareFormat::Story)->assertSee('type-quote-story-large', false);
+    quoteCardOn($long, ShareFormat::Story)->assertSee('type-quote-story-small', false);
+
+    expect(quoteCardOn($short, ShareFormat::Story)->__toString())
+        ->not->toContain('type-quote-large')
+        // La Regla vertical no cabe a la izquierda de un bloque centrado, así
+        // que se acuesta entre la Cita y el pie.
+        ->toContain('data-test="quote-rule"');
+
+    // En pantalla y en la horizontal nada de esto cambia.
+    expect(quoteCard($short)->__toString())
+        ->toContain('type-quote-large')
+        ->not->toContain('type-quote-story')
+        ->not->toContain('data-test="quote-rule"');
+
+    expect(quoteCardOn($short, ShareFormat::Card)->__toString())
+        ->toContain('type-quote-large')
+        ->not->toContain('type-quote-story');
+});
+
+it('apilada, la Portada mide en píxeles y se queda al pie de la tarjeta', function () {
+    $book = bookWithPhotograph();
+
+    $html = quoteCardOn($book->addQuote('Vine a Comala.'), ShareFormat::Story)->__toString();
+
+    // Apilada no hay columna de la que sacar una fracción, y el lienzo de la
+    // vertical es fijo igual que la Portada.
+    expect($html)->toContain('w-65')
+        ->not->toContain('md:w-[26%]')
+        ->toContain('mt-auto')
+        // El texto primero y la Portada después, como en el teléfono.
+        ->and(strpos($html, 'quote-text'))->toBeLessThan((int) strpos($html, 'data-test="cover-'));
+
+    // La horizontal la sigue midiendo contra la tarjeta, que es lo de BIB-41.
+    quoteCardOn($book->addQuote('Nunca puedes ganar.'), ShareFormat::Card)
+        ->assertSee('md:w-[26%]', false);
+});
+
+it('apilada no recorta la Portada, porque no hay borde contra el cual recortarla', function () {
+    $book = bookWithPhotograph();
+
+    quoteCardOn($book->addQuote('Vine a Comala.'), ShareFormat::Story)
+        ->assertSee('data-test="cover-whole"', false)
+        ->assertDontSee('data-test="cover-cropped"', false)
+        // Sigue inclinada y con su sombra: es la misma Portada de siempre.
+        ->assertSee('rotate-(--cover-tilt)', false)
+        ->assertSee('shadow-(--shadow-cover)', false);
+});
+
+it('una Cita corta y una larga dejan el mismo aire en la vertical', function () {
+    $book = bookWithPhotograph();
+
+    $short = $book->addQuote('Nunca puedes ganar.');
+    $long = $book->addQuote(str_repeat('La biblioteca de Babel es ilimitada y periódica. ', 12));
+
+    $frame = fn (Quote $quote) => Str::betweenFirst(
+        quoteCardOn($quote, ShareFormat::Story)->__toString(),
+        'data-test="cover-whole"',
+        '</div>',
+    );
+
+    expect($frame($short))->toBe($frame($long))
+        ->and($frame($short))->toContain('mt-auto');
+});
+
+it('en los dos lienzos la tarjeta llena el alto, y en la pantalla la fija su contenido', function () {
+    $quote = Quote::factory()->create();
+
+    // Sin `h-full` la tarjeta mide lo que mide la Portada y queda flotando en
+    // medio del lienzo, que es de donde salió BIB-49.
+    expect(quoteCardOn($quote, ShareFormat::Card)->__toString())->toContain('h-full')
+        ->and(quoteCardOn($quote, ShareFormat::Story)->__toString())->toContain('h-full');
+
+    $screen = Str::before(quoteCard($quote)->__toString(), 'data-test="quote-page"');
+
+    expect($screen)->not->toContain('h-full');
 });

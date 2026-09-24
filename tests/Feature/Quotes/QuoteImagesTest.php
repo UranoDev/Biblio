@@ -195,6 +195,41 @@ it('arma la página a la medida exacta del formato', function () {
         ->toContain('height: 1350px');
 });
 
+it('la tarjeta llena el lienzo en vez de quedar flotando en medio', function () {
+    $quote = Book::factory()->create()->addQuote('Vine a Comala.');
+
+    // El alto de la tarjeta lo fijaba la Portada, no el lienzo, y el resto se
+    // repartía arriba y abajo como aire (BIB-49). Lo que queda de papel a la
+    // vista es la banda de la página, que se escribe aquí.
+    foreach ([ShareFormat::Card, ShareFormat::Story] as $format) {
+        expect(ShareCard::of($quote, $format))
+            ->toContain('h-full w-full')
+            ->not->toContain('items-center justify-center');
+    }
+});
+
+it('la vertical se apila, y no lo decide el ancho del lienzo', function () {
+    $quote = Book::factory()->create()->addQuote('Vine a Comala.');
+
+    // Los dos lienzos pasan del punto de quiebre `md:`, así que preguntarle al
+    // ancho le daba a la vertical el diseño de dos columnas — una tarjeta corta
+    // y ancha dentro de un lienzo mucho más alto que ancho.
+    expect(ShareFormat::Story->width())->toBeGreaterThan(768);
+
+    // La hoja de estilos viaja escrita dentro de la página, así que los nombres
+    // de las clases se buscan donde la tarjeta los pone y no sueltos: la hoja
+    // define las dos familias de tamaños en las dos páginas.
+    expect(ShareCard::of($quote, ShareFormat::Story))
+        ->toContain('data-test="quote-rule"')
+        ->toContain('whitespace-pre-line type-quote-story-large')
+        ->not->toContain('md:items-stretch');
+
+    expect(ShareCard::of($quote, ShareFormat::Card))
+        ->toContain('md:items-stretch')
+        ->toContain('whitespace-pre-line type-quote-large')
+        ->not->toContain('whitespace-pre-line type-quote-story');
+});
+
 /*
  * La Cita que no cabe en el lienzo.
  */
