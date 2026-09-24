@@ -47,6 +47,8 @@ use Illuminate\Support\Str;
  * @property string|null $cover_source_url
  * @property string|null $cover_thumbnail_path
  * @property CoverOrigin $cover_origin
+ * @property Carbon|null $cover_failed_at
+ * @property string|null $cover_failure
  * @property string|null $share_image_path
  * @property string|null $share_image_fingerprint
  * @property Carbon|null $share_image_queued_at
@@ -122,6 +124,7 @@ class Book extends Model
             'description_origin' => Origin::class,
             'description_language' => DescriptionLanguage::class,
             'cover_origin' => CoverOrigin::class,
+            'cover_failed_at' => 'datetime',
             'source' => Source::class,
             'status' => Status::class,
             'is_read' => 'boolean',
@@ -888,6 +891,32 @@ class Book extends Model
     }
 
     /**
+     * The download of the Cover gave up, and this is why (BIB-52).
+     *
+     * The job that writes this raises nothing —a catalog answering 4xx, or an
+     * image the store refuses, are the normal end of a download, not a crash—
+     * so neither the queue nor `failed_jobs` keeps any sign of it. Without this
+     * mark the only trace was a `Log::warning()`, and a Book that was tried and
+     * failed read exactly like one nobody ever asked a Cover for.
+     *
+     * `cover_source_url` is deliberately left alone: it is what keeps the retry
+     * and the manual upload available.
+     */
+    public function coverDownloadFailed(string $reason): void
+    {
+        $this->forceFill([
+            'cover_failed_at' => now(),
+            'cover_failure' => Str::limit(Str::squish($reason), 250),
+        ])->save();
+    }
+
+    /** Whether the last download of the Cover is one that gave up. */
+    public function coverDownloadHasFailed(): bool
+    {
+        return $this->cover_failed_at !== null;
+    }
+
+    /**
      * The Books whose Categories were written by another AiModel.
      *
      * Knowing which ones they are is what makes the regeneration precise:
@@ -1087,6 +1116,22 @@ class Book extends Model
     protected function withCoverOrigin(Builder $query, CoverOrigin $origin): void
     {
         $query->where('cover_origin', $origin);
+    }
+
+    /**
+     * The Books whose last download of the Cover gave up (BIB-52).
+     *
+     * It is a different question from the generated Covers: those are the ones
+     * left to photograph, and these are the ones where something was tried and
+     * came back wrong. A catalog that starts answering markers shows up here as
+     * a run, which is what makes it noticeable at all.
+     *
+     * @param  Builder<$this>  $query
+     */
+    #[Scope]
+    protected function withFailedCoverDownload(Builder $query): void
+    {
+        $query->whereNotNull('cover_failed_at');
     }
 
     /**

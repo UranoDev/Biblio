@@ -403,6 +403,18 @@ it('toma los dos estados leídos cuando se pregunta si lo leí', function () {
         ->assertDontSee('Pendiente');
 });
 
+it('filtra los Libros cuya descarga de la Portada se rindió', function () {
+    Book::factory()->coverDownloadFailed()->create(['title' => 'Se rindió la descarga']);
+    Book::factory()->coverPending()->create(['title' => 'Todavía sin intentar']);
+    Book::factory()->coverFromOwner()->create(['title' => 'Con mi foto']);
+
+    shelf()
+        ->set('cover', 'failed')
+        ->assertSee('Se rindi')
+        ->assertDontSee('Todavía sin intentar')
+        ->assertDontSee('Con mi foto');
+});
+
 it('recibe los filtros en la dirección, para que otra pantalla pueda enlazar aquí', function () {
     Book::factory()->coverGenerated()->create(['title' => 'Sin fotografiar']);
     Book::factory()->coverFromOwner()->create(['title' => 'Con mi foto']);

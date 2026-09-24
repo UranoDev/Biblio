@@ -66,6 +66,12 @@ final readonly class CoverStore
             'cover_path' => $path,
             'cover_thumbnail_path' => $thumbnail,
             'cover_origin' => $origin,
+            // An image got through, so whatever the last download gave up on is
+            // off the record (BIB-52). It is cleared here and not in the job
+            // because this is the single door every Cover comes in through: the
+            // one uploaded by hand answers the same failed download.
+            'cover_failed_at' => null,
+            'cover_failure' => null,
         ])->save();
 
         $this->deleteFiles($previous);

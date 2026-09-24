@@ -318,6 +318,19 @@ class BookFactory extends Factory
     }
 
     /**
+     * With the download of the Cover given up on: the Source was asked and what
+     * came back was not a Cover (BIB-52). It keeps somewhere to retry from,
+     * which is the whole point of not clearing the URL.
+     */
+    public function coverDownloadFailed(string $reason = 'La Fuente contestó 404 al pedirle la imagen.'): static
+    {
+        return $this->coverPending()->state(fn (array $attributes) => [
+            'cover_failed_at' => now(),
+            'cover_failure' => $reason,
+        ]);
+    }
+
+    /**
      * With the photograph the owner took. No retry against the Sources
      * replaces it.
      */

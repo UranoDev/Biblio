@@ -98,7 +98,7 @@ class DownloadCover implements ShouldQueue
         }
 
         if (! $response->successful()) {
-            $this->giveUp("answered {$response->status()}");
+            $this->giveUp($response->status());
 
             return;
         }
@@ -116,14 +116,21 @@ class DownloadCover implements ShouldQueue
      * The download is not going to go better by retrying it on its own. The Book
      * keeps its generated Cover and the URL stays stored, so the manual retry
      * and the upload are still available.
+     *
+     * The log line is kept for the run of them —what says a catalog started
+     * answering this way is the sequence, not one case— and the Book gets the
+     * mark, because a log this server does not write goes nowhere anybody looks
+     * (BIB-52).
      */
-    private function giveUp(string $reason): void
+    private function giveUp(int $status): void
     {
         Log::warning('The Cover could not be downloaded.', [
             'book' => $this->book->getKey(),
             'url' => $this->book->cover_source_url,
-            'reason' => $reason,
+            'reason' => "answered {$status}",
         ]);
+
+        $this->book->coverDownloadFailed("La Fuente contestó {$status} al pedirle la imagen.");
     }
 
     /**
@@ -135,7 +142,9 @@ class DownloadCover implements ShouldQueue
      * way.
      *
      * The Book is left the same as a failed download: with its generated Cover
-     * and its `cover_source_url` intact.
+     * and its `cover_source_url` intact, plus the mark saying what was refused.
+     * The message of `InvalidImage` is already written for a person to read, so
+     * it is the one stored.
      */
     private function refused(string $reason): void
     {
@@ -144,5 +153,7 @@ class DownloadCover implements ShouldQueue
             'url' => $this->book->cover_source_url,
             'reason' => $reason,
         ]);
+
+        $this->book->coverDownloadFailed($reason);
     }
 }

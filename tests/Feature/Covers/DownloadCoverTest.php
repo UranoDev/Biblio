@@ -275,3 +275,62 @@ it('no vuelve a poner en cola la descarga de un Book que ya tiene mi foto', func
 
     Queue::assertNothingPushed();
 });
+
+it('dejal Book anotado cuándo y por qué se rindió la descarga', function () {
+    Http::fake(['covers.openlibrary.org/*' => Http::response('', 404)]);
+
+    $book = Book::factory()->coverPending()->create([
+        'cover_source_url' => 'https://covers.openlibrary.org/b/id/42-L.jpg',
+    ]);
+
+    download($book);
+
+    $book->refresh();
+
+    expect($book->coverDownloadHasFailed())->toBeTrue()
+        ->and($book->cover_failure)->toContain('404')
+        ->and($book->cover_source_url)->toBe('https://covers.openlibrary.org/b/id/42-L.jpg')
+        ->and($book->canRetryCover())->toBeTrue();
+});
+
+it('anota el motivo que ya trae la imagen rechazada, sin inventar otro', function () {
+    Http::fake([
+        'covers.openlibrary.org/*' => Http::response(recordedCover('open-library-no-cover.gif'), 200, ['Content-Type' => 'image/gif']),
+    ]);
+
+    $book = Book::factory()->coverPending()->create([
+        'cover_source_url' => 'https://covers.openlibrary.org/b/isbn/9788437604176-L.jpg',
+    ]);
+
+    download($book);
+
+    expect($book->fresh()->cover_failure)->toContain('marcador');
+});
+
+it('borra la marca del fallo en cuanto una descarga funciona', function () {
+    Http::fake(['covers.openlibrary.org/*' => Http::response(testImage(800, 1200), 200)]);
+
+    $book = Book::factory()->coverDownloadFailed()->create([
+        'cover_source_url' => 'https://covers.openlibrary.org/b/id/42-L.jpg',
+    ]);
+
+    download($book);
+
+    $book->refresh();
+
+    expect($book->hasCover())->toBeTrue()
+        ->and($book->coverDownloadHasFailed())->toBeFalse()
+        ->and($book->cover_failure)->toBeNull();
+});
+
+it('no deja marca de fallo cuando la cola va a reintentar sola', function () {
+    Http::fake(['covers.openlibrary.org/*' => Http::response('', 503)]);
+
+    $book = Book::factory()->coverPending()->create([
+        'cover_source_url' => 'https://covers.openlibrary.org/b/id/42-L.jpg',
+    ]);
+
+    expect(fn () => download($book))->toThrow(RuntimeException::class);
+
+    expect($book->fresh()->coverDownloadHasFailed())->toBeFalse();
+});

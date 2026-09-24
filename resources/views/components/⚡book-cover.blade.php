@@ -130,6 +130,24 @@ new class extends Component
                 @endswitch
             </flux:text>
 
+            {{-- La descarga que falló no deja rastro en ningún otro lado: la
+                 cola la da por terminada y el servidor no escribe bitácora
+                 (BIB-52). Se queda a la vista hasta que una descarga funcione,
+                 incluida la que se reintenta desde aquí. --}}
+            @if ($book->coverDownloadHasFailed())
+                <flux:callout variant="warning" icon="photo" data-test="cover-download-failed">
+                    <flux:callout.text>
+                        La última descarga de la Portada falló el
+                        {{ $book->cover_failed_at->translatedFormat('d M Y, H:i') }},
+                        {{ $book->cover_failed_at->diffForHumans() }}.
+
+                        @if ($book->cover_failure)
+                            El motivo: «{{ $book->cover_failure }}»
+                        @endif
+                    </flux:callout.text>
+                </flux:callout>
+            @endif
+
             <form wire:submit="save" class="flex flex-col gap-3">
                 <flux:input
                     type="file"

@@ -218,3 +218,30 @@ it('no ofrece quitar la Portada de un Book que no tiene ninguna guardada', funct
         ->assertHasNoErrors()
         ->assertSet('notice', null);
 });
+
+it('dice en la ficha cuándo y por qué falló la última descarga', function () {
+    $book = Book::factory()->coverDownloadFailed('La Fuente contestó 404 al pedirle la imagen.')->create();
+
+    Livewire::test('book-cover', ['book' => $book])
+        ->assertSeeHtml('data-test="cover-download-failed"')
+        ->assertSee('La Fuente contestó 404 al pedirle la imagen.');
+});
+
+it('no dice nada del fallo en un Libro al que nunca se le pidió Portada', function () {
+    $book = Book::factory()->coverGenerated()->create();
+
+    Livewire::test('book-cover', ['book' => $book])
+        ->assertDontSeeHtml('data-test="cover-download-failed"');
+});
+
+it('deja de decirlo en cuanto se sube una Portada a mano', function () {
+    $book = Book::factory()->coverDownloadFailed()->create();
+
+    Livewire::test('book-cover', ['book' => $book])
+        ->set('file', UploadedFile::fake()->createWithContent('portada.jpg', testImage(400, 600)))
+        ->call('save')
+        ->assertHasNoErrors()
+        ->assertDontSeeHtml('data-test="cover-download-failed"');
+
+    expect($book->fresh()->coverDownloadHasFailed())->toBeFalse();
+});

@@ -64,12 +64,21 @@ new #[Title('Acervo')] class extends Component
     public string $category = '';
 
     /**
-     * Where the Cover came from; empty is anywhere. Generated is the queue of
-     * what is left to photograph (ADR-008), and it is what this filter exists
-     * for.
+     * What the Cover answers about itself; empty is anything. Where it came
+     * from —Generated is the queue of what is left to photograph (ADR-008), and
+     * it is what this filter was born for— plus the one situation that is not
+     * an Origin: the download that gave up (BIB-52).
+     *
+     * They share the filter because they are the same question asked of the
+     * same grid, and because a failed download is exactly what somebody is
+     * looking for when they open this list: the Books showing the generated
+     * piece for a reason.
      */
     #[Url(except: '')]
     public string $cover = '';
+
+    /** The value of the Cover filter that is not a CoverOrigin (BIB-52). */
+    public const COVER_FAILED = 'failed';
 
     /** What the AI is doing with the Book: in the queue, or failed (BIB-33). */
     #[Url(except: '')]
@@ -247,7 +256,9 @@ new #[Title('Acervo')] class extends Component
             $query->inCategory($this->category);
         }
 
-        if ($this->coverFilter() instanceof CoverOrigin) {
+        if ($this->cover === self::COVER_FAILED) {
+            $query->withFailedCoverDownload();
+        } elseif ($this->coverFilter() instanceof CoverOrigin) {
             $query->withCoverOrigin($this->coverFilter());
         }
 
@@ -371,7 +382,8 @@ new #[Title('Acervo')] class extends Component
             {{--
                 Where the Cover came from. The generated ones are the queue of
                 what is left to photograph, which is the number the Dashboard
-                prints (ADR-008, BIB-40).
+                prints (ADR-008, BIB-40). The last option is not an Origin: it
+                is the Books whose download gave up (BIB-52).
             --}}
             <flux:select wire:model.live="cover" label="Portada" class="max-w-56" data-test="cover-filter">
                 <flux:select.option value="">Toda portada</flux:select.option>
@@ -379,6 +391,8 @@ new #[Title('Acervo')] class extends Component
                 @foreach (\App\Enums\CoverOrigin::cases() as $origin)
                     <flux:select.option value="{{ $origin->value }}">{{ $origin->label() }}</flux:select.option>
                 @endforeach
+
+                <flux:select.option value="{{ $this::COVER_FAILED }}">Descarga fallida</flux:select.option>
             </flux:select>
 
             {{--
