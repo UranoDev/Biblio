@@ -20,6 +20,7 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Support\Carbon;
+use Illuminate\Support\Str;
 
 /**
  * A concrete edition, identified by its ISBN: the unit that gets registered,
@@ -473,5 +474,76 @@ class Book extends Model
     protected function read(Builder $query): void
     {
         $query->where('is_read', true);
+    }
+
+    /**
+     * The Search: the Books whose title or whose Authors contain what was
+     * typed. It never goes out to a Source — that is the TitleLookup.
+     *
+     * The escape character is `=` and not the usual backslash: a backslash
+     * inside a bound pattern does not mean the same thing to MySQL, where the
+     * Shelf runs, as to SQLite, where the tests do. With `=` both engines read
+     * the pattern the same way, and a `%` typed into the box is a percent sign
+     * and not «everything».
+     *
+     * @param  Builder<$this>  $query
+     */
+    #[Scope]
+    protected function matching(Builder $query, string $term): void
+    {
+        $typed = Str::lower(trim($term));
+
+        if ($typed === '') {
+            return;
+        }
+
+        $like = static fn (string $text): string => '%'.str_replace(
+            ['=', '%', '_'],
+            ['==', '=%', '=_'],
+            $text,
+        ).'%';
+
+        // The Authors are a JSON column and the two engines keep it written
+        // differently: MySQL stores the accented character and SQLite stores
+        // the `á` that json_encode produced. Both forms are looked for, so
+        // that «Julián» finds the same Book wherever it is stored.
+        $asStored = trim((string) json_encode($typed), '"');
+
+        $query->where(function (Builder $query) use ($like, $typed, $asStored): void {
+            $query->whereRaw("lower(title) like ? escape '='", [$like($typed)])
+                ->orWhereRaw("lower(cast(authors as char)) like ? escape '='", [$like($typed)])
+                ->orWhereRaw("lower(cast(authors as char)) like ? escape '='", [$like($asStored)]);
+        });
+    }
+
+    /**
+     * The Books in one of the three Reading states.
+     *
+     * It is not a column: read without a date and unread are two states that a
+     * single flag cannot tell apart, so each one is its own pair of conditions.
+     *
+     * @param  Builder<$this>  $query
+     */
+    #[Scope]
+    protected function inReadingStatus(Builder $query, ReadingStatus $status): void
+    {
+        match ($status) {
+            ReadingStatus::Unread => $query->where('is_read', false),
+            ReadingStatus::ReadUndated => $query->where('is_read', true)->whereNull('read_on'),
+            ReadingStatus::ReadDated => $query->where('is_read', true)->whereNotNull('read_on'),
+        };
+    }
+
+    /**
+     * The Books that belong to one Category, by its slug.
+     *
+     * @param  Builder<$this>  $query
+     */
+    #[Scope]
+    protected function inCategory(Builder $query, string $slug): void
+    {
+        $query->whereHas('categories', function (Builder $categories) use ($slug): void {
+            $categories->where('categories.slug', $slug);
+        });
     }
 }

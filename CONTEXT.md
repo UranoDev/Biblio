@@ -270,6 +270,13 @@ suficiente para que se lea como un objeto y no como un rectángulo pegado. Lo
 que se ve es un fragmento grande, nunca la portada completa encogida: ésa es la diferencia
 entre verse editorial y verse como ficha de catálogo.
 
+**En la retícula del Acervo el Cover va completo**, con su inclinación, su sombra y su
+filo, pero sin recortar. Es la única superficie donde la portada no es la imagen sino el
+modo de encontrar un libro entre doscientos, y ahí reconocerla pide verla entera; además,
+recortar un 15 % por lado muerde los márgenes de la pieza generada y se come su título. El
+fragmento grande es de las superficies donde el Cover sí es la imagen —la ficha, la
+tarjeta de una Quote—.
+
 **Todo Cover lleva un filo de un píxel.** No es adorno: las portadas claras —y son
 comunes— se disuelven en el papel sin él. Comprobado con portadas reales.
 
@@ -356,6 +363,12 @@ Las nueve primeras tienen ADR en `docs/adr/`, porque son las costosas de reverti
    sin fecha, leído con fecha— y hay que distinguirlos de un vistazo en una retícula de
    doscientas portadas, sin color de acento y sin una palomita, que es el recurso que este
    sistema no quiere. La otra dirección lo resolvía con un sello; aquí falta decidirlo.
+
+   La retícula ya existe y ya la necesita (BIB-13). Mientras se decide, el Acervo dibuja
+   los tres estados con su etiqueta escrita, que es lo que hacían las muestras, y lo hace
+   en un solo archivo —`resources/views/components/reading-mark.blade.php`—: lo que se
+   decida se cambia ahí y en ninguna otra parte, porque ninguna pantalla escribe la marca
+   a mano. BIB-13 está en `ready-for-human` por esto y sólo por esto.
 
 Cuando aparezca una decisión que no se pueda tomar sobre la marcha, va aquí, y la tarea
 que dependa de ella se marca `ready-for-human` con la explicación en el comentario.

@@ -16,6 +16,10 @@
                         {{ __('Dashboard') }}
                     </flux:sidebar.item>
 
+                    <flux:sidebar.item icon="rectangle-stack" :href="route('shelf')" :current="request()->routeIs('shelf')" wire:navigate>
+                        Acervo
+                    </flux:sidebar.item>
+
                     <flux:sidebar.item icon="plus" :href="route('scan')" :current="request()->routeIs('scan')" wire:navigate>
                         Escaneo
                     </flux:sidebar.item>

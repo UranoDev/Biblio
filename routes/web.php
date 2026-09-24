@@ -17,6 +17,8 @@ Route::get('covers/{book}/{size}', ServeCover::class)->name('cover');
 Route::middleware(['auth', 'verified'])->group(function () {
     Route::view('dashboard', 'dashboard')->name('dashboard');
 
+    Route::livewire('shelf', 'pages::shelf')->name('shelf');
+
     Route::livewire('scan', 'pages::scan')->name('scan');
 
     Route::livewire('title-lookup', 'pages::title-lookup')->name('title-lookup');
