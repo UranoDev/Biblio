@@ -1,7 +1,7 @@
 # ADR-009 — La imagen de una Quote es la misma tarjeta, rasterizada fuera
 
 - **Estado:** Aceptada
-- **Fecha:** 2026-09-23
+- **Fecha:** 2026-09-23 · **Corregida:** 2026-09-23
 
 ## Contexto
 
@@ -38,22 +38,48 @@ las imágenes ya generadas.
 
 ## Por qué un servicio y no el navegador propio, teniendo root
 
-Tres razones, en orden de peso:
+**Corrección de la primera versión de este ADR.** Se escribió diciendo que el servicio
+costaba «nueve dólares, una sola vez», y que ésa era la razón principal para preferirlo
+sobre instalar Chromium. **El dato era falso.** html2img cobra **por mes**: los créditos
+se reinician cada mes, no se acumulan, y no hay recarga automática. Con los dos formatos
+por Quote, el acervo inicial de unas mil citas son **dos mil renders** — dos meses de
+plan sólo para empezar.
 
-1. **El volumen es diminuto y el gasto es de una sola vez.** Mil citas son mil créditos:
-   nueve dólares. Después, un puñado al mes conforme se capturan citas nuevas, dentro de
-   la capa gratuita. No es una suscripción, es una compra chica.
-2. **El servicio es un generador, no un servidor.** Las imágenes se guardan en disco
-   propio y se sirven desde ahí. Si el servicio cierra, las imágenes existentes siguen
-   funcionando y sólo cambia quién genera las nuevas. Ése era el riesgo que parecía
-   descalificarlo, y con caché no existe.
-3. **Chromium en el VPS son 300 MB, una dependencia que mantener, y un par de segundos de
-   CPU por imagen** en el mismo servidor que sirve el sitio.
+Con el número correcto, la comparación real es **$108 al año, indefinidamente, contra una
+instalación única en un VPS propio con root**. La decisión se volvió a mirar con ese dato
+sobre la mesa y **se confirmó el servicio**, pero por otra razón:
+
+**No tener Chromium en el servidor vale su renta.** Son 300 MB, una dependencia del
+sistema que hay que mantener y actualizar, y un par de segundos de CPU por imagen en la
+misma máquina que sirve el sitio. Pagar por no administrar eso es una decisión legítima, y
+es la que se tomó a sabiendas.
+
+Lo que **sigue siendo cierto** del razonamiento original, y es lo que hace reversible la
+decisión: **el servicio es un generador, no un servidor.** Las imágenes se guardan en
+disco propio y se sirven desde ahí. Si el servicio cierra, sube de precio o deja de
+convenir, las imágenes existentes siguen funcionando y sólo cambia quién genera las
+nuevas — un cambio detrás del seam, sin tocar la tarjeta.
 
 **Se descartó Satori** —la opción gratis y sin navegador— por un detalle que lo vuelve
 inservible para esta tarjeta: **no soporta `background-blend-mode`**, que es exactamente
 el mecanismo con que el papel toma su tono cálido. Y no falla con un error: simplemente
 se ve distinto. Tampoco lee WOFF2, que es el formato en que Bunny sirve las tipografías.
+
+## Qué pasa cuando el renderizador no responde
+
+Con una cuota mensual esto deja de ser hipotético: **se van a acabar los créditos**, y va
+a pasar a mitad de una regeneración masiva. Así que el comportamiento ante la falla es
+parte de la decisión, no un detalle de implementación.
+
+- **Guardar una Quote nunca espera a la imagen.** La Quote queda guardada y la imagen se
+  encola.
+- **Sin imagen, `og:image` cae en el Cover del Book**, que siempre existe (ADR-008). Un
+  enlace compartido nunca sale pelado: sale con la portada en vez de la tarjeta.
+- **Al agotarse los créditos, la cola se detiene; no reintenta mil veces.** Un error de
+  cuota no es un error transitorio: reintentar es quemar la cuota del mes siguiente en el
+  instante en que renueve. Se para, se avisa, y se retoma cuando haya con qué.
+- El botón de descarga dice que la imagen todavía no está lista, en vez de entregar un
+  archivo roto.
 
 ## Consecuencias
 
