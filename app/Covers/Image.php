@@ -29,6 +29,16 @@ final readonly class Image
     /** The share of samples that has to be that color for it to be flat. */
     private const FLAT_SHARE = 0.90;
 
+    /**
+     * How many colors the image can be made of and still be flat.
+     *
+     * The markers are drawings: a background, the lettering over it and the
+     * odd blurred edge. Measured on 2026-09-24 they are made of between 1 and
+     * 9 colors, while a dozen real Covers —the most minimal ones among them,
+     * the white sheet with the title and nothing else— do not go below 20.
+     */
+    private const FLAT_COLORS = 12;
+
     private function __construct(
         public string $binary,
         private int $format,
@@ -78,12 +88,16 @@ final readonly class Image
     }
 
     /**
-     * Whether the image is a single flat color across almost its whole surface.
+     * Whether the image is one of those a catalog draws in place of a Cover it
+     * does not have: a flat color across almost its whole surface, made of the
+     * handful of colors it takes to draw a background and some lettering.
      *
-     * That is what the markers of the catalogs look like —the white sheet with
-     * grey lettering, the red tile— and what no real Cover looks like: measured
-     * against both on 2026-09-23, the markers sit at 0.93 and the covers do not
-     * reach 0.60.
+     * The share on its own is not enough. A minimal Cover —a white sheet, the
+     * title at the top, the author at the bottom, one figure in the middle— is
+     * mostly background too, and on the 32×32 grid it measures 0.915, above
+     * the 0.93 of a marker rather than below the 0.60 that the sample of
+     * 2026-09-23 found among Covers (BIB-53). What does tell them apart is how
+     * many colors each one is made of, and there the two do not even touch.
      *
      * It is the backup for a marker whose bytes are not in the list yet, so it
      * is deliberately strict: it would rather let one through than throw out a
@@ -91,53 +105,14 @@ final readonly class Image
      */
     public function isFlat(): bool
     {
-        $canvas = @imagecreatefromstring($this->binary);
+        $samples = $this->samples();
 
-        if ($canvas === false) {
+        if ($samples === []) {
             return false;
         }
 
-        if (! imageistruecolor($canvas)) {
-            imagepalettetotruecolor($canvas);
-        }
-
-        /** @var list<array{int, int, int}> $samples */
-        $samples = [];
-
-        for ($column = 0; $column < self::SAMPLES; $column++) {
-            for ($row = 0; $row < self::SAMPLES; $row++) {
-                $x = (int) (($column + 0.5) * $this->width / self::SAMPLES);
-                $y = (int) (($row + 0.5) * $this->height / self::SAMPLES);
-
-                $color = imagecolorat($canvas, $x, $y);
-
-                $samples[] = [($color >> 16) & 255, ($color >> 8) & 255, $color & 255];
-            }
-        }
-
-        imagedestroy($canvas);
-
-        $middle = [];
-
-        foreach ([0, 1, 2] as $channel) {
-            $values = array_column($samples, $channel);
-            sort($values);
-            $middle[$channel] = $values[intdiv(count($values), 2)];
-        }
-
-        $alike = 0;
-
-        foreach ($samples as $sample) {
-            foreach ([0, 1, 2] as $channel) {
-                if (abs($sample[$channel] - $middle[$channel]) > self::FLAT_TOLERANCE) {
-                    continue 2;
-                }
-            }
-
-            $alike++;
-        }
-
-        return $alike / count($samples) >= self::FLAT_SHARE;
+        return $this->alikeShare($samples) >= self::FLAT_SHARE
+            && $this->colorCount($samples) <= self::FLAT_COLORS;
     }
 
     /**
@@ -185,5 +160,110 @@ final readonly class Image
         imagedestroy($original);
 
         return $scaled;
+    }
+
+    /**
+     * The colors the image shows on a grid of SAMPLES × SAMPLES points, read
+     * from the middle of each cell. Empty when GD cannot open the binary.
+     *
+     * @return list<array{int, int, int}>
+     */
+    private function samples(): array
+    {
+        $canvas = @imagecreatefromstring($this->binary);
+
+        if ($canvas === false) {
+            return [];
+        }
+
+        if (! imageistruecolor($canvas)) {
+            imagepalettetotruecolor($canvas);
+        }
+
+        $samples = [];
+
+        for ($column = 0; $column < self::SAMPLES; $column++) {
+            for ($row = 0; $row < self::SAMPLES; $row++) {
+                $x = (int) (($column + 0.5) * $this->width / self::SAMPLES);
+                $y = (int) (($row + 0.5) * $this->height / self::SAMPLES);
+
+                $color = imagecolorat($canvas, $x, $y);
+
+                $samples[] = [($color >> 16) & 255, ($color >> 8) & 255, $color & 255];
+            }
+        }
+
+        imagedestroy($canvas);
+
+        return $samples;
+    }
+
+    /**
+     * The share of the samples that is the middle color, give or take the
+     * tolerance.
+     *
+     * @param  non-empty-list<array{int, int, int}>  $samples
+     */
+    private function alikeShare(array $samples): float
+    {
+        $middle = [];
+
+        foreach ([0, 1, 2] as $channel) {
+            $values = array_column($samples, $channel);
+            sort($values);
+            $middle[$channel] = $values[intdiv(count($values), 2)];
+        }
+
+        /** @var array{int, int, int} $middle */
+        $alike = 0;
+
+        foreach ($samples as $sample) {
+            if (self::alike($sample, $middle)) {
+                $alike++;
+            }
+        }
+
+        return $alike / count($samples);
+    }
+
+    /**
+     * How many colors the samples are made of, counting as one every group of
+     * them that falls within the tolerance of the first of the group.
+     *
+     * @param  list<array{int, int, int}>  $samples
+     */
+    private function colorCount(array $samples): int
+    {
+        /** @var list<array{int, int, int}> $colors */
+        $colors = [];
+
+        foreach ($samples as $sample) {
+            foreach ($colors as $color) {
+                if (self::alike($sample, $color)) {
+                    continue 2;
+                }
+            }
+
+            $colors[] = $sample;
+        }
+
+        return count($colors);
+    }
+
+    /**
+     * Whether two colors are close enough to count as the same one.
+     *
+     * @param  array{int, int, int}  $color
+     * @param  array{int, int, int}  $other
+     */
+    private static function alike(array $color, array $other): bool
+    {
+        foreach ([0, 1, 2] as $channel) {
+            if (abs($color[$channel] - $other[$channel]) > self::FLAT_TOLERANCE) {
+                return false;
+            }
+        }
+
+        return true;
     }
 }

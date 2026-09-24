@@ -66,3 +66,21 @@ it('no alcanza a reconocer el mosaico rojo cuando viene en JPEG', function () {
 it('no llama color plano a una imagen con contenido', function () {
     expect(Image::from(testImage(400, 600))->isFlat())->toBeFalse();
 });
+
+// Lo medido el 2026-09-24 sobre el binario real: 0.915 de color parejo —más
+// que el 0.93 de un marcador y muy lejos del 0.60 que medían las portadas de
+// la muestra del 2026-09-23— y 27 colores, contra los 9 del marcador más
+// variado. Lo que la salva es el conteo de colores, no la proporción (BIB-53).
+it('no llama color plano a una portada real de fondo minimalista', function () {
+    expect(Image::from(recordedCover('open-library-minimal-cover.jpg'))->isFlat())->toBeFalse();
+});
+
+it('sigue llamando color plano a lo que además es de pocos colores', function () {
+    // La misma proporción que la portada minimalista, 0.915 de fondo parejo,
+    // pero dibujada con dos colores: eso es la forma de un marcador.
+    expect(Image::from(mostlyFlatImage(386, 500, 0.915, 2))->isFlat())->toBeTrue();
+});
+
+it('no llama color plano a lo que tiene esa misma proporción y muchos colores', function () {
+    expect(Image::from(mostlyFlatImage(386, 500, 0.915, 40))->isFlat())->toBeFalse();
+});

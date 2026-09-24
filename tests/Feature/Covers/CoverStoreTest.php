@@ -183,6 +183,21 @@ it('no guarda el logo de Internet Archive, que es lo que Open Library sirve cuan
         ->and(Storage::disk()->allFiles())->toBeEmpty();
 });
 
+// La portada de «Show Me the Numbers»: fondo blanco casi entero, el título
+// arriba, el autor abajo y una sola figura al centro. Mide 0.915 de color
+// parejo, por encima del 0.90 que rechaza a un marcador, y aun así es una
+// portada de verdad (BIB-53).
+it('guarda una portada real de fondo minimalista', function () {
+    $book = Book::factory()->coverGenerated()->create();
+
+    $this->store->store($book, recordedCover('open-library-minimal-cover.jpg'));
+
+    expect($book->hasCover())->toBeTrue()
+        ->and($book->cover_origin)->toBe(CoverOrigin::Source);
+
+    Storage::disk()->assertExists($book->cover_path);
+});
+
 it('no guarda una imagen más chica que el mínimo, aunque sea una portada de verdad', function () {
     $book = Book::factory()->coverGenerated()->create();
 

@@ -15,7 +15,6 @@
  *
  * Usage: php scripts/lookup-cover.php 9780970601971
  */
-
 $isbn = $argv[1] ?? null;
 
 if ($isbn === null || trim($isbn) === '') {

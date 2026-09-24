@@ -238,6 +238,68 @@ function testImage(int $width = 400, int $height = 600, string $format = 'jpeg')
 }
 
 /**
+ * An image with a measured share of its surface in one color and the rest
+ * drawn with a given number of others, to ask the flatness measurement about
+ * one thing at a time: the same share tells a marker and a minimal Cover
+ * apart only once the count of colors comes in (BIB-53).
+ *
+ * It paints whole cells of the 32×32 grid the measurement samples on, so the
+ * share it asks for is the share it gets, and it comes out in PNG so that no
+ * compression invents a color that was not painted.
+ */
+function mostlyFlatImage(int $width, int $height, float $share, int $colors): string
+{
+    $grid = 32;
+    $canvas = imagecreatetruecolor($width, $height);
+
+    $background = imagecolorallocate($canvas, 255, 255, 255);
+
+    if ($background !== false) {
+        imagefilledrectangle($canvas, 0, 0, $width, $height, $background);
+    }
+
+    // Four levels per channel: whatever two of them come out, they are 70
+    // apart in some channel and no measurement counts them as the same color.
+    $levels = [0, 70, 140, 210];
+    $painted = (int) round((1 - $share) * $grid * $grid);
+
+    for ($cell = 0; $cell < $painted; $cell++) {
+        $shade = $cell % $colors;
+
+        $color = imagecolorallocate(
+            $canvas,
+            $levels[$shade % 4],
+            $levels[intdiv($shade, 4) % 4],
+            $levels[intdiv($shade, 16) % 4],
+        );
+
+        if ($color === false) {
+            continue;
+        }
+
+        $column = $cell % $grid;
+        $row = intdiv($cell, $grid);
+
+        imagefilledrectangle(
+            $canvas,
+            (int) round($column * $width / $grid),
+            (int) round($row * $height / $grid),
+            (int) round(($column + 1) * $width / $grid) - 1,
+            (int) round(($row + 1) * $height / $grid) - 1,
+            $color,
+        );
+    }
+
+    ob_start();
+    imagepng($canvas);
+    $binary = (string) ob_get_clean();
+
+    imagedestroy($canvas);
+
+    return $binary;
+}
+
+/**
  * What the Sources answer during the test. It replaces the resolver in the
  * container, so that nothing goes out to the internet and the screen receives
  * the outcome the test wants.

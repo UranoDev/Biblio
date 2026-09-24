@@ -1,9 +1,10 @@
-# Las imágenes que los catálogos mandan cuando no tienen portada
+# Las imágenes que los catálogos mandan cuando no tienen portada, y una que sí lo es
 
 **Éstas sí son grabaciones crudas**, a diferencia de las de `../sources`, que están
-escritas a mano con la forma de la respuesta. Cada archivo se bajó del catálogo real el
-2026-09-23 y está byte por byte como llegó: si se reescribieran a mano, el hash cambiaría
-y la prueba dejaría de probar lo único que importa acá, que es reconocer **este** archivo.
+escritas a mano con la forma de la respuesta. Cada archivo se bajó del catálogo real —el
+2026-09-23, salvo los dos últimos, del 24— y está byte por byte como llegó: si se
+reescribieran a mano cambiarían el hash y la medición, y la prueba dejaría de probar lo
+único que importa acá, que es reconocer **este** archivo.
 
 | Archivo | De dónde salió | Medidas | Bytes |
 | --- | --- | --- | --- |
@@ -12,6 +13,7 @@ y la prueba dejaría de probar lo único que importa acá, que es reconocer **es
 | `google-books-not-available-128x198.jpg` | el mismo volumen, `zoom=1` | 128×198 | 7 970 |
 | `google-books-not-available-128x170.png` | volumen `3TIctgEACAAJ`, `zoom=1` | 128×170 | 1 269 |
 | `internet-archive-placeholder.jpg` | `covers.openlibrary.org/b/id/15092702-L.jpg` | 320×220 | 5 045 |
+| `open-library-minimal-cover.jpg` | `covers.openlibrary.org/b/id/14656983-L.jpg` | 386×500 | 26 764 |
 
 Tres cosas que se comprobaron bajándolas, y que no se ven en la tabla:
 
@@ -33,5 +35,21 @@ de Internet Archive con un 200. Es **apaisado**, 320×220 — desde que el míni
 que lo detiene es estar en esta lista. Se queda aquí para que una variante más grande
 tampoco se cuele.
 
-`App\Covers\Marker` tiene el hash de cada uno. Para agregar el marcador de otro catálogo:
-bajarlo acá y poner su `sha256` en esa lista.
+La última **no es un marcador: es una portada de verdad**, la de «Show Me the Numbers»
+(Stephen Few, ISBN 9780970601971). Está acá porque casi se rechaza como si lo fuera: fondo
+blanco casi entero, el título arriba, el autor abajo y una sola figura al centro. Medida el
+2026-09-24 sobre este binario, en la rejilla de 32×32 de `App\Covers\Image`:
+
+| | Color parejo | Colores |
+| --- | --- | --- |
+| Esta portada | 0.915 (937/1024) | 27 |
+| `google-books-not-available.png` | 0.929 | 4 |
+| `internet-archive-placeholder.jpg` | 0.916 | 9 |
+
+La proporción sola no alcanza —0.915 está del lado de los marcadores, no del 0.60 que
+medían las portadas de la muestra del 2026-09-23—, y por eso `isFlat()` cuenta también de
+cuántos colores está hecha la imagen: los marcadores llegan a 9 y una docena de portadas
+reales, las más minimalistas incluidas, no bajan de 20 (BIB-53).
+
+`App\Covers\Marker` tiene el hash de cada uno de los marcadores. Para agregar el de otro
+catálogo: bajarlo acá y poner su `sha256` en esa lista.
