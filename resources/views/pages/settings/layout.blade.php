@@ -6,7 +6,7 @@
             <flux:navlist.item :href="route('appearance.edit')" wire:navigate>{{ __('Appearance') }}</flux:navlist.item>
             <flux:navlist.item :href="route('ai-model.edit')" wire:navigate>Modelo de IA</flux:navlist.item>
             <flux:navlist.item :href="route('regenerate')" wire:navigate>Regenerar</flux:navlist.item>
-            <flux:navlist.item :href="route('quote-images')" wire:navigate>Imágenes de las citas</flux:navlist.item>
+            <flux:navlist.item :href="route('quote-images')" wire:navigate>Imágenes para compartir</flux:navlist.item>
             <flux:navlist.item :href="route('failed-jobs')" wire:navigate>Trabajos fallidos</flux:navlist.item>
         </flux:navlist>
     </div>

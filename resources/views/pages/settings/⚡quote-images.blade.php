@@ -1,26 +1,34 @@
 <?php
 
+use App\Books\WaitingCards;
 use App\Models\Quote;
 use App\Quotes\Credits;
 use App\Quotes\MissingImages;
 use App\Quotes\ShareImages;
+use Illuminate\Support\Str;
 use Livewire\Attributes\Computed;
 use Livewire\Attributes\Title;
 use Livewire\Component;
 
 /**
- * The screen of the images with which a Quote gets shared (BIB-31, ADR-009).
+ * The screen of the images with which a Quote and a Book get shared (BIB-31,
+ * BIB-54, ADR-009).
  *
  * It exists for one number: how many images are owed. Each Quote is two
- * renders, the credits of the renderer reset by the month, and a day of
- * photographing twenty books can invalidate a hundred Quotes — so the cost of
- * what is about to be asked for has to be visible **before** it is asked for.
+ * renders, each Book is one, the credits of the renderer reset by the month,
+ * and a day of photographing twenty books can invalidate a hundred Quotes — so
+ * the cost of what is about to be asked for has to be visible **before** it is
+ * asked for.
  *
  * And it is where the stopped queue shows. When the credits run out the queue
  * stops instead of retrying, which is the right thing and also the silent one:
  * without this screen, the images would simply stop appearing.
+ *
+ * Quotes and Books share the screen because they share the switch: what ran out
+ * is the month, not one kind of drawing. Resuming for one and leaving the other
+ * behind is what BIB-54 was.
  */
-new #[Title('Imágenes de las citas')] class extends Component
+new #[Title('Imágenes para compartir')] class extends Component
 {
     public ?string $notice = null;
 
@@ -29,6 +37,18 @@ new #[Title('Imágenes de las citas')] class extends Component
     public function pending(): int
     {
         return Quote::query()->awaitingImages()->count();
+    }
+
+    /**
+     * How many Books are still owed the card they were queued for (BIB-54).
+     *
+     * Counted apart from the Quotes and not added to them: a Quote is two
+     * drawings and a Book is one, so a single number would say the wrong cost.
+     */
+    #[Computed]
+    public function pendingCards(): int
+    {
+        return WaitingCards::count();
     }
 
     /** The ones the renderer refused for a reason waiting does not fix. */
@@ -74,17 +94,42 @@ new #[Title('Imágenes de las citas')] class extends Component
     {
         Credits::restored();
 
-        $waiting = Quote::query()->awaitingImages()->get();
+        $quotes = Quote::query()->awaitingImages()->get();
 
-        $waiting->each(fn (Quote $quote) => $quote->queueImages());
+        $quotes->each(fn (Quote $quote) => $quote->queueImages());
 
-        unset($this->pending, $this->failed, $this->stopped);
+        // The Books stopped on the same switch and behind the same month. They
+        // carry the mark of the queue with nothing drawn, and nothing else in
+        // the application was ever going to come back for them (BIB-54).
+        $books = WaitingCards::books();
 
-        $this->notice = match ($waiting->count()) {
-            0 => 'No había ninguna cita esperando imagen.',
-            1 => 'Una cita volvió a la cola.',
-            default => $waiting->count().' citas volvieron a la cola.',
-        };
+        WaitingCards::queue($books);
+
+        unset($this->pending, $this->pendingCards, $this->failed, $this->stopped);
+
+        $this->notice = $this->resumed($quotes->count(), $books->count());
+    }
+
+    /** What the screen says about what just went back into the queue. */
+    private function resumed(int $quotes, int $books): string
+    {
+        if ($quotes === 0 && $books === 0) {
+            return 'No había nada esperando en la cola.';
+        }
+
+        $waiting = [];
+
+        if ($quotes > 0) {
+            $waiting[] = $quotes === 1 ? 'una cita' : $quotes.' citas';
+        }
+
+        if ($books > 0) {
+            $waiting[] = $books === 1 ? 'un libro' : $books.' libros';
+        }
+
+        return Str::ucfirst(implode(' y ', $waiting))
+            .($quotes + $books === 1 ? ' volvió' : ' volvieron')
+            .' a la cola.';
     }
 
     /**
@@ -111,8 +156,8 @@ new #[Title('Imágenes de las citas')] class extends Component
     @include('partials.settings-heading')
 
     <x-pages::settings.layout
-        heading="Imágenes de las citas"
-        subheading="Cada cita se dibuja en dos imágenes para compartir: la horizontal que arma la tarjeta del enlace y la vertical que se sube a mano."
+        heading="Imágenes para compartir"
+        subheading="Cada cita se dibuja en dos imágenes —la horizontal que arma la tarjeta del enlace y la vertical que se sube a mano— y cada libro, en una. Todas salen del mismo servicio y de los mismos créditos."
     >
         <div class="flex flex-col gap-8">
             @if (! $this->available)
@@ -120,8 +165,8 @@ new #[Title('Imágenes de las citas')] class extends Component
                     <flux:callout.heading>No hay con qué dibujarlas</flux:callout.heading>
 
                     <flux:callout.text>
-                        Falta la llave del servicio que convierte la tarjeta en imagen. Las citas
-                        se guardan igual y quedan esperando en la cola.
+                        Falta la llave del servicio que convierte la tarjeta en imagen. Las citas y
+                        los libros se guardan igual y quedan esperando en la cola.
                     </flux:callout.text>
                 </flux:callout>
             @endif
@@ -161,6 +206,14 @@ new #[Title('Imágenes de las citas')] class extends Component
                         default => $this->pending.' citas esperan sus imágenes: son '.($this->pending * 2).' dibujos.',
                     } }}
                 </flux:text>
+
+                @if ($this->pendingCards)
+                    <flux:text data-test="pending-cards-count">
+                        {{ $this->pendingCards === 1
+                            ? 'Un libro espera su tarjeta: es un dibujo.'
+                            : $this->pendingCards.' libros esperan su tarjeta: son '.$this->pendingCards.' dibujos.' }}
+                    </flux:text>
+                @endif
             </div>
 
             @if ($this->neverAsked)
