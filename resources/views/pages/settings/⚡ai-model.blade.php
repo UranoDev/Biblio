@@ -144,6 +144,24 @@ new #[Title('Modelo de IA')] class extends Component
         unset($this->models);
     }
 
+    /**
+     * Choosing a model clears the complaint that asked for one.
+     *
+     * Without this the screen contradicts itself: switching Provider empties the
+     * model, saving then complains, and the complaint stays on screen after the
+     * model is picked —- pointing at a radio that is visibly selected.
+     */
+    public function updatedModel(): void
+    {
+        $this->resetValidation();
+    }
+
+    /** Typing the name of a model clears the complaint that asked for it. */
+    public function updatedOtherModel(): void
+    {
+        $this->resetValidation('otherModel');
+    }
+
     public function save(): void
     {
         $this->validate($this->rules(), $this->messages());

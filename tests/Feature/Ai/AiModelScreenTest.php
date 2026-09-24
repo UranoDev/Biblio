@@ -215,3 +215,15 @@ it('no ofrece ir a regenerar cuando no hay nada de otro AiModel', function () {
 
     choose('gemini')->assertDontSee('Ir a regenerar');
 });
+
+it('borra el reclamo del modelo en cuanto se elige uno', function () {
+    // La secuencia que lo delató: cambiar de Proveedor vacía el modelo, guardar
+    // reclama que falta, y el reclamo se quedaba en pantalla señalando un radio
+    // que ya estaba marcado.
+    screen()
+        ->set('provider', 'anthropic')
+        ->call('save')
+        ->assertHasErrors('model')
+        ->set('model', namedModel('anthropic'))
+        ->assertHasNoErrors();
+});
