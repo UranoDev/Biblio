@@ -10,6 +10,7 @@ use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Bus\Dispatchable;
 use Illuminate\Queue\InteractsWithQueue;
+use App\Jobs\DownloadCover;
 
 /**
  * Reads the configured Amazon wishlist and registers every book it finds as
@@ -41,7 +42,13 @@ class ImportAmazonWishlist implements ShouldQueue
         $candidates = (new AmazonWishlist)->candidates($setting->url);
 
         foreach ($candidates as $candidate) {
-            $register->register($candidate, Status::Wanted);
+            $result = $register->register($candidate, Status::Wanted);
+
+            // When the book was already registered and has no cover, refresh it
+            // from the Amazon image the wishlist exposed this sync.
+            if ($result->alreadyRegistered && ! $result->book->hasCover() && $candidate->coverUrl !== null) {
+                DownloadCover::forBook($result->book, $candidate->coverUrl);
+            }
         }
 
         $setting->markSynced();

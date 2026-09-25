@@ -31,7 +31,8 @@ function wishlistHtml(
 
 function fakeWishlist(string $html): void
 {
-    Http::fake(['amazon.com.mx/*' => Http::response($html)]);
+    Http::preventStrayRequests();
+    Http::fake(['https://www.amazon.com.mx/*' => Http::response($html)]);
 }
 
 it('extrae el candidato con portada cuando el item tiene imagen', function () {
