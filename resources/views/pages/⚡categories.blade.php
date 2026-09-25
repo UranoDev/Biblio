@@ -64,6 +64,8 @@ new #[Title('Categorías')] class extends Component
             ->with(['books' => fn ($query) => $query->select('books.id', 'books.title')->orderBy('title')])
             ->when($typed !== '', fn (Builder $query) => $query->where('name', 'like', '%'.$typed.'%'))
             ->when($this->onlySmall, fn (Builder $query) => $query->has('books', '<=', 1))
+            ->orderByDesc('books_count')
+            ->orderBy('name')
             ->get();
     }
 

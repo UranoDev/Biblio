@@ -187,6 +187,6 @@ class Category extends Model
     #[Scope]
     protected function withBookCount(Builder $query): void
     {
-        $query->withCount('books')->orderBy('name');
+        $query->withCount('books');
     }
 }

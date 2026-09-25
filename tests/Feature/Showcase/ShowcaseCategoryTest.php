@@ -205,7 +205,7 @@ it('dibuja doscientos Libros de una Categoría con las mismas consultas que uno'
 */
 
 it('lista en la navegación las Categorías con Libros visibles, y desde ahí se llega', function () {
-    $category = categoryOf('Poesía', [Book::factory()->create()]);
+    $category = categoryOf('Poesía', Book::factory()->count(5)->create());
 
     $this->get(route('showcase'))
         ->assertSee('Poesía')
@@ -213,7 +213,7 @@ it('lista en la navegación las Categorías con Libros visibles, y desde ahí se
 });
 
 it('no nombra en la navegación la Categoría cuyos Libros están todos ocultos', function () {
-    categoryOf('Poesía', [Book::factory()->create()]);
+    categoryOf('Poesía', Book::factory()->count(5)->create());
     categoryOf('Lo que no se enseña', Book::factory()->count(2)->hidden()->create());
 
     $this->get(route('showcase'))
@@ -228,8 +228,7 @@ it('tampoco nombra la Categoría que se quedó sin Libros', function () {
 });
 
 it('lleva la navegación en la portada y en la Categoría', function () {
-    $book = Book::factory()->create(['title' => 'Muerte sin fin']);
-    $category = categoryOf('Poesía', [$book]);
+    $category = categoryOf('Poesía', Book::factory()->count(5)->create());
 
     $urls = [
         route('showcase'),
@@ -242,7 +241,7 @@ it('lleva la navegación en la portada y en la Categoría', function () {
 });
 
 it('dice en la navegación cuál es la Categoría en la que se está', function () {
-    $category = categoryOf('Poesía', [Book::factory()->create()]);
+    $category = categoryOf('Poesía', Book::factory()->count(5)->create());
 
     $html = $this->get(route('showcase.category', $category))->getContent();
 
@@ -280,9 +279,10 @@ it('no arma la navegación en la portada cuando no hay ninguna Categoría', func
 
 it('cierra la Vitrina con la navegación y no imprime ninguna Categoría antes del acervo', function () {
     $book = Book::factory()->create(['title' => 'Muerte sin fin']);
+    $extras = Book::factory()->count(4)->create();
 
     foreach (range(1, 50) as $number) {
-        categoryOf('Materia '.$number, [$book]);
+        categoryOf('Materia '.$number, collect([$book])->merge($extras));
     }
 
     $html = $this->get(route('showcase'))->getContent();
@@ -298,10 +298,13 @@ it('cierra la Vitrina con la navegación y no imprime ninguna Categoría antes d
 
 it('cierra también con la navegación la página de una Categoría', function () {
     $book = Book::factory()->create(['title' => 'Muerte sin fin']);
-    $category = categoryOf('Poesía', [$book]);
+    $extras = Book::factory()->count(4)->create();
+    $all = collect([$book])->merge($extras);
+
+    $category = categoryOf('Poesía', $all);
 
     foreach (range(1, 49) as $number) {
-        categoryOf('Materia '.$number, [$book]);
+        categoryOf('Materia '.$number, $all);
     }
 
     $html = $this->get(route('showcase.category', $category))->getContent();
@@ -339,7 +342,7 @@ it('no le pregunta a la base por las Categorías en la ficha de un Libro', funct
 });
 
 it('navega sin abrir nada: la navegación son ligas que ya vienen en el HTML', function () {
-    $category = categoryOf('Poesía', [Book::factory()->create()]);
+    $category = categoryOf('Poesía', Book::factory()->count(5)->create());
 
     $html = $this->get(route('showcase.category', $category))->getContent();
 

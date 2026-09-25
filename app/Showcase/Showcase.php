@@ -123,9 +123,9 @@ final class Showcase
     public static function categories(): Collection
     {
         return Category::query()
-            ->whereHas('books', self::onlyVisible(...))
+            ->whereHas('books', self::onlyVisible(...), '>=', 5)
             ->withCount(['books as books_count' => self::onlyVisible(...)])
-            ->orderBy('name')
+            ->orderByDesc('books_count')
             ->get();
     }
 

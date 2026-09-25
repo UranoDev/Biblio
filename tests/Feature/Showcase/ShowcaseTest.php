@@ -266,14 +266,17 @@ it('no pone en lo que estoy leyendo un Libro que todavía no tengo', function ()
 | behind it (ADR-003).
 */
 
-it('ofrece las Categorías que tienen algún Libro visible', function () {
-    $category = Category::factory()->named('Narrativa')->create();
-    $category->books()->attach(Book::factory()->count(2)->create());
+it('ofrece las Categorías con al menos 5 Libros visibles', function () {
+    $big = Category::factory()->named('Narrativa')->create();
+    $big->books()->attach(Book::factory()->count(5)->create());
+
+    $small = Category::factory()->named('Ensayo')->create();
+    $small->books()->attach(Book::factory()->count(4)->create());
 
     $offered = Showcase::categories();
 
     expect($offered->pluck('name')->all())->toBe(['Narrativa'])
-        ->and((int) $offered->first()->books_count)->toBe(2);
+        ->and((int) $offered->first()->books_count)->toBe(5);
 });
 
 it('no ofrece la Categoría cuyos Libros están todos ocultos', function () {
@@ -285,10 +288,10 @@ it('no ofrece la Categoría cuyos Libros están todos ocultos', function () {
 
 it('cuenta sólo los Libros visibles de cada Categoría', function () {
     $category = Category::factory()->named('Narrativa')->create();
-    $category->books()->attach(Book::factory()->create());
+    $category->books()->attach(Book::factory()->count(5)->create());
     $category->books()->attach(Book::factory()->create(['is_hidden' => true]));
 
-    expect((int) Showcase::categories()->first()->books_count)->toBe(1);
+    expect((int) Showcase::categories()->first()->books_count)->toBe(5);
 });
 
 it('no ofrece la Categoría que se quedó sin Libros', function () {
@@ -297,10 +300,15 @@ it('no ofrece la Categoría que se quedó sin Libros', function () {
     expect(Showcase::categories())->toHaveCount(0);
 });
 
-it('ofrece las Categorías por nombre', function () {
-    foreach (['Lírica', 'Ensayo', 'Narrativa'] as $name) {
-        Category::factory()->named($name)->create()->books()->attach(Book::factory()->create());
-    }
+it('ofrece las Categorías de más a menos Libros', function () {
+    $narrativa = Category::factory()->named('Narrativa')->create();
+    $narrativa->books()->attach(Book::factory()->count(7)->create());
 
-    expect(Showcase::categories()->pluck('name')->all())->toBe(['Ensayo', 'Lírica', 'Narrativa']);
+    $lirica = Category::factory()->named('Lírica')->create();
+    $lirica->books()->attach(Book::factory()->count(6)->create());
+
+    $ensayo = Category::factory()->named('Ensayo')->create();
+    $ensayo->books()->attach(Book::factory()->count(5)->create());
+
+    expect(Showcase::categories()->pluck('name')->all())->toBe(['Narrativa', 'Lírica', 'Ensayo']);
 });
