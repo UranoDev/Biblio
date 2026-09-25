@@ -33,7 +33,10 @@
     $status = $book->readingStatus();
 @endphp
 
-@if ($status->isRead())
+{{-- A Wanted book has not been bought yet: whether it was read before is
+     irrelevant to a visitor looking at the list, and the stamp would read
+     as a contradiction next to «Por comprar». --}}
+@if ($status->isRead() && $book->status !== \App\Enums\Status::Wanted)
     <svg
         xmlns="http://www.w3.org/2000/svg"
         viewBox="0 0 100 100"
