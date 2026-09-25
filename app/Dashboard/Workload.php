@@ -6,6 +6,7 @@ use App\Enums\CoverOrigin;
 use App\Enums\GenerationStatus;
 use App\Enums\Status;
 use App\Models\Book;
+use App\Models\Category;
 use App\Models\Quote;
 
 /**
@@ -30,6 +31,7 @@ final class Workload
         private readonly array $books,
         private readonly int $quotes,
         private readonly int $failedJobs,
+        private readonly int $pendingCategories,
     ) {}
 
     public static function read(): self
@@ -38,6 +40,7 @@ final class Workload
             books: self::countBooks(),
             quotes: Quote::query()->count(),
             failedJobs: FailedJobs::count(),
+            pendingCategories: Category::query()->pendingReview()->count(),
         );
     }
 
@@ -84,6 +87,13 @@ final class Workload
                 total: $this->book('without_quotes'),
                 url: route('shelf', ['without-quotes' => 'true']),
                 done: 'Todos los libros tienen al menos una cita.',
+            ),
+            new Counter(
+                key: 'pending-categories',
+                label: 'Categorías por revisar',
+                total: $this->pendingCategories,
+                url: route('categories'),
+                done: 'Ninguna categoría nueva por revisar.',
             ),
         ];
     }

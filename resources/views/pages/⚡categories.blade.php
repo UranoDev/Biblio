@@ -287,6 +287,8 @@ new #[Title('Categorías')] class extends Component
                                 {{ $this->books((int) $category->books_count) }}
                                 @if ($category->suggestedBy !== null)
                                     · propuesta al clasificar «{{ $category->suggestedBy->title }}»
+                                @else
+                                    · agregada a mano
                                 @endif
                             </flux:text>
                         </div>
