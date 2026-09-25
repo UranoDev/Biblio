@@ -1,5 +1,8 @@
 # Changelog
 
+## [2026.09.25.9] - 2026 sep 25
+_Sin issues cerrados en esta ventana_
+
 ## [2026.09.25.8] - 2026 sep 25
 ### Features
 - **BIB-70**: Enlazar libros de Amazon al producto en amazon.com.mx
