@@ -37,7 +37,7 @@
                 </div>
 
                 <div class="flex min-w-0 flex-col gap-1">
-                    <span class="type-book-title line-clamp-3">{{ $book->title }}</span>
+                    <span class="type-book-title line-clamp-3 min-h-[calc(var(--text-book-title)*var(--text-book-title--line-height)*3)]">{{ $book->title }}</span>
 
                     @if ($showStatus)
                         @if ($book->status === \App\Enums\Status::Reading)
