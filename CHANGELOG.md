@@ -1,5 +1,9 @@
 # Changelog
 
+## [2026.09.25.7] - 2026 sep 25
+### Features
+- **BIB-69**: Quitar sello "Leído" de tarjetas en Acervo y Vitrina
+
 ## [2026.09.25.6] - 2026 sep 25
 ### Features
 - **BIB-68**: Restringir categorías de la IA a una lista canónica de 30

@@ -22,17 +22,12 @@
                 data-test="book-{{ $book->getKey() }}"
             >
                 <div class="px-2 pt-1">
-                    {{-- The stamp of the Reading lives inside the box that
-                         leans, so the word turns with the Cover and not against
-                         it (BIB-38). --}}
-                    <div class="relative rotate-(--cover-tilt) transition-transform group-hover:rotate-0">
+                    <div class="rotate-(--cover-tilt) transition-transform group-hover:rotate-0">
                         {{-- The title and the Authors are written right under
                              the Cover, so the image carries nothing the text
                              does not: announcing it would read the Book
                              twice. --}}
                         <x-cover :book="$book" decorative class="shadow-(--shadow-cover)" />
-
-                        <x-reading-stamp :book="$book" />
                     </div>
                 </div>
 

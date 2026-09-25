@@ -498,13 +498,8 @@ new #[Title('Acervo')] class extends Component
                             the same six degrees everywhere.
                         --}}
                         <div class="px-2 pt-1">
-                            {{-- The stamp of the Reading goes inside the box
-                                 that leans, not next to it: that is what keeps
-                                 the word parallel to the Cover (BIB-38). --}}
-                            <div class="relative rotate-(--cover-tilt) transition-transform group-hover:rotate-0">
+                            <div class="rotate-(--cover-tilt) transition-transform group-hover:rotate-0">
                                 <x-cover :book="$book" class="shadow-(--shadow-cover)" />
-
-                                <x-reading-stamp :book="$book" />
                             </div>
                         </div>
 

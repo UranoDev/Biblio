@@ -52,18 +52,10 @@ it('no arma la sección de los que faltan cuando no falta ninguno', function () 
     $this->get(route('showcase'))->assertDontSee('Los que me faltan');
 });
 
-it('deja ver la marca de Lectura de cada Libro', function () {
-    Book::factory()->read()->create(['title' => 'Rayuela']);
-
-    $this->get(route('showcase'))->assertSee('Leído');
-});
-
 it('no le nombra al visitante una fecha de lectura que no le enseña', function () {
     Book::factory()->readUndated()->create(['title' => 'Leído hace años']);
 
-    $this->get(route('showcase'))
-        ->assertSee('Leído')
-        ->assertDontSee('sin fecha');
+    $this->get(route('showcase'))->assertDontSee('sin fecha');
 });
 
 it('no saca un Libro oculto, aunque esté en el acervo', function () {

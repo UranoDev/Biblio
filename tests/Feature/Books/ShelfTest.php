@@ -83,20 +83,6 @@ it('dibuja la pieza generada del Book que no tiene imagen guardada, sin dejar hu
 |--------------------------------------------------------------------------
 */
 
-it('sella los Books leídos y deja sin sellar los que faltan por leer', function () {
-    Book::factory()->create(['title' => 'Sin leer']);
-    // El que estoy leyendo todavía no se leyó, así que tampoco lleva sello.
-    Book::factory()->beingRead()->create(['title' => 'En el buró']);
-    Book::factory()->readUndated()->create(['title' => 'Leído hace años']);
-    Book::factory()->read()->create(['title' => 'Leído con fecha']);
-
-    $html = $this->get(route('shelf'))->assertOk()->getContent();
-
-    expect(substr_count($html, 'data-test="reading-stamp"'))->toBe(2)
-        ->and($html)->toContain('data-reading="'.Status::Read->value.'"')
-        ->and($html)->not->toContain('data-reading="'.Status::Owned->value.'"')
-        ->and($html)->not->toContain('data-reading="'.Status::Reading->value.'"');
-});
 
 it('no escribe el año de la Lectura en la retícula', function () {
     Book::factory()->read()->create([

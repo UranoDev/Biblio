@@ -54,7 +54,7 @@ it('vuelve a leer la Portada cuando la ficha guarda una Lectura', function () {
     expect($cover->dispatch('reading-saved')->html())->toContain('data-test="reading-stamp"');
 });
 
-it('no escribe el año en el sello, en ninguna superficie', function () {
+it('no escribe el año en el sello de la ficha', function () {
     $this->actingAs(User::factory()->create());
 
     $book = Book::factory()->read()->create([
@@ -64,38 +64,11 @@ it('no escribe el año en el sello, en ninguna superficie', function () {
         'is_hidden' => false,
     ]);
 
-    $surfaces = [
-        Livewire::test('pages::shelf')->html(),
-        Livewire::test('book-cover', ['book' => $book])->html(),
-        $this->get(route('showcase'))->getContent(),
-        $this->get(route('showcase.book', $book))->getContent(),
-    ];
+    $html = Livewire::test('book-cover', ['book' => $book])->html();
 
-    foreach ($surfaces as $html) {
-        expect(stampDrawn($html))->toContain('LEÍDO')->not->toContain('2019');
-    }
+    expect(stampDrawn($html))->toContain('LEÍDO')->not->toContain('2019');
 });
 
-it('gira el sello con la Portada, no en contra de ella', function () {
-    $this->actingAs(User::factory()->create());
-
-    Book::factory()->read()->create(['title' => 'Cartucho']);
-
-    $surfaces = [
-        Livewire::test('pages::shelf')->html(),
-        $this->get(route('showcase'))->getContent(),
-    ];
-
-    foreach ($surfaces as $html) {
-        // The stamp is inside the box that carries the tilt: between the box
-        // opening and the stamp there is nothing that closes it, so the word
-        // turns with the Cover instead of holding level against it.
-        preg_match('/rotate-\(--cover-tilt\)[^>]*>(.*?)data-test="reading-stamp"/s', $html, $between);
-
-        expect($between[1] ?? null)->not->toBeNull()
-            ->and($between[1])->not->toContain('</div>');
-    }
-});
 
 it('dice el estado de la Lectura arriba del título, con su año cuando lo hay', function (
     callable $make,

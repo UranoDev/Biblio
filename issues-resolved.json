@@ -57,5 +57,6 @@
     { "Id": "BIB-59", "ResolvedAt": "2026-09-24 17:27:20", "Type": "Bug", "Summary": "Marcar un libro como \"Lo estoy leyendo\"" },
     { "Id": "BIB-60", "ResolvedAt": "2026-09-24 17:39:58", "Type": "Bug", "Summary": "Mostrar sólo unas filas de \"Los que tengo\" en escritorio, con \"cargar más\"" },
     { "Id": "BIB-61", "ResolvedAt": "2026-09-24 17:47:09", "Type": "Bug", "Summary": "Sección \"Lo que estoy leyendo\" en el escaparate público" },
-    { "Id": "BIB-68", "ResolvedAt": "2026-09-25 14:18:37", "Type": "Feature", "Summary": "Restringir categorías de la IA a una lista canónica de 30" }
+    { "Id": "BIB-68", "ResolvedAt": "2026-09-25 14:18:37", "Type": "Feature", "Summary": "Restringir categorías de la IA a una lista canónica de 30" },
+    { "Id": "BIB-69", "ResolvedAt": "2026-09-25 14:32:02", "Type": "Feature", "Summary": "Quitar sello \"Leído\" de tarjetas en Acervo y Vitrina" }
 ]

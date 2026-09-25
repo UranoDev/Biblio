@@ -26,8 +26,6 @@
                          which is everything the Cover would have announced. --}}
                     <x-cover :book="$book" size="full" decorative class="shadow-(--shadow-cover)" />
 
-                    {{-- The line above the title says it in words. --}}
-                    <x-reading-stamp :book="$book" decorative />
                 </div>
             </div>
 
