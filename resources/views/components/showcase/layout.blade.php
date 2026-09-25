@@ -72,7 +72,7 @@
     </head>
 
     <body class="paper min-h-screen text-ink antialiased">
-        <div class="mx-auto flex w-full max-w-5xl flex-col gap-16 px-6 py-14 md:px-10 md:py-20">
+        <main class="mx-auto flex w-full max-w-5xl flex-col gap-16 px-6 py-14 md:px-10 md:py-20">
             {{ $slot }}
 
             {{-- The closing block: the subjects, and the name of the site,
@@ -96,6 +96,6 @@
                     </nav>
                 </div>
             </footer>
-        </div>
+        </main>
     </body>
 </html>
