@@ -1,5 +1,7 @@
 @use('App\Enums\Origin')
+@use('App\Enums\Source')
 @use('App\Enums\Status')
+@use('Nissi\Isbn\Isbn')
 
 {{--
     The page of one Book in the Showcase.
@@ -58,6 +60,21 @@
                     <p class="font-mono text-sm text-ink-muted" data-test="record">
                         {{ implode(' · ', $record) }}
                     </p>
+                @endif
+
+                @if ($book->source === \App\Enums\Source::Amazon && $book->isbn !== null)
+                    @php
+                        try { $asin = \App\Domain\Isbn::from($book->isbn)->asTen(); } catch (\Throwable) { $asin = null; }
+                    @endphp
+                    @if ($asin !== null)
+                        <a
+                            href="https://www.amazon.com.mx/dp/{{ $asin }}/"
+                            target="_blank"
+                            rel="noopener"
+                            class="text-link text-sm"
+                            data-test="amazon-link"
+                        >Ver en Amazon →</a>
+                    @endif
                 @endif
 
                 @if ($book->status === Status::Wanted)

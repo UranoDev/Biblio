@@ -1,5 +1,6 @@
 <?php
 
+use App\Enums\Source;
 use App\Models\Book;
 use App\Models\Category;
 use Illuminate\Support\Facades\DB;
@@ -210,4 +211,24 @@ it('pone las Citas de páginas romanas antes que las de páginas arábigas', fun
             'La del prólogo.',
             'La de la página uno.',
         ]);
+});
+
+it('muestra el enlace a Amazon en la ficha pública de un Libro importado de Amazon', function () {
+    $book = Book::factory()->create([
+        'source' => Source::Amazon,
+        'isbn'   => '9780316769174', // ISBN-13 → ASIN 0316769177
+    ]);
+
+    $this->get(route('showcase.book', $book))
+        ->assertOk()
+        ->assertSee('Ver en Amazon')
+        ->assertSee('amazon.com.mx/dp/0316769177', false);
+});
+
+it('no muestra el enlace a Amazon en la ficha de un Libro que no viene de Amazon', function () {
+    $book = Book::factory()->create([
+        'isbn' => '9780316769174',
+    ]);
+
+    $this->get(route('showcase.book', $book))->assertDontSee('Ver en Amazon');
 });
