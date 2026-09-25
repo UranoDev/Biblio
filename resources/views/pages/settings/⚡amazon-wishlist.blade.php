@@ -2,6 +2,8 @@
 
 use App\Jobs\ImportAmazonWishlist;
 use App\Models\WishlistSetting;
+use Illuminate\Database\Eloquent\Collection;
+use Livewire\Attributes\Computed;
 use Livewire\Attributes\Title;
 use Livewire\Attributes\Validate;
 use Livewire\Component;
@@ -63,6 +65,16 @@ new #[Title('Lista de Amazon')] class extends Component
         ImportAmazonWishlist::dispatch();
 
         $this->notice = 'La importación quedó en la cola. Los libros aparecen en unos minutos.';
+    }
+
+    #[Computed]
+    public function importedBooks(): Collection
+    {
+        return \App\Models\Book::query()
+            ->where('source', \App\Enums\Source::Amazon->value)
+            ->whereNotNull('isbn')
+            ->orderBy('title')
+            ->get(['id', 'title', 'isbn', 'authors']);
     }
 }; ?>
 
@@ -131,6 +143,35 @@ new #[Title('Lista de Amazon')] class extends Component
                     >
                         Importar ahora
                     </flux:button>
+                </div>
+            @endif
+
+            @if ($this->importedBooks->isNotEmpty())
+                <div class="flex flex-col gap-2 border-t border-zinc-200 pt-6 dark:border-zinc-700">
+                    <flux:heading>Libros importados</flux:heading>
+
+                    <div class="flex flex-col gap-1">
+                        @foreach ($this->importedBooks as $book)
+                            @php
+                                try {
+                                    $asin = \App\Domain\Isbn::from($book->isbn)->asTen();
+                                } catch (\Throwable) {
+                                    $asin = null;
+                                }
+                            @endphp
+                            @if ($asin !== null)
+                                <div class="flex items-center justify-between gap-4">
+                                    <flux:text>{{ $book->title }}</flux:text>
+                                    <a
+                                        href="https://www.amazon.com.mx/dp/{{ $asin }}/"
+                                        target="_blank"
+                                        rel="noopener noreferrer"
+                                        class="shrink-0 text-sm text-zinc-500 underline hover:text-zinc-700 dark:text-zinc-400 dark:hover:text-zinc-200"
+                                    >Ver en Amazon</a>
+                                </div>
+                            @endif
+                        @endforeach
+                    </div>
                 </div>
             @endif
 

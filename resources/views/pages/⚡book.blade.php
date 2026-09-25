@@ -603,6 +603,25 @@ new #[Title('Ficha del Libro')] class extends Component
             {{ collect([$book->publisher, $book->year, $book->edition, $book->isbn])->filter()->join(' · ') }}
         </flux:text>
 
+        @if ($book->source === \App\Enums\Source::Amazon && $book->isbn !== null)
+            @php
+                try {
+                    $asin = Isbn::from($book->isbn)->asTen();
+                } catch (\Throwable) {
+                    $asin = null;
+                }
+            @endphp
+            @if ($asin !== null)
+                <a
+                    href="https://www.amazon.com.mx/dp/{{ $asin }}/"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    class="text-sm text-zinc-500 underline hover:text-zinc-700 dark:text-zinc-400 dark:hover:text-zinc-200"
+                    data-test="amazon-link"
+                >Ver en Amazon</a>
+            @endif
+        @endif
+
         <flux:text class="text-sm">
             {{ $book->status->label() }}
         </flux:text>
