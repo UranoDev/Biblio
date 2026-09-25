@@ -1,6 +1,6 @@
 # Changelog
 
-## [2026.09.24.4] - 2026 sep 24
+## [2026.09.24.5] - 2026 sep 24
 _Sin issues cerrados en esta ventana_
 
 ## [2026.09.24.3] - 2026 sep 24
