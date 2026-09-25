@@ -1,5 +1,9 @@
 # Changelog
 
+## [2026.09.25.8] - 2026 sep 25
+### Features
+- **BIB-70**: Enlazar libros de Amazon al producto en amazon.com.mx
+
 ## [2026.09.25.7] - 2026 sep 25
 ### Features
 - **BIB-69**: Quitar sello "Leído" de tarjetas en Acervo y Vitrina
