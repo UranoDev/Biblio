@@ -36,8 +36,8 @@ final class BookAgent implements Agent, HasStructuredOutput
     {
         $instructions = [
             'You are cataloguing a personal library. Given the bibliographic record of one edition, propose the subjects it belongs to.',
-            'Reuse a category from the list of existing ones whenever one of them fits, and only propose a new one when none does. A vocabulary that splits into "Ciencia ficción", "Ciencia-ficción" and "Sci-fi" makes the library impossible to browse.',
-            'Propose one to three categories. Each one is a short noun phrase, general enough that other books will share it and specific enough to mean something.',
+            'Assign one to three categories from the provided list. Only propose a new category when the book genuinely does not fit any of them — that should be the exception, not the rule.',
+            'Each category is a short noun phrase.',
             'Answer in Spanish as it is spoken in Mexico. The owner of the library reads it and it is published on a public page.',
         ];
 

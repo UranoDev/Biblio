@@ -41,17 +41,14 @@ it('deja anotado con qué proveedor y qué modelo se generaron', function () {
         ->and($book->fresh()->categories_ai_model)->toBe('gemini-2.5-flash');
 });
 
-it('le pasa las Categories que ya existen y le pide reutilizarlas', function () {
-    Category::factory()->named('Realismo mágico')->create();
-    Category::factory()->named('Novela mexicana')->create();
-
-    BookAgent::fake([['categories' => ['Novela mexicana']]]);
+it('le pasa la lista canónica de categorías en el prompt', function () {
+    BookAgent::fake([['categories' => ['Novela']]]);
 
     proposals()->queueFor(Book::factory()->create());
 
-    BookAgent::assertPrompted(fn ($prompt) => str_contains($prompt->prompt, 'Realismo mágico')
-        && str_contains($prompt->prompt, 'Novela mexicana')
-        && str_contains($prompt->prompt, 'reuse'));
+    BookAgent::assertPrompted(fn ($prompt) => str_contains($prompt->prompt, 'Novela')
+        && str_contains($prompt->prompt, 'Programación')
+        && str_contains($prompt->prompt, 'Teología y Biblia'));
 });
 
 it('reutiliza la Category que ya existe en vez de crear otra igual', function () {

@@ -22,6 +22,6 @@ it('pide la Description sólo cuando se le pide', function () {
         ->toHaveKey('description');
 });
 
-it('le pide al modelo que reutilice las Categories que ya existen', function () {
-    expect((new BookAgent)->instructions())->toContain('Reuse a category');
+it('le pide al modelo que elija de la lista canónica de categorías', function () {
+    expect((new BookAgent)->instructions())->toContain('provided list');
 });

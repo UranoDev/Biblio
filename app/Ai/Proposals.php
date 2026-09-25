@@ -2,6 +2,7 @@
 
 namespace App\Ai;
 
+use App\Ai\CanonicalCategories;
 use App\Enums\Origin;
 use App\Enums\RegenerationTarget;
 use App\Jobs\ProposeForBook;
@@ -253,12 +254,8 @@ final class Proposals
             $lines[] = 'Description: '.$book->description;
         }
 
-        $existing = $this->existingCategories();
-
         $lines[] = '';
-        $lines[] = $existing === []
-            ? 'There are no categories yet, so propose the first ones.'
-            : "Existing categories, reuse the ones that fit before proposing a new one:\n- ".implode("\n- ", $existing);
+        $lines[] = "Pick from this list of categories. Only propose a new one when the book genuinely does not fit any of them:\n- ".implode("\n- ", CanonicalCategories::LIST);
 
         if ($withDescription) {
             $lines[] = '';
@@ -266,17 +263,6 @@ final class Proposals
         }
 
         return implode("\n", $lines);
-    }
-
-    /**
-     * @return list<string>
-     */
-    private function existingCategories(): array
-    {
-        /** @var list<string> $names */
-        $names = Category::query()->orderBy('name')->pluck('name')->all();
-
-        return $names;
     }
 
     /**
