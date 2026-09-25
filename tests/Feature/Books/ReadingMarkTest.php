@@ -43,7 +43,7 @@ it('sella la Portada de un Book leído en la ficha, y no la de uno por leer', fu
 it('vuelve a leer la Portada cuando la ficha guarda una Lectura', function () {
     $this->actingAs(User::factory()->create());
 
-    $book = Book::factory()->create(['is_read' => false, 'read_on' => null]);
+    $book = Book::factory()->create(['read_on' => null]);
 
     // The block of the Cover is its own component: it does not re-render just
     // because the sheet around it did, so the sheet says when it saved one.

@@ -40,7 +40,7 @@
                     <span class="type-book-title line-clamp-3">{{ $book->title }}</span>
 
                     @if ($showStatus)
-                        @if ($book->is_reading)
+                        @if ($book->status === \App\Enums\Status::Reading)
                             <span class="type-section-heading text-ink">Leyendo</span>
                         @elseif ($book->status === \App\Enums\Status::Wanted)
                             <span class="type-section-heading text-ink-muted">Por comprar</span>

@@ -29,14 +29,10 @@
     piece hangs its title and its Authors from the bottom, and a stamp down
     there would land on the words of the Cover that most Books have.
 --}}
-@php
-    $status = $book->readingStatus();
-@endphp
-
 {{-- A Wanted book has not been bought yet: whether it was read before is
      irrelevant to a visitor looking at the list, and the stamp would read
      as a contradiction next to «Por comprar». --}}
-@if ($status->isRead() && $book->status !== \App\Enums\Status::Wanted)
+@if ($book->status->isRead())
     <svg
         xmlns="http://www.w3.org/2000/svg"
         viewBox="0 0 100 100"
@@ -50,7 +46,7 @@
         @endif
         {{ $attributes->class(['pointer-events-none absolute top-[6%] right-[7%] w-[30%] select-none']) }}
         data-test="reading-stamp"
-        data-reading="{{ $status->value }}"
+        data-reading="{{ $book->status->value }}"
     >
         <circle
             cx="50"

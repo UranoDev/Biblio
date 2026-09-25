@@ -18,12 +18,8 @@
     The whole state, the three of them, is written here and in the stamp beside
     it, and nowhere else: no screen draws the mark by hand.
 --}}
-@php
-    $status = $book->readingStatus();
-@endphp
-
 <span
     {{ $attributes->class(['type-section-heading text-ink-muted dark:text-zinc-400']) }}
     data-test="reading-mark"
-    data-reading="{{ $status->value }}"
->{{ $showcase ? $status->publicLabel() : $status->markLabel($book->read_on?->year) }}</span>
+    data-reading="{{ $book->status->value }}"
+>{{ $showcase ? $book->status->publicLabel() : $book->status->markLabel($book->read_on?->year) }}</span>

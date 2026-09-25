@@ -4,7 +4,6 @@ use App\Ai\AiModel;
 use App\Concerns\RegeneratesBooks;
 use App\Enums\CoverOrigin;
 use App\Enums\GenerationStatus;
-use App\Enums\ReadingStatus;
 use App\Enums\Status;
 use App\Models\Book;
 use App\Models\Category;
@@ -164,7 +163,7 @@ new #[Title('Acervo')] class extends Component
 
         return [
             '' => (int) $counted->sum(),
-            Status::Owned->value => (int) $counted->get(Status::Owned->value, 0),
+            Status::Owned->value => (int) ($counted->get(Status::Owned->value, 0) + $counted->get(Status::Reading->value, 0) + $counted->get(Status::Read->value, 0)),
             Status::Wanted->value => (int) $counted->get(Status::Wanted->value, 0),
         ];
     }
@@ -244,12 +243,16 @@ new #[Title('Acervo')] class extends Component
             $query->matching($this->search);
         }
 
-        // Both read states at once is not a fourth state: it is the question
-        // «¿lo leí?», which is the one the Dashboard counts.
-        if ($this->reading === ReadingStatus::ANY_READ) {
-            $query->read();
-        } elseif ($this->readingFilter() instanceof ReadingStatus) {
-            $query->inReadingStatus($this->readingFilter());
+        $reading = trim($this->reading);
+        if ($reading !== '') {
+            match ($reading) {
+                Status::Owned->value   => $query->where('status', Status::Owned),
+                Status::Reading->value => $query->where('status', Status::Reading),
+                Status::ANY_READ       => $query->read(),
+                Status::READ_UNDATED   => $query->read()->whereNull('read_on'),
+                Status::READ_DATED     => $query->read()->whereNotNull('read_on'),
+                default                => null,
+            };
         }
 
         if ($this->category !== '') {
@@ -278,8 +281,13 @@ new #[Title('Acervo')] class extends Component
             $query->fromAnotherAiModel($this->aiModel);
         }
 
-        if ($byStatus && $this->statusFilter() instanceof Status) {
-            $query->where('status', $this->statusFilter());
+        if ($byStatus) {
+            $filter = $this->statusFilter();
+            if ($filter === Status::Owned) {
+                $query->owned();
+            } elseif ($filter instanceof Status) {
+                $query->where('status', $filter);
+            }
         }
 
         return $query;
@@ -288,11 +296,6 @@ new #[Title('Acervo')] class extends Component
     private function statusFilter(): ?Status
     {
         return Status::tryFrom($this->status);
-    }
-
-    private function readingFilter(): ?ReadingStatus
-    {
-        return ReadingStatus::tryFrom($this->reading);
     }
 
     private function coverFilter(): ?CoverOrigin
@@ -359,7 +362,7 @@ new #[Title('Acervo')] class extends Component
             <flux:select wire:model.live="reading" label="Lectura" class="max-w-56" data-test="reading-filter">
                 <flux:select.option value="">Toda lectura</flux:select.option>
 
-                @foreach (\App\Enums\ReadingStatus::filterOptions() as $value => $label)
+                @foreach (\App\Enums\Status::readingFilterOptions() as $value => $label)
                     <flux:select.option value="{{ $value }}">{{ $label }}</flux:select.option>
                 @endforeach
             </flux:select>

@@ -37,9 +37,7 @@ class BookFactory extends Factory
             'cover_thumbnail_path' => 'covers/'.fake()->uuid().'-thumbnail.jpg',
             'cover_origin' => CoverOrigin::Source,
             'status' => Status::Owned,
-            'is_read' => false,
             'read_on' => null,
-            'is_reading' => false,
             'note' => null,
             'lent_to' => null,
             'lent_on' => null,
@@ -71,7 +69,7 @@ class BookFactory extends Factory
     public function read(): static
     {
         return $this->state(fn (array $attributes) => [
-            'is_read' => true,
+            'status' => Status::Read,
             'read_on' => fake()->dateTimeBetween('-5 years')->format('Y-m-d'),
         ]);
     }
@@ -82,7 +80,7 @@ class BookFactory extends Factory
     public function readUndated(): static
     {
         return $this->state(fn (array $attributes) => [
-            'is_read' => true,
+            'status' => Status::Read,
             'read_on' => null,
         ]);
     }
@@ -93,8 +91,7 @@ class BookFactory extends Factory
     public function beingRead(): static
     {
         return $this->state(fn (array $attributes) => [
-            'is_reading' => true,
-            'is_read' => false,
+            'status' => Status::Reading,
             'read_on' => null,
         ]);
     }

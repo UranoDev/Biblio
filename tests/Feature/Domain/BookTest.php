@@ -4,7 +4,6 @@ namespace Tests\Feature\Domain;
 
 use App\Ai\AiModel;
 use App\Enums\Origin;
-use App\Enums\ReadingStatus;
 use App\Enums\Status;
 use App\Models\Book;
 use App\Models\Category;
@@ -61,15 +60,15 @@ class BookTest extends TestCase
         $undated = Book::factory()->readUndated()->create();
         $dated = Book::factory()->read()->create(['read_on' => '2024-03-01']);
 
-        $this->assertSame(ReadingStatus::Unread, $unread->fresh()->readingStatus());
-        $this->assertSame(ReadingStatus::InProgress, $inProgress->fresh()->readingStatus());
-        $this->assertSame(ReadingStatus::ReadUndated, $undated->fresh()->readingStatus());
-        $this->assertSame(ReadingStatus::ReadDated, $dated->fresh()->readingStatus());
+        $this->assertSame(Status::Owned, $unread->fresh()->status);
+        $this->assertSame(Status::Reading, $inProgress->fresh()->status);
+        $this->assertSame(Status::Read, $undated->fresh()->status);
+        $this->assertSame(Status::Read, $dated->fresh()->status);
 
-        $this->assertFalse($unread->readingStatus()->isRead());
-        $this->assertFalse($inProgress->readingStatus()->isRead());
-        $this->assertTrue($undated->readingStatus()->isRead());
-        $this->assertTrue($dated->readingStatus()->isRead());
+        $this->assertFalse($unread->fresh()->status->isRead());
+        $this->assertFalse($inProgress->fresh()->status->isRead());
+        $this->assertTrue($undated->fresh()->status->isRead());
+        $this->assertTrue($dated->fresh()->status->isRead());
     }
 
     /**
@@ -79,12 +78,11 @@ class BookTest extends TestCase
      */
     public function test_being_read_wins_over_the_read_flag(): void
     {
-        $book = Book::factory()->create(['is_read' => true, 'read_on' => '2024-03-01', 'is_reading' => true]);
+        $book = Book::factory()->beingRead()->create();
 
-        $this->assertSame(ReadingStatus::InProgress, $book->fresh()->readingStatus());
+        $this->assertSame(Status::Reading, $book->fresh()->status);
         $this->assertSame(0, Book::query()->read()->count());
-        $this->assertSame(0, Book::query()->inReadingStatus(ReadingStatus::ReadDated)->count());
-        $this->assertSame(1, Book::query()->inReadingStatus(ReadingStatus::InProgress)->count());
+        $this->assertSame(1, Book::query()->beingRead()->count());
     }
 
     public function test_marking_a_book_moves_it_between_the_four_states(): void
@@ -92,17 +90,15 @@ class BookTest extends TestCase
         $book = Book::factory()->read()->create(['read_on' => '2024-03-01']);
 
         $book->markAsReading();
-        $this->assertSame(ReadingStatus::InProgress, $book->fresh()->readingStatus());
+        $this->assertSame(Status::Reading, $book->fresh()->status);
         $this->assertNull($book->fresh()->read_on);
 
         $book->markAsRead('2026-02-10');
-        $this->assertFalse($book->fresh()->is_reading);
-        $this->assertSame(ReadingStatus::ReadDated, $book->fresh()->readingStatus());
+        $this->assertSame(Status::Read, $book->fresh()->status);
 
         $book->markAsReading();
         $book->markAsUnread();
-        $this->assertFalse($book->fresh()->is_reading);
-        $this->assertSame(ReadingStatus::Unread, $book->fresh()->readingStatus());
+        $this->assertSame(Status::Owned, $book->fresh()->status);
     }
 
     public function test_read_without_a_date_is_not_confused_with_unread_in_queries(): void

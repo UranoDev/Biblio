@@ -36,7 +36,9 @@
                      here without the year: the read date does not leave the
                      back office (ADR-003). --}}
                 <div class="flex flex-col gap-2">
-                    <x-reading-mark :book="$book" showcase />
+                    @if ($book->status !== Status::Wanted)
+                        <x-reading-mark :book="$book" showcase />
+                    @endif
 
                     <h1 class="text-3xl leading-tight font-bold tracking-tight md:text-4xl">{{ $book->title }}</h1>
                 </div>

@@ -10,7 +10,6 @@ use App\Enums\CoverSize;
 use App\Enums\DescriptionLanguage;
 use App\Enums\GenerationStatus;
 use App\Enums\Origin;
-use App\Enums\ReadingStatus;
 use App\Enums\Source;
 use App\Enums\Status;
 use App\Jobs\RenderBookImage;
@@ -55,9 +54,7 @@ use Illuminate\Support\Str;
  * @property Carbon|null $share_image_failed_at
  * @property string|null $share_image_failure
  * @property Status $status
- * @property bool $is_read
  * @property Carbon|null $read_on
- * @property bool $is_reading
  * @property string|null $note
  * @property string|null $lent_to
  * @property Carbon|null $lent_on
@@ -128,9 +125,7 @@ class Book extends Model
             'cover_failed_at' => 'datetime',
             'source' => Source::class,
             'status' => Status::class,
-            'is_read' => 'boolean',
             'read_on' => 'date',
-            'is_reading' => 'boolean',
             'lent_on' => 'date',
             'is_hidden' => 'boolean',
             'categories_edited_at' => 'datetime',
@@ -241,31 +236,6 @@ class Book extends Model
     public function categories(): BelongsToMany
     {
         return $this->belongsToMany(Category::class, 'book_category');
-    }
-
-    /**
-     * Which of the four Reading states the Book is in.
-     *
-     * Read without a date is not the same as unread, so the state cannot be
-     * deduced from the date alone.
-     *
-     * The Book being read right now is asked about first, and it is the only
-     * one with a column of its own: it is what nothing else can say, and
-     * answering it first is what keeps the four states exclusive (BIB-59).
-     */
-    public function readingStatus(): ReadingStatus
-    {
-        if ($this->is_reading) {
-            return ReadingStatus::InProgress;
-        }
-
-        if (! $this->is_read) {
-            return ReadingStatus::Unread;
-        }
-
-        return $this->read_on === null
-            ? ReadingStatus::ReadUndated
-            : ReadingStatus::ReadDated;
     }
 
     /**
@@ -593,7 +563,7 @@ class Book extends Model
      */
     public function markAsRead(Carbon|string|null $on = null): void
     {
-        $this->forceFill(['is_read' => true, 'read_on' => $on, 'is_reading' => false])->save();
+        $this->forceFill(['status' => Status::Read, 'read_on' => $on])->save();
     }
 
     /**
@@ -602,13 +572,13 @@ class Book extends Model
      */
     public function markAsReading(): void
     {
-        $this->forceFill(['is_reading' => true, 'is_read' => false, 'read_on' => null])->save();
+        $this->forceFill(['status' => Status::Reading, 'read_on' => null])->save();
     }
 
     /** The Book goes back to unread, and the date it had goes with it. */
     public function markAsUnread(): void
     {
-        $this->forceFill(['is_read' => false, 'read_on' => null, 'is_reading' => false])->save();
+        $this->forceFill(['status' => Status::Owned, 'read_on' => null])->save();
     }
 
     /**
@@ -1186,7 +1156,7 @@ class Book extends Model
     #[Scope]
     protected function owned(Builder $query): void
     {
-        $query->where('status', Status::Owned);
+        $query->whereIn('status', [Status::Owned->value, Status::Reading->value, Status::Read->value]);
     }
 
     /** @param  Builder<$this>  $query */
@@ -1204,7 +1174,7 @@ class Book extends Model
     #[Scope]
     protected function read(Builder $query): void
     {
-        $query->where('is_read', true)->where('is_reading', false);
+        $query->where('status', Status::Read);
     }
 
     /**
@@ -1215,7 +1185,7 @@ class Book extends Model
     #[Scope]
     protected function beingRead(Builder $query): void
     {
-        $query->where('is_reading', true);
+        $query->where('status', Status::Reading);
     }
 
     /**
@@ -1256,31 +1226,6 @@ class Book extends Model
                 ->orWhereRaw("lower(cast(authors as char)) like ? escape '='", [$like($typed)])
                 ->orWhereRaw("lower(cast(authors as char)) like ? escape '='", [$like($asStored)]);
         });
-    }
-
-    /**
-     * The Books in one of the four Reading states.
-     *
-     * Three of them are not a column: read without a date and unread are two
-     * states that a single flag cannot tell apart, so each one is its own set
-     * of conditions.
-     *
-     * The other three ask for the Book **not** being read right now, the same
-     * way `readingStatus()` asks that first: the filter of the Shelf has to
-     * answer with the state the sheet shows, and a Book on the nightstand is
-     * not one nobody opened.
-     *
-     * @param  Builder<$this>  $query
-     */
-    #[Scope]
-    protected function inReadingStatus(Builder $query, ReadingStatus $status): void
-    {
-        match ($status) {
-            ReadingStatus::InProgress => $query->where('is_reading', true),
-            ReadingStatus::Unread => $query->where('is_reading', false)->where('is_read', false),
-            ReadingStatus::ReadUndated => $query->where('is_reading', false)->where('is_read', true)->whereNull('read_on'),
-            ReadingStatus::ReadDated => $query->where('is_reading', false)->where('is_read', true)->whereNotNull('read_on'),
-        };
     }
 
     /**

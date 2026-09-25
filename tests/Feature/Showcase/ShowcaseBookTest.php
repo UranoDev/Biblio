@@ -176,9 +176,8 @@ it('tampoco deja ver las Citas de un Libro oculto', function () {
 });
 
 it('no sirve la fecha de lectura, el apunte ni el préstamo en el HTML', function () {
-    $book = Book::factory()->lent('Rosario')->create([
+    $book = Book::factory()->lent('Rosario')->read()->create([
         'title' => 'El llano en llamas',
-        'is_read' => true,
         'read_on' => '2019-03-14',
         'note' => 'Lo que me dejó este libro y nadie más tiene por qué leer.',
     ]);

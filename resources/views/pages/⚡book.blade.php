@@ -3,7 +3,6 @@
 use App\Concerns\RegeneratesBooks;
 use App\Domain\Isbn;
 use App\Enums\GenerationStatus;
-use App\Enums\ReadingStatus;
 use App\Enums\RegenerationTarget;
 use App\Enums\Status;
 use App\Models\Book;
@@ -224,9 +223,9 @@ new #[Title('Ficha del Libro')] class extends Component
         $this->validate(
             [
                 'reading' => ['required', Rule::in([
-                    ReadingStatus::Unread->value,
-                    ReadingStatus::InProgress->value,
-                    ReadingStatus::ANY_READ,
+                    Status::Owned->value,
+                    Status::Reading->value,
+                    Status::ANY_READ,
                 ])],
                 'readOn' => ['nullable', 'date', 'before_or_equal:today'],
             ],
@@ -239,9 +238,9 @@ new #[Title('Ficha del Libro')] class extends Component
         );
 
         match ($this->reading) {
-            ReadingStatus::Unread->value => $this->book->markAsUnread(),
-            ReadingStatus::InProgress->value => $this->book->markAsReading(),
-            default => $this->book->markAsRead(trim($this->readOn) === '' ? null : trim($this->readOn)),
+            Status::Owned->value   => $this->book->markAsUnread(),
+            Status::Reading->value => $this->book->markAsReading(),
+            default                => $this->book->markAsRead(trim($this->readOn) === '' ? null : trim($this->readOn)),
         };
 
         $this->fillFromBook();
@@ -250,7 +249,7 @@ new #[Title('Ficha del Libro')] class extends Component
         // not re-render just because this one did.
         $this->dispatch('reading-saved');
 
-        $this->notice = 'La lectura quedó en «'.$this->book->readingStatus()->label().'».';
+        $this->notice = 'La lectura quedó en «'.$this->book->status->markLabel($this->book->read_on?->year).'».';
     }
 
     public function saveLending(): void
@@ -298,7 +297,7 @@ new #[Title('Ficha del Libro')] class extends Component
     public function saveShelving(): void
     {
         $this->validate(
-            ['status' => ['required', Rule::enum(Status::class)]],
+            ['status' => ['required', Rule::in([Status::Owned->value, Status::Wanted->value])]],
             ['status.required' => 'Falta la Situación.'],
         );
 
@@ -535,9 +534,7 @@ new #[Title('Ficha del Libro')] class extends Component
      */
     private function readingOfTheBook(): string
     {
-        $status = $this->book->readingStatus();
-
-        return $status->isRead() ? ReadingStatus::ANY_READ : $status->value;
+        return $this->book->status->value;
     }
 
     /**
@@ -985,17 +982,17 @@ new #[Title('Ficha del Libro')] class extends Component
 
                 <flux:radio.group wire:model.live="reading" label="En qué va" data-test="reading-state">
                     <flux:radio
-                        value="{{ App\Enums\ReadingStatus::Unread->value }}"
+                        value="{{ App\Enums\Status::Owned->value }}"
                         label="No leído"
                         data-test="reading-unread"
                     />
                     <flux:radio
-                        value="{{ App\Enums\ReadingStatus::InProgress->value }}"
+                        value="{{ App\Enums\Status::Reading->value }}"
                         label="Lo estoy leyendo"
                         data-test="reading-in-progress"
                     />
                     <flux:radio
-                        value="{{ App\Enums\ReadingStatus::ANY_READ }}"
+                        value="{{ App\Enums\Status::ANY_READ }}"
                         label="Leído"
                         data-test="reading-read"
                     />
@@ -1004,7 +1001,7 @@ new #[Title('Ficha del Libro')] class extends Component
 
             {{-- La fecha es de los leídos: debajo de los otros dos estados no
                  hay nada que fechar. --}}
-            @if ($reading === App\Enums\ReadingStatus::ANY_READ)
+            @if ($reading === App\Enums\Status::ANY_READ)
                 <div class="flex flex-col gap-2 border-l border-dashed border-zinc-300 pl-4 dark:border-zinc-600">
                     <x-visibility />
 

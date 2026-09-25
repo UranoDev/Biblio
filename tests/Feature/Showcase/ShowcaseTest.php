@@ -37,13 +37,13 @@ it('muestra el Cover, el título y los autores de cada Libro visible', function 
         ->assertSee('Thomas Mann');
 });
 
-it('enseña los que están Por comprar en una sección aparte, con palabras de visitante', function () {
+it('enseña los que están Por comprar en «En mi lista», con su etiqueta', function () {
     Book::factory()->wanted()->create(['title' => 'Los detectives salvajes']);
 
     $this->get(route('showcase'))
-        ->assertSee('Los que me faltan')
+        ->assertSee('En mi lista')
         ->assertSee('Los detectives salvajes')
-        ->assertDontSee('Por comprar');
+        ->assertSee('Por comprar');
 });
 
 it('no arma la sección de los que faltan cuando no falta ninguno', function () {
@@ -85,9 +85,8 @@ it('tampoco saca un Libro oculto de los que están Por comprar', function () {
 });
 
 it('no sirve la fecha de lectura, el apunte ni el préstamo en el HTML', function () {
-    $book = Book::factory()->lent('Rosario')->create([
+    $book = Book::factory()->lent('Rosario')->read()->create([
         'title' => 'El llano en llamas',
-        'is_read' => true,
         'read_on' => '2019-03-14',
         'note' => 'Lo que me dejó este libro y nadie más tiene por qué leer.',
     ]);
@@ -168,7 +167,7 @@ it('deja el control apagado hasta que el navegador mide las filas', function () 
     expect($html)->toMatch('/<button(?=[^>]*data-test="first-rows-more")[^>]*\shidden\s/');
 });
 
-it('recorta «Los que tengo» y no «Los que me faltan»', function () {
+it('recorta «Los que tengo» y no «En mi lista»', function () {
     Book::factory()->owned()->create(['title' => 'El que tengo']);
     Book::factory()->wanted()->create(['title' => 'El que me falta']);
 
@@ -176,7 +175,7 @@ it('recorta «Los que tengo» y no «Los que me faltan»', function () {
 
     expect(substr_count($response->getContent(), 'data-test="first-rows"'))->toBe(1);
 
-    $response->assertSeeInOrder(['Los que me faltan', 'data-test="first-rows"'], false);
+    $response->assertSeeInOrder(['En mi lista', 'data-test="first-rows"'], false);
 });
 
 it('trae el acervo visible cuando lo pide revuelto, y nada más', function () {
@@ -199,38 +198,36 @@ it('revuelve el acervo en cada carga, para que las tres filas no sean siempre la
 
 /*
 |--------------------------------------------------------------------------
-| The section «Lo que estoy leyendo»
+| The section «En mi lista» (BIB-63)
 |--------------------------------------------------------------------------
 |
-| The front page opens with what is started and not finished (BIB-61). It is a
-| short list, so what is settled here is when the section exists and when it does
-| not, where it lands among the other two, and that the Book being read is still
-| one of «Los que tengo» — the section above says what I am reading and the one
-| below says how many books there are.
+| The front page merges what I am reading and what I still need to buy into
+| «En mi lista», each card labelled «Leyendo» or «Por comprar». The Shelf
+| («Los que tengo») goes underneath with the full collection.
 */
 
-it('enseña en su propia sección el Libro que estoy leyendo', function () {
+it('enseña en «En mi lista» el Libro que estoy leyendo, con su etiqueta', function () {
     Book::factory()->owned()->beingRead()->create(['title' => 'La casa de los espíritus']);
 
     $this->get(route('showcase'))
-        ->assertSee('Lo que estoy leyendo')
-        ->assertSee('La casa de los espíritus');
+        ->assertSee('En mi lista')
+        ->assertSee('La casa de los espíritus')
+        ->assertSee('Leyendo');
 });
 
-it('no arma la sección de lo que estoy leyendo cuando no hay ninguno empezado', function () {
+it('no arma «En mi lista» cuando no hay ninguno empezado ni por comprar', function () {
     Book::factory()->owned()->read()->create();
     Book::factory()->owned()->create();
 
-    $this->get(route('showcase'))->assertDontSee('Lo que estoy leyendo');
+    $this->get(route('showcase'))->assertDontSee('En mi lista');
 });
 
-it('pone las secciones en su orden: lo que estoy leyendo, los que me faltan, los que tengo', function () {
+it('pone las secciones en su orden: en mi lista, los que tengo', function () {
     Book::factory()->owned()->beingRead()->create();
     Book::factory()->wanted()->create();
 
     $this->get(route('showcase'))->assertSeeInOrder([
-        'Lo que estoy leyendo',
-        'Los que me faltan',
+        'En mi lista',
         'Los que tengo',
     ]);
 });
@@ -257,7 +254,7 @@ it('no saca a la Vitrina el Libro oculto que estoy leyendo', function () {
 });
 
 it('no pone en lo que estoy leyendo un Libro que todavía no tengo', function () {
-    Book::factory()->wanted()->beingRead()->create(['title' => 'El que me falta']);
+    Book::factory()->wanted()->create(['title' => 'El que me falta']);
 
     $this->get(route('showcase'))
         ->assertSee('El que me falta')

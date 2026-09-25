@@ -2,7 +2,6 @@
 
 use App\Enums\CoverOrigin;
 use App\Enums\GenerationStatus;
-use App\Enums\ReadingStatus;
 use App\Enums\Status;
 use App\Models\Book;
 use App\Models\Category;
@@ -94,10 +93,9 @@ it('sella los Books leídos y deja sin sellar los que faltan por leer', function
     $html = $this->get(route('shelf'))->assertOk()->getContent();
 
     expect(substr_count($html, 'data-test="reading-stamp"'))->toBe(2)
-        ->and($html)->toContain('data-reading="'.ReadingStatus::ReadUndated->value.'"')
-        ->and($html)->toContain('data-reading="'.ReadingStatus::ReadDated->value.'"')
-        ->and($html)->not->toContain('data-reading="'.ReadingStatus::Unread->value.'"')
-        ->and($html)->not->toContain('data-reading="'.ReadingStatus::InProgress->value.'"');
+        ->and($html)->toContain('data-reading="'.Status::Read->value.'"')
+        ->and($html)->not->toContain('data-reading="'.Status::Owned->value.'"')
+        ->and($html)->not->toContain('data-reading="'.Status::Reading->value.'"');
 });
 
 it('no escribe el año de la Lectura en la retícula', function () {
@@ -113,8 +111,8 @@ it('no escribe el año de la Lectura en la retícula', function () {
 });
 
 it('deja filtrar por los cuatro estados con su nombre', function () {
-    foreach (ReadingStatus::cases() as $state) {
-        shelf()->assertSee($state->label());
+    foreach (Status::readingFilterOptions() as $label) {
+        shelf()->assertSee($label);
     }
 });
 
@@ -276,27 +274,27 @@ it('filtra por ReadingStatus', function () {
     Book::factory()->readUndated()->create(['title' => 'Leído hace años']);
     Book::factory()->read()->create(['title' => 'Leído con fecha']);
 
-    shelf()->set('reading', ReadingStatus::Unread->value)
+    shelf()->set('reading', Status::Owned->value)
         ->assertSee('Sin leer')
         ->assertDontSee('En el buró')
         ->assertDontSee('Leído hace años')
         ->assertDontSee('Leído con fecha');
 
-    shelf()->set('reading', ReadingStatus::InProgress->value)
+    shelf()->set('reading', Status::Reading->value)
         ->assertSee('En el buró')
         ->assertDontSee('Sin leer')
         ->assertDontSee('Leído hace años');
 
-    shelf()->set('reading', ReadingStatus::ANY_READ)
+    shelf()->set('reading', Status::ANY_READ)
         ->assertSee('Leído hace años')
         ->assertSee('Leído con fecha')
         ->assertDontSee('En el buró');
 
-    shelf()->set('reading', ReadingStatus::ReadUndated->value)
+    shelf()->set('reading', Status::READ_UNDATED)
         ->assertSee('Leído hace años')
         ->assertDontSee('Leído con fecha');
 
-    shelf()->set('reading', ReadingStatus::ReadDated->value)
+    shelf()->set('reading', Status::READ_DATED)
         ->assertSee('Leído con fecha')
         ->assertDontSee('Leído hace años');
 });
@@ -339,16 +337,16 @@ it('funciona en una biblioteca sin ninguna Category', function () {
 it('combina la Search con los filtros', function () {
     $novel = Category::factory()->named('Novela mexicana')->create();
 
-    $wanted = Book::factory()->wanted()->read()->create(['title' => 'Cartucho']);
-    $wanted->categories()->attach($novel);
+    $read = Book::factory()->read()->create(['title' => 'Cartucho']);
+    $read->categories()->attach($novel);
 
-    $other = Book::factory()->wanted()->create(['title' => 'Cartucho sin leer']);
+    $other = Book::factory()->create(['title' => 'Cartucho sin leer']);
     $other->categories()->attach($novel);
 
     shelf()
-        ->set('status', Status::Wanted->value)
+        ->set('status', Status::Owned->value)
         ->set('search', 'cartucho')
-        ->set('reading', ReadingStatus::ReadDated->value)
+        ->set('reading', Status::READ_DATED)
         ->set('category', $novel->slug)
         ->assertSee('Cartucho')
         ->assertDontSee('Cartucho sin leer');
@@ -360,7 +358,7 @@ it('quita todos los filtros de un golpe', function () {
     shelf()
         ->set('search', 'ninguno')
         ->set('status', '')
-        ->set('reading', ReadingStatus::ReadDated->value)
+        ->set('reading', Status::READ_DATED)
         ->call('clearFilters')
         ->assertSet('search', '')
         ->assertSet('status', Status::Owned->value)
@@ -412,7 +410,7 @@ it('toma los dos estados leídos cuando se pregunta si lo leí', function () {
     Book::factory()->create(['title' => 'Pendiente']);
 
     shelf()
-        ->set('reading', ReadingStatus::ANY_READ)
+        ->set('reading', Status::ANY_READ)
         ->assertSee('Con fecha')
         ->assertSee('Sin fecha')
         ->assertDontSee('Pendiente');

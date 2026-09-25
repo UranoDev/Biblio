@@ -2,7 +2,6 @@
 
 use App\Enums\GenerationStatus;
 use App\Enums\Origin;
-use App\Enums\ReadingStatus;
 use App\Enums\Source;
 use App\Enums\Status;
 use App\Jobs\ProposeForBook;
@@ -56,7 +55,7 @@ it('llena los campos con lo que está guardado', function () {
         ->assertSet('publisher', 'Era')
         ->assertSet('year', '2000')
         ->assertSet('note', 'Lo más seco que he leído.')
-        ->assertSet('reading', ReadingStatus::ANY_READ)
+        ->assertSet('reading', Status::ANY_READ)
         ->assertSet('readOn', $book->read_on->format('Y-m-d'))
         ->assertSet('lentTo', 'Mariana')
         ->assertSet('isHidden', false);
@@ -65,25 +64,24 @@ it('llena los campos con lo que está guardado', function () {
 // El Reading, que son cuatro estados y no dos.
 
 it('marca leído sin poner fecha', function () {
-    $book = Book::factory()->create(['is_read' => false, 'read_on' => null]);
+    $book = Book::factory()->create(['read_on' => null]);
 
     sheetOf($book)
-        ->set('reading', ReadingStatus::ANY_READ)
+        ->set('reading', Status::ANY_READ)
         ->call('saveReading')
         ->assertHasNoErrors();
 
     $book->refresh();
 
-    expect($book->is_read)->toBeTrue()
-        ->and($book->read_on)->toBeNull()
-        ->and($book->readingStatus())->toBe(ReadingStatus::ReadUndated);
+    expect($book->status)->toBe(Status::Read)
+        ->and($book->read_on)->toBeNull();
 });
 
 it('marca leído con fecha', function () {
-    $book = Book::factory()->create(['is_read' => false, 'read_on' => null]);
+    $book = Book::factory()->create(['read_on' => null]);
 
     sheetOf($book)
-        ->set('reading', ReadingStatus::ANY_READ)
+        ->set('reading', Status::ANY_READ)
         ->set('readOn', '2019-03-04')
         ->call('saveReading')
         ->assertHasNoErrors();
@@ -91,7 +89,7 @@ it('marca leído con fecha', function () {
     $book->refresh();
 
     expect($book->read_on?->format('Y-m-d'))->toBe('2019-03-04')
-        ->and($book->readingStatus())->toBe(ReadingStatus::ReadDated);
+        ->and($book->status)->toBe(Status::Read);
 });
 
 it('quita la fecha sin desmarcar la lectura', function () {
@@ -104,93 +102,88 @@ it('quita la fecha sin desmarcar la lectura', function () {
 
     $book->refresh();
 
-    expect($book->is_read)->toBeTrue()
-        ->and($book->read_on)->toBeNull()
-        ->and($book->readingStatus())->toBe(ReadingStatus::ReadUndated);
+    expect($book->status)->toBe(Status::Read)
+        ->and($book->read_on)->toBeNull();
 });
 
 it('desmarca la lectura y se lleva la fecha', function () {
     $book = Book::factory()->read()->create();
 
     sheetOf($book)
-        ->set('reading', ReadingStatus::Unread->value)
+        ->set('reading', Status::Owned->value)
         ->call('saveReading');
 
     $book->refresh();
 
-    expect($book->is_read)->toBeFalse()
-        ->and($book->read_on)->toBeNull()
-        ->and($book->readingStatus())->toBe(ReadingStatus::Unread);
+    expect($book->status)->toBe(Status::Owned)
+        ->and($book->read_on)->toBeNull();
 });
 
 it('no acepta una fecha de lectura en el futuro', function () {
     $book = Book::factory()->create();
 
     sheetOf($book)
-        ->set('reading', ReadingStatus::ANY_READ)
+        ->set('reading', Status::ANY_READ)
         ->set('readOn', now()->addYear()->format('Y-m-d'))
         ->call('saveReading')
         ->assertHasErrors('readOn');
 
-    expect($book->fresh()->is_read)->toBeFalse();
+    expect($book->fresh()->status)->toBe(Status::Owned);
 });
 
 it('marca el Libro que estoy leyendo', function () {
     $book = Book::factory()->create();
 
     sheetOf($book)
-        ->set('reading', ReadingStatus::InProgress->value)
+        ->set('reading', Status::Reading->value)
         ->call('saveReading')
         ->assertHasNoErrors()
-        ->assertSet('reading', ReadingStatus::InProgress->value);
+        ->assertSet('reading', Status::Reading->value);
 
-    expect($book->fresh()->readingStatus())->toBe(ReadingStatus::InProgress);
+    expect($book->fresh()->status)->toBe(Status::Reading);
 });
 
 it('saca del buró el Libro que se marca leído', function () {
     $book = Book::factory()->beingRead()->create();
 
     sheetOf($book)
-        ->assertSet('reading', ReadingStatus::InProgress->value)
-        ->set('reading', ReadingStatus::ANY_READ)
+        ->assertSet('reading', Status::Reading->value)
+        ->set('reading', Status::ANY_READ)
         ->set('readOn', '2026-01-15')
         ->call('saveReading')
         ->assertHasNoErrors();
 
     $book->refresh();
 
-    expect($book->is_reading)->toBeFalse()
-        ->and($book->readingStatus())->toBe(ReadingStatus::ReadDated);
+    expect($book->status)->toBe(Status::Read);
 });
 
 it('saca del buró el Libro que se marca no leído', function () {
     $book = Book::factory()->beingRead()->create();
 
     sheetOf($book)
-        ->set('reading', ReadingStatus::Unread->value)
+        ->set('reading', Status::Owned->value)
         ->call('saveReading')
         ->assertHasNoErrors();
 
     $book->refresh();
 
-    expect($book->is_reading)->toBeFalse()
-        ->and($book->readingStatus())->toBe(ReadingStatus::Unread);
+    expect($book->status)->toBe(Status::Owned);
 });
 
 it('deja sin fecha de lectura al Libro que se pone en curso', function () {
     $book = Book::factory()->read()->create();
 
     sheetOf($book)
-        ->set('reading', ReadingStatus::InProgress->value)
+        ->set('reading', Status::Reading->value)
         ->call('saveReading')
         ->assertHasNoErrors()
         ->assertSet('readOn', '');
 
     $book->refresh();
 
-    expect($book->is_read)->toBeFalse()
-        ->and($book->read_on)->toBeNull()
-        ->and($book->readingStatus())->toBe(ReadingStatus::InProgress);
+    expect($book->status)->toBe(Status::Reading)
+        ->and($book->read_on)->toBeNull();
 });
 
 it('no guarda un estado de lectura que no existe', function () {
@@ -201,7 +194,7 @@ it('no guarda un estado de lectura que no existe', function () {
         ->call('saveReading')
         ->assertHasErrors('reading');
 
-    expect($book->fresh()->readingStatus())->toBe(ReadingStatus::Unread);
+    expect($book->fresh()->status)->toBe(Status::Owned);
 });
 
 it('ofrece los tres estados de lectura en la ficha', function () {

@@ -4,7 +4,6 @@ namespace App\Dashboard;
 
 use App\Enums\CoverOrigin;
 use App\Enums\GenerationStatus;
-use App\Enums\ReadingStatus;
 use App\Enums\Status;
 use App\Models\Book;
 use App\Models\Quote;
@@ -115,13 +114,13 @@ final class Workload
                 key: 'unread',
                 label: 'Por leer',
                 total: $this->book('unread'),
-                url: route('shelf', ['reading' => ReadingStatus::Unread->value]),
+                url: route('shelf', ['reading' => Status::Owned->value]),
             ),
             new Counter(
                 key: 'finished',
                 label: 'Leídos',
                 total: $this->book('finished'),
-                url: route('shelf', ['reading' => ReadingStatus::ANY_READ]),
+                url: route('shelf', ['reading' => Status::ANY_READ]),
             ),
             new Counter(
                 key: 'quotes',
@@ -167,10 +166,10 @@ final class Workload
 
         $row = Book::query()->toBase()->selectRaw(<<<'SQL'
             count(*) as total,
-            sum(case when status = ? then 1 else 0 end) as owned,
+            sum(case when status in (?, ?, ?) then 1 else 0 end) as owned,
             sum(case when status = ? then 1 else 0 end) as wanted,
-            sum(case when status = ? and is_read = 0 and is_reading = 0 then 1 else 0 end) as unread,
-            sum(case when status = ? and is_read = 1 and is_reading = 0 then 1 else 0 end) as finished,
+            sum(case when status = ? then 1 else 0 end) as unread,
+            sum(case when status = ? then 1 else 0 end) as finished,
             sum(case when cover_origin = ? then 1 else 0 end) as cover_generated,
             sum(case when generation_queued_at is not null and generation_queued_at >= ? then 1 else 0 end) as generation_queued,
             sum(case when generation_failed_at is not null or generation_queued_at < ? then 1 else 0 end) as generation_failed,
@@ -179,9 +178,11 @@ final class Workload
             ) then 1 else 0 end) as without_quotes
         SQL, [
             Status::Owned->value,
+            Status::Reading->value,
+            Status::Read->value,
             Status::Wanted->value,
             Status::Owned->value,
-            Status::Owned->value,
+            Status::Read->value,
             CoverOrigin::Generated->value,
             $expires,
             $expires,
