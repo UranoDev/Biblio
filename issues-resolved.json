@@ -53,5 +53,8 @@
     { "Id": "BIB-54", "ResolvedAt": "2026-09-24 16:25:48", "Type": "Bug", "Summary": "Reanudar tras quedarse sin créditos no alcanza la tarjeta de un Libro" },
     { "Id": "BIB-55", "ResolvedAt": "2026-09-24 16:31:23", "Type": "Feature", "Summary": "Si la Fuente del registro no trae portada, no se le pregunta a la siguiente" },
     { "Id": "BIB-56", "ResolvedAt": "2026-09-24 16:53:42", "Type": "Task", "Summary": "\"Configuración\" pasa a llamarse \"Ajustes\" y se muda a la barra lateral" },
-    { "Id": "BIB-57", "ResolvedAt": "2026-09-24 17:07:55", "Type": "Feature", "Summary": "Botón para reintentar en cascada (Open Library, luego Google) las Portadas que faltan" }
+    { "Id": "BIB-57", "ResolvedAt": "2026-09-24 17:07:55", "Type": "Feature", "Summary": "Botón para reintentar en cascada (Open Library, luego Google) las Portadas que faltan" },
+    { "Id": "BIB-59", "ResolvedAt": "2026-09-24 17:27:20", "Type": "Bug", "Summary": "Marcar un libro como \"Lo estoy leyendo\"" },
+    { "Id": "BIB-60", "ResolvedAt": "2026-09-24 17:39:58", "Type": "Bug", "Summary": "Mostrar sólo unas filas de \"Los que tengo\" en escritorio, con \"cargar más\"" },
+    { "Id": "BIB-61", "ResolvedAt": "2026-09-24 17:47:09", "Type": "Bug", "Summary": "Sección \"Lo que estoy leyendo\" en el escaparate público" }
 ]

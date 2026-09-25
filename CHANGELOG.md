@@ -1,5 +1,11 @@
 # Changelog
 
+## [2026.09.24.3] - 2026 sep 24
+### Fix / Bugs
+- **BIB-61**: Sección "Lo que estoy leyendo" en el escaparate público
+- **BIB-60**: Mostrar sólo unas filas de "Los que tengo" en escritorio, con "cargar más"
+- **BIB-59**: Marcar un libro como "Lo estoy leyendo"
+
 ## [2026.09.24.2] - 2026 sep 24
 ### Features
 - **BIB-57**: Botón para reintentar en cascada (Open Library, luego Google) las Portadas que faltan
