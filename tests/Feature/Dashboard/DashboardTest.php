@@ -153,6 +153,18 @@ it('separa lo leído de lo que está por leer, y cada uno abre su lista', functi
         ->assertDontSee('Con fecha');
 });
 
+it('no cuenta el Libro que estoy leyendo ni entre los leídos ni entre los pendientes', function () {
+    Book::factory()->owned()->beingRead()->create(['title' => 'En el buró']);
+
+    // Cada número abre su lista y ninguna de las dos lo muestra: un contador
+    // que no cuadra con lo que abre es peor que no tenerlo (BIB-59).
+    expect(counted('finished'))->toBe(0)
+        ->and(counted('unread'))->toBe(0);
+
+    $this->get(opens('finished'))->assertDontSee('En el buró');
+    $this->get(opens('unread'))->assertDontSee('En el buró');
+});
+
 it('no cuenta como por leer lo que ni siquiera se ha comprado', function () {
     Book::factory()->wanted()->create();
 

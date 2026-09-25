@@ -39,6 +39,7 @@ class BookFactory extends Factory
             'status' => Status::Owned,
             'is_read' => false,
             'read_on' => null,
+            'is_reading' => false,
             'note' => null,
             'lent_to' => null,
             'lent_on' => null,
@@ -82,6 +83,18 @@ class BookFactory extends Factory
     {
         return $this->state(fn (array $attributes) => [
             'is_read' => true,
+            'read_on' => null,
+        ]);
+    }
+
+    /**
+     * The one on the nightstand: started and not finished.
+     */
+    public function beingRead(): static
+    {
+        return $this->state(fn (array $attributes) => [
+            'is_reading' => true,
+            'is_read' => false,
             'read_on' => null,
         ]);
     }

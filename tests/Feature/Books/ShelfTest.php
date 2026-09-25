@@ -86,6 +86,8 @@ it('dibuja la pieza generada del Book que no tiene imagen guardada, sin dejar hu
 
 it('sella los Books leídos y deja sin sellar los que faltan por leer', function () {
     Book::factory()->create(['title' => 'Sin leer']);
+    // El que estoy leyendo todavía no se leyó, así que tampoco lleva sello.
+    Book::factory()->beingRead()->create(['title' => 'En el buró']);
     Book::factory()->readUndated()->create(['title' => 'Leído hace años']);
     Book::factory()->read()->create(['title' => 'Leído con fecha']);
 
@@ -94,7 +96,8 @@ it('sella los Books leídos y deja sin sellar los que faltan por leer', function
     expect(substr_count($html, 'data-test="reading-stamp"'))->toBe(2)
         ->and($html)->toContain('data-reading="'.ReadingStatus::ReadUndated->value.'"')
         ->and($html)->toContain('data-reading="'.ReadingStatus::ReadDated->value.'"')
-        ->and($html)->not->toContain('data-reading="'.ReadingStatus::Unread->value.'"');
+        ->and($html)->not->toContain('data-reading="'.ReadingStatus::Unread->value.'"')
+        ->and($html)->not->toContain('data-reading="'.ReadingStatus::InProgress->value.'"');
 });
 
 it('no escribe el año de la Lectura en la retícula', function () {
@@ -109,7 +112,7 @@ it('no escribe el año de la Lectura en la retícula', function () {
     shelf()->assertDontSee('2019');
 });
 
-it('deja filtrar por los tres estados con su nombre', function () {
+it('deja filtrar por los cuatro estados con su nombre', function () {
     foreach (ReadingStatus::cases() as $state) {
         shelf()->assertSee($state->label());
     }
@@ -269,13 +272,25 @@ it('no avisa de la otra situación cuando ahí tampoco hay nada', function () {
 
 it('filtra por ReadingStatus', function () {
     Book::factory()->create(['title' => 'Sin leer']);
+    Book::factory()->beingRead()->create(['title' => 'En el buró']);
     Book::factory()->readUndated()->create(['title' => 'Leído hace años']);
     Book::factory()->read()->create(['title' => 'Leído con fecha']);
 
     shelf()->set('reading', ReadingStatus::Unread->value)
         ->assertSee('Sin leer')
+        ->assertDontSee('En el buró')
         ->assertDontSee('Leído hace años')
         ->assertDontSee('Leído con fecha');
+
+    shelf()->set('reading', ReadingStatus::InProgress->value)
+        ->assertSee('En el buró')
+        ->assertDontSee('Sin leer')
+        ->assertDontSee('Leído hace años');
+
+    shelf()->set('reading', ReadingStatus::ANY_READ)
+        ->assertSee('Leído hace años')
+        ->assertSee('Leído con fecha')
+        ->assertDontSee('En el buró');
 
     shelf()->set('reading', ReadingStatus::ReadUndated->value)
         ->assertSee('Leído hace años')

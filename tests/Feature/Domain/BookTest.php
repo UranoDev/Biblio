@@ -54,19 +54,55 @@ class BookTest extends TestCase
         $this->assertSame(Status::Owned, $book->fresh()->status);
     }
 
-    public function test_reading_tells_three_states_apart(): void
+    public function test_reading_tells_four_states_apart(): void
     {
         $unread = Book::factory()->create();
+        $inProgress = Book::factory()->beingRead()->create();
         $undated = Book::factory()->readUndated()->create();
         $dated = Book::factory()->read()->create(['read_on' => '2024-03-01']);
 
         $this->assertSame(ReadingStatus::Unread, $unread->fresh()->readingStatus());
+        $this->assertSame(ReadingStatus::InProgress, $inProgress->fresh()->readingStatus());
         $this->assertSame(ReadingStatus::ReadUndated, $undated->fresh()->readingStatus());
         $this->assertSame(ReadingStatus::ReadDated, $dated->fresh()->readingStatus());
 
         $this->assertFalse($unread->readingStatus()->isRead());
+        $this->assertFalse($inProgress->readingStatus()->isRead());
         $this->assertTrue($undated->readingStatus()->isRead());
         $this->assertTrue($dated->readingStatus()->isRead());
+    }
+
+    /**
+     * The four states are exclusive, and the stored one is the one that says
+     * so: a row left marked read and in progress at once is one Book on the
+     * nightstand, not two answers (BIB-59).
+     */
+    public function test_being_read_wins_over_the_read_flag(): void
+    {
+        $book = Book::factory()->create(['is_read' => true, 'read_on' => '2024-03-01', 'is_reading' => true]);
+
+        $this->assertSame(ReadingStatus::InProgress, $book->fresh()->readingStatus());
+        $this->assertSame(0, Book::query()->read()->count());
+        $this->assertSame(0, Book::query()->inReadingStatus(ReadingStatus::ReadDated)->count());
+        $this->assertSame(1, Book::query()->inReadingStatus(ReadingStatus::InProgress)->count());
+    }
+
+    public function test_marking_a_book_moves_it_between_the_four_states(): void
+    {
+        $book = Book::factory()->read()->create(['read_on' => '2024-03-01']);
+
+        $book->markAsReading();
+        $this->assertSame(ReadingStatus::InProgress, $book->fresh()->readingStatus());
+        $this->assertNull($book->fresh()->read_on);
+
+        $book->markAsRead('2026-02-10');
+        $this->assertFalse($book->fresh()->is_reading);
+        $this->assertSame(ReadingStatus::ReadDated, $book->fresh()->readingStatus());
+
+        $book->markAsReading();
+        $book->markAsUnread();
+        $this->assertFalse($book->fresh()->is_reading);
+        $this->assertSame(ReadingStatus::Unread, $book->fresh()->readingStatus());
     }
 
     public function test_read_without_a_date_is_not_confused_with_unread_in_queries(): void

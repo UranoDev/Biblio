@@ -151,7 +151,10 @@ final class Workload
      * the same reason the tabs of the Shelf count grouped.
      *
      * «Por leer» and «Leídos» are counted inside the Acervo: what is Wanted is
-     * not read nor pending to read, it is not bought (ADR-005).
+     * not read nor pending to read, it is not bought (ADR-005). Neither of the
+     * two counts the Book being read right now, because neither of the two
+     * filters they open shows it (BIB-59): a number that does not match the
+     * list it leads to is worse than no number.
      *
      * @return array<string, int>
      */
@@ -166,8 +169,8 @@ final class Workload
             count(*) as total,
             sum(case when status = ? then 1 else 0 end) as owned,
             sum(case when status = ? then 1 else 0 end) as wanted,
-            sum(case when status = ? and is_read = 0 then 1 else 0 end) as unread,
-            sum(case when status = ? and is_read = 1 then 1 else 0 end) as finished,
+            sum(case when status = ? and is_read = 0 and is_reading = 0 then 1 else 0 end) as unread,
+            sum(case when status = ? and is_read = 1 and is_reading = 0 then 1 else 0 end) as finished,
             sum(case when cover_origin = ? then 1 else 0 end) as cover_generated,
             sum(case when generation_queued_at is not null and generation_queued_at >= ? then 1 else 0 end) as generation_queued,
             sum(case when generation_failed_at is not null or generation_queued_at < ? then 1 else 0 end) as generation_failed,

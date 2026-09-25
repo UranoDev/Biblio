@@ -3,6 +3,7 @@
 use App\Concerns\RegeneratesBooks;
 use App\Domain\Isbn;
 use App\Enums\GenerationStatus;
+use App\Enums\ReadingStatus;
 use App\Enums\RegenerationTarget;
 use App\Enums\Status;
 use App\Models\Book;
@@ -63,7 +64,13 @@ new #[Title('Ficha del Libro')] class extends Component
 
     public string $note = '';
 
-    public bool $isRead = false;
+    /**
+     * Which Reading the Book is in, as the three options of the sheet name it:
+     * «No leído», «Lo estoy leyendo» and «Leído». The last one is the value the
+     * filter of the Shelf uses for both read states at once, because here the
+     * date underneath is what tells them apart.
+     */
+    public string $reading = '';
 
     public string $readOn = '';
 
@@ -206,22 +213,36 @@ new #[Title('Ficha del Libro')] class extends Component
      *
      * Marking it read does not force a date, and emptying the date does not
      * unmark the Reading: read without knowing when is a state of its own.
+     *
+     * The three options are one control and not three switches, which is what
+     * keeps the states from being combined: a Book cannot be unread and on the
+     * nightstand at the same time, and marking it read takes it off there
+     * (BIB-59).
      */
     public function saveReading(): void
     {
         $this->validate(
-            ['readOn' => ['nullable', 'date', 'before_or_equal:today']],
             [
+                'reading' => ['required', Rule::in([
+                    ReadingStatus::Unread->value,
+                    ReadingStatus::InProgress->value,
+                    ReadingStatus::ANY_READ,
+                ])],
+                'readOn' => ['nullable', 'date', 'before_or_equal:today'],
+            ],
+            [
+                'reading.required' => 'Falta decir en qué va la lectura.',
+                'reading.in' => 'Ese estado de lectura no existe.',
                 'readOn.date' => 'La fecha de lectura no se entiende.',
                 'readOn.before_or_equal' => 'La fecha de lectura no puede estar en el futuro.',
             ],
         );
 
-        if (! $this->isRead) {
-            $this->book->markAsUnread();
-        } else {
-            $this->book->markAsRead(trim($this->readOn) === '' ? null : trim($this->readOn));
-        }
+        match ($this->reading) {
+            ReadingStatus::Unread->value => $this->book->markAsUnread(),
+            ReadingStatus::InProgress->value => $this->book->markAsReading(),
+            default => $this->book->markAsRead(trim($this->readOn) === '' ? null : trim($this->readOn)),
+        };
 
         $this->fillFromBook();
 
@@ -495,7 +516,7 @@ new #[Title('Ficha del Libro')] class extends Component
 
         $this->description = (string) $this->book->description;
         $this->note = (string) $this->book->note;
-        $this->isRead = $this->book->is_read;
+        $this->reading = $this->readingOfTheBook();
         $this->readOn = $this->book->read_on?->format('Y-m-d') ?? '';
         $this->lentTo = (string) $this->book->lent_to;
         $this->lentOn = $this->book->lent_on?->format('Y-m-d') ?? '';
@@ -503,6 +524,20 @@ new #[Title('Ficha del Libro')] class extends Component
         $this->isHidden = $this->book->is_hidden;
 
         unset($this->categoriesStatus, $this->descriptionStatus);
+    }
+
+    /**
+     * The stored Reading as the three options of the sheet say it.
+     *
+     * The two read states come back as the same option, because down here the
+     * date field is the one that tells them apart — offering four options with
+     * a date underneath would be asking the same thing twice.
+     */
+    private function readingOfTheBook(): string
+    {
+        $status = $this->book->readingStatus();
+
+        return $status->isRead() ? ReadingStatus::ANY_READ : $status->value;
     }
 
     /**
@@ -938,25 +973,51 @@ new #[Title('Ficha del Libro')] class extends Component
         <flux:heading size="lg">Lectura</flux:heading>
 
         <form wire:submit="saveReading" class="flex flex-col gap-6">
-            {{-- La marca de leído se publica; la fecha en que lo leí, no. --}}
+            {{--
+                Los tres estados van en un solo control: son excluyentes, y
+                tres casillas sueltas dejarían marcar «No leído» y «Lo estoy
+                leyendo» a la vez. Marcar «Leído» saca al Libro del buró.
+
+                La marca de leído se publica; la fecha en que lo leí, no.
+            --}}
             <div class="flex flex-col gap-2">
                 <x-visibility public :hidden="$book->is_hidden" />
 
-                <flux:switch wire:model="isRead" label="Leído" data-test="read-switch" />
+                <flux:radio.group wire:model.live="reading" label="En qué va" data-test="reading-state">
+                    <flux:radio
+                        value="{{ App\Enums\ReadingStatus::Unread->value }}"
+                        label="No leído"
+                        data-test="reading-unread"
+                    />
+                    <flux:radio
+                        value="{{ App\Enums\ReadingStatus::InProgress->value }}"
+                        label="Lo estoy leyendo"
+                        data-test="reading-in-progress"
+                    />
+                    <flux:radio
+                        value="{{ App\Enums\ReadingStatus::ANY_READ }}"
+                        label="Leído"
+                        data-test="reading-read"
+                    />
+                </flux:radio.group>
             </div>
 
-            <div class="flex flex-col gap-2 border-l border-dashed border-zinc-300 pl-4 dark:border-zinc-600">
-                <x-visibility />
+            {{-- La fecha es de los leídos: debajo de los otros dos estados no
+                 hay nada que fechar. --}}
+            @if ($reading === App\Enums\ReadingStatus::ANY_READ)
+                <div class="flex flex-col gap-2 border-l border-dashed border-zinc-300 pl-4 dark:border-zinc-600">
+                    <x-visibility />
 
-                <flux:input
-                    wire:model="readOn"
-                    type="date"
-                    label="Cuándo lo leí"
-                    description="Se puede dejar en blanco: el Libro queda leído, sin fecha."
-                    class="max-w-xs"
-                    data-test="read-on-field"
-                />
-            </div>
+                    <flux:input
+                        wire:model="readOn"
+                        type="date"
+                        label="Cuándo lo leí"
+                        description="Se puede dejar en blanco: el Libro queda leído, sin fecha."
+                        class="max-w-xs"
+                        data-test="read-on-field"
+                    />
+                </div>
+            @endif
 
             <flux:button type="submit" variant="primary" class="self-start">Guardar la lectura</flux:button>
         </form>

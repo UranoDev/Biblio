@@ -57,6 +57,7 @@ use Illuminate\Support\Str;
  * @property Status $status
  * @property bool $is_read
  * @property Carbon|null $read_on
+ * @property bool $is_reading
  * @property string|null $note
  * @property string|null $lent_to
  * @property Carbon|null $lent_on
@@ -129,6 +130,7 @@ class Book extends Model
             'status' => Status::class,
             'is_read' => 'boolean',
             'read_on' => 'date',
+            'is_reading' => 'boolean',
             'lent_on' => 'date',
             'is_hidden' => 'boolean',
             'categories_edited_at' => 'datetime',
@@ -242,13 +244,21 @@ class Book extends Model
     }
 
     /**
-     * Which of the three Reading states the Book is in.
+     * Which of the four Reading states the Book is in.
      *
      * Read without a date is not the same as unread, so the state cannot be
      * deduced from the date alone.
+     *
+     * The Book being read right now is asked about first, and it is the only
+     * one with a column of its own: it is what nothing else can say, and
+     * answering it first is what keeps the four states exclusive (BIB-59).
      */
     public function readingStatus(): ReadingStatus
     {
+        if ($this->is_reading) {
+            return ReadingStatus::InProgress;
+        }
+
         if (! $this->is_read) {
             return ReadingStatus::Unread;
         }
@@ -576,17 +586,29 @@ class Book extends Model
      * when, is not the same thing as an unread one, and losing that difference
      * is what a plain checkbox does.
      *
+     * Finishing it ends the Reading in progress: a Book cannot be read and
+     * still on the nightstand.
+     *
      * @param  Carbon|string|null  $on  the read date, or null when it is not known
      */
     public function markAsRead(Carbon|string|null $on = null): void
     {
-        $this->forceFill(['is_read' => true, 'read_on' => $on])->save();
+        $this->forceFill(['is_read' => true, 'read_on' => $on, 'is_reading' => false])->save();
+    }
+
+    /**
+     * The Book is being read right now, which is neither of the other two: the
+     * read date it may have carried goes, because it is not read any more.
+     */
+    public function markAsReading(): void
+    {
+        $this->forceFill(['is_reading' => true, 'is_read' => false, 'read_on' => null])->save();
     }
 
     /** The Book goes back to unread, and the date it had goes with it. */
     public function markAsUnread(): void
     {
-        $this->forceFill(['is_read' => false, 'read_on' => null])->save();
+        $this->forceFill(['is_read' => false, 'read_on' => null, 'is_reading' => false])->save();
     }
 
     /**
@@ -1174,11 +1196,26 @@ class Book extends Model
         $query->where('status', Status::Wanted);
     }
 
-    /** @param  Builder<$this>  $query */
+    /**
+     * The Books I read, which the one I am in the middle of is not yet.
+     *
+     * @param  Builder<$this>  $query
+     */
     #[Scope]
     protected function read(Builder $query): void
     {
-        $query->where('is_read', true);
+        $query->where('is_read', true)->where('is_reading', false);
+    }
+
+    /**
+     * The Books I am reading right now.
+     *
+     * @param  Builder<$this>  $query
+     */
+    #[Scope]
+    protected function beingRead(Builder $query): void
+    {
+        $query->where('is_reading', true);
     }
 
     /**
@@ -1222,10 +1259,16 @@ class Book extends Model
     }
 
     /**
-     * The Books in one of the three Reading states.
+     * The Books in one of the four Reading states.
      *
-     * It is not a column: read without a date and unread are two states that a
-     * single flag cannot tell apart, so each one is its own pair of conditions.
+     * Three of them are not a column: read without a date and unread are two
+     * states that a single flag cannot tell apart, so each one is its own set
+     * of conditions.
+     *
+     * The other three ask for the Book **not** being read right now, the same
+     * way `readingStatus()` asks that first: the filter of the Shelf has to
+     * answer with the state the sheet shows, and a Book on the nightstand is
+     * not one nobody opened.
      *
      * @param  Builder<$this>  $query
      */
@@ -1233,9 +1276,10 @@ class Book extends Model
     protected function inReadingStatus(Builder $query, ReadingStatus $status): void
     {
         match ($status) {
-            ReadingStatus::Unread => $query->where('is_read', false),
-            ReadingStatus::ReadUndated => $query->where('is_read', true)->whereNull('read_on'),
-            ReadingStatus::ReadDated => $query->where('is_read', true)->whereNotNull('read_on'),
+            ReadingStatus::InProgress => $query->where('is_reading', true),
+            ReadingStatus::Unread => $query->where('is_reading', false)->where('is_read', false),
+            ReadingStatus::ReadUndated => $query->where('is_reading', false)->where('is_read', true)->whereNull('read_on'),
+            ReadingStatus::ReadDated => $query->where('is_reading', false)->where('is_read', true)->whereNotNull('read_on'),
         };
     }
 

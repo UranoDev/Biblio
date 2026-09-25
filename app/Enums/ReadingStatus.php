@@ -3,25 +3,32 @@
 namespace App\Enums;
 
 /**
- * The three Reading states of a Book.
+ * The four Reading states of a Book.
  *
- * It is not stored: it is derived from the read flag and the read date. Read
- * without a date is a state of its own — a Book read years ago, without knowing
- * when, is still read.
+ * Three of them are not stored: they are derived from the read flag and the
+ * read date. Read without a date is a state of its own — a Book read years
+ * ago, without knowing when, is still read.
+ *
+ * The fourth one, the Book being read right now, is stored, because there is
+ * nothing to derive it from: it is neither read nor a Book nobody has opened,
+ * and a flag and a date cannot say that between them (BIB-59). The stored one
+ * wins over the other three, so the four stay exclusive.
  */
 enum ReadingStatus: string
 {
     case Unread = 'unread';
+    case InProgress = 'in_progress';
     case ReadUndated = 'read_undated';
     case ReadDated = 'read_dated';
 
     /**
      * The filter value that takes in both read states at once.
      *
-     * It is not a fourth state and it is not stored: it is the question «¿lo
+     * It is not a fifth state and it is not stored: it is the question «¿lo
      * leí?», which is the one the Dashboard counts and the one somebody asks
-     * when the date is not what they are after. The three states stay in the
-     * filter underneath it, because telling them apart is the other question.
+     * when the date is not what they are after. The two read states stay in
+     * the filter underneath it, because telling them apart is the other
+     * question.
      */
     public const ANY_READ = 'read';
 
@@ -29,12 +36,16 @@ enum ReadingStatus: string
      * What the filter of the Shelf offers, from the widest answer to the
      * narrowest.
      *
+     * The three top answers go in the order a Book passes through them, and
+     * the two read ones hang underneath the one they narrow.
+     *
      * @return array<string, string>
      */
     public static function filterOptions(): array
     {
         return [
             self::Unread->value => self::Unread->label(),
+            self::InProgress->value => self::InProgress->label(),
             self::ANY_READ => 'Leído',
             self::ReadUndated->value => self::ReadUndated->label(),
             self::ReadDated->value => self::ReadDated->label(),
@@ -42,13 +53,14 @@ enum ReadingStatus: string
     }
 
     /**
-     * The state as the filter of the Shelf names it, where the three have to
+     * The state as the filter of the Shelf names it, where the four have to
      * tell themselves apart from one another and nothing else is on the line.
      */
     public function label(): string
     {
         return match ($this) {
             self::Unread => 'No leído',
+            self::InProgress => 'Lo estoy leyendo',
             self::ReadUndated => 'Leído, sin fecha',
             self::ReadDated => 'Leído, con fecha',
         };
@@ -68,6 +80,7 @@ enum ReadingStatus: string
     {
         return match (true) {
             $this === self::Unread => 'Por leer',
+            $this === self::InProgress => 'Lo estoy leyendo',
             $year === null => 'Leído',
             default => 'Leído, '.$year,
         };
@@ -85,8 +98,12 @@ enum ReadingStatus: string
         return $this->markLabel();
     }
 
+    /**
+     * Whether the Book was read, which the Book being read right now was not:
+     * the stamp over the Cover says «LEÍDO» and that is not true yet.
+     */
     public function isRead(): bool
     {
-        return $this !== self::Unread;
+        return $this === self::ReadUndated || $this === self::ReadDated;
     }
 }
