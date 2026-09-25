@@ -28,7 +28,7 @@ it('guarda la original y la versión reducida, y el Book apunta a las dos', func
 
     expect($book->cover_path)->toStartWith('covers/'.$book->getKey().'/')
         ->and($book->cover_path)->toEndWith('.jpg')
-        ->and($book->cover_thumbnail_path)->toEndWith('-thumbnail.jpg')
+        ->and($book->cover_thumbnail_path)->toEndWith('-thumbnail.webp')
         ->and($book->hasCover())->toBeTrue();
 
     Storage::disk()->assertExists($book->cover_path);
@@ -58,7 +58,7 @@ it('guarda la original en el formato en el que llegó', function () {
     $this->store->store($book, testImage(300, 450, 'png'));
 
     expect($book->cover_path)->toEndWith('.png')
-        ->and($book->cover_thumbnail_path)->toEndWith('-thumbnail.jpg');
+        ->and($book->cover_thumbnail_path)->toEndWith('-thumbnail.webp');
 });
 
 it('reemplazal Cover anterior y borra sus archivos', function () {

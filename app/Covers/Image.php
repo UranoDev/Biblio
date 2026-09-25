@@ -153,7 +153,7 @@ final readonly class Image
         imagecopyresampled($canvas, $original, 0, 0, 0, 0, $width, $height, $this->width, $this->height);
 
         ob_start();
-        imagejpeg($canvas, null, 82);
+        imagewebp($canvas, null, 82);
         $scaled = (string) ob_get_clean();
 
         imagedestroy($canvas);

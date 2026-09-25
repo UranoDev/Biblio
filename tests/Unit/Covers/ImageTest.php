@@ -31,7 +31,7 @@ it('reduce la imagen al ancho pedido, conservando la proporción', function () {
 
     expect($measurements[0])->toBe(320)
         ->and($measurements[1])->toBe(480)
-        ->and($measurements[2])->toBe(IMAGETYPE_JPEG);
+        ->and($measurements[2])->toBe(IMAGETYPE_WEBP);
 });
 
 it('no agranda una imagen más angosta que el ancho pedido', function () {

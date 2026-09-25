@@ -57,7 +57,7 @@ final readonly class CoverStore
 
         $name = Str::lower((string) Str::ulid());
         $path = $this->path($book, "{$name}.{$image->extension()}");
-        $thumbnail = $this->path($book, "{$name}-thumbnail.jpg");
+        $thumbnail = $this->path($book, "{$name}-thumbnail.webp");
 
         $this->write($path, $image->binary);
         $this->write($thumbnail, $image->scaled($this->thumbnailWidth));
