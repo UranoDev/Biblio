@@ -73,7 +73,7 @@ final class AmazonWishlist
 
             // Non-book ASINs (alphanumeric, or numeric but not a valid ISBN-10)
             // are not imported.
-            if ($isbn === null && $item['title'] === '') {
+            if ($isbn === null) {
                 continue;
             }
 
@@ -97,10 +97,11 @@ final class AmazonWishlist
     /**
      * Extracts ASIN → [title, authors] pairs from the wishlist HTML.
      *
-     * The anchor tags with `id="itemName_ASIN"` are the canonical item links
-     * that Amazon publishes for sharing; they are present on every public
-     * wishlist page. Author lines follow the pattern "by AUTHOR" inside a
-     * span near the item name.
+     * Wishlist item anchors carry `id="itemName_COLIID"` where COLIID is an
+     * internal wishlist item ID — not the ASIN. The real ASIN lives in the
+     * anchor's href under the `/dp/ASIN/` path segment. Both are needed: the
+     * ASIN for the ISBN conversion and the COLIID to find the author credit in
+     * the surrounding HTML.
      *
      * @return array<string, array{title: string, authors: list<string>}>
      */
@@ -108,28 +109,42 @@ final class AmazonWishlist
     {
         $items = [];
 
-        // Each wishlist item anchor: id="itemName_ASIN" title="Book Title"
+        // Step 1: collect every wishlist item anchor as a raw HTML string.
         if (preg_match_all(
-            '/<a\b[^>]*\bid="itemName_([A-Z0-9]{10})"[^>]*(?:\btitle="([^"]*)")?[^>]*>(.*?)<\/a>/si',
+            '/<a\b[^>]*\bid="itemName_[^"]+"[^>]*>.*?<\/a>/si',
             $html,
-            $matches,
-            PREG_SET_ORDER
-        ) !== false) {
-            foreach ($matches as $m) {
-                $asin = $m[1];
+            $anchors
+        ) === false) {
+            return [];
+        }
 
-                $title = $m[2] !== ''
-                    ? html_entity_decode($m[2], ENT_QUOTES | ENT_HTML5)
-                    : html_entity_decode(strip_tags($m[3]), ENT_QUOTES | ENT_HTML5);
+        foreach ($anchors[0] as $anchor) {
+            // The ASIN is in the href: /dp/ASIN/ — not in the id.
+            if (! preg_match('/\bhref="[^"]*\/dp\/([A-Z0-9]{10})\/[^"]*"/i', $anchor, $hrefMatch)) {
+                continue;
+            }
 
-                $title = trim($title);
+            $asin = $hrefMatch[1];
 
-                if ($title !== '') {
-                    $items[$asin] = [
-                        'title' => $title,
-                        'authors' => $this->authors($html, $asin),
-                    ];
-                }
+            // The wishlist item ID (coliid) is used to locate the author credit.
+            preg_match('/\bid="itemName_([^"]+)"/i', $anchor, $coliidMatch);
+            $coliid = $coliidMatch[1] ?? '';
+
+            $title = '';
+
+            if (preg_match('/\btitle="([^"]*)"/i', $anchor, $titleMatch) && $titleMatch[1] !== '') {
+                $title = html_entity_decode($titleMatch[1], ENT_QUOTES | ENT_HTML5);
+            } else {
+                $title = html_entity_decode(strip_tags($anchor), ENT_QUOTES | ENT_HTML5);
+            }
+
+            $title = trim($title);
+
+            if ($title !== '') {
+                $items[$asin] = [
+                    'title' => $title,
+                    'authors' => $this->authors($html, $coliid),
+                ];
             }
         }
 
@@ -137,19 +152,24 @@ final class AmazonWishlist
     }
 
     /**
-     * Looks for an author credit near the item's ASIN in the surrounding HTML.
+     * Looks for an author credit near the item's wishlist entry in the HTML.
      *
-     * Amazon wishlist pages include "by AUTHOR" text close to each item name.
+     * Amazon wishlist pages include "by AUTHOR" text close to each item name
+     * anchor. The lookup uses the wishlist item ID (coliid), which is what the
+     * anchor's id attribute carries — not the ASIN.
+     *
      * This extraction is best-effort: if the pattern is not found, the book is
      * still imported without author attribution.
      *
      * @return list<string>
      */
-    private function authors(string $html, string $asin): array
+    private function authors(string $html, string $coliid): array
     {
-        // Look for the block that contains this ASIN's item name, then find
-        // an author credit within the next ~2000 characters.
-        $pos = strpos($html, "itemName_{$asin}");
+        if ($coliid === '') {
+            return [];
+        }
+
+        $pos = strpos($html, "itemName_{$coliid}");
 
         if ($pos === false) {
             return [];
@@ -157,7 +177,6 @@ final class AmazonWishlist
 
         $window = substr($html, $pos, 2000);
 
-        // "by AUTHOR" pattern, where AUTHOR may be a plain span or an anchor.
         if (preg_match(
             '/\bby\s+(?:<[^>]+>)*\s*([^<\n\r]{2,80}?)\s*(?:<\/a>|<\/span>|<br|<div|by\s)/i',
             $window,
