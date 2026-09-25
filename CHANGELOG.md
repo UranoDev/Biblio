@@ -1,5 +1,8 @@
 # Changelog
 
+## [2026.09.24.4] - 2026 sep 24
+_Sin issues cerrados en esta ventana_
+
 ## [2026.09.24.3] - 2026 sep 24
 ### Fix / Bugs
 - **BIB-61**: Sección "Lo que estoy leyendo" en el escaparate público
