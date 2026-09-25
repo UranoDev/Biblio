@@ -292,23 +292,24 @@ if ($Mode -in @('DateWindow', 'TagWindow')) {
     $output.Add('# Changelog')
     $output.Add('')
 
-    if ($unreleased.Count -gt 0) {
-        if ($AsVersion) {
-            # If a tag with this exact CalVer already exists (same-day re-cut),
-            # bump with .1, .2, ... so each version stays unique.
-            $existingTagNames = @($tags | ForEach-Object { $_.Name })
-            $effVersion = $AsVersion
-            $n = 1
-            while ($existingTagNames -contains $effVersion) {
-                $effVersion = "$AsVersion.$n"
-                $n++
-            }
-            $output.Add("## [$effVersion] - $(Format-VersionDate (Get-Date) $DateFormat)")
-            Write-IssueGroup -Output $output -Bucket $unreleased -BugTypes $BugTypes
-        } else {
-            $output.Add('## [Unreleased]')
-            Write-IssueGroup -Output $output -Bucket $unreleased -BugTypes $BugTypes -ShowResolvedDate
+    if ($AsVersion) {
+        # Always write the version heading when explicitly cutting a release --
+        # even when there are no new issues, so app:version reads the right tag.
+        # If a tag with this exact CalVer already exists (same-day re-cut),
+        # bump with .1, .2, ... so each version stays unique.
+        $existingTagNames = @($tags | ForEach-Object { $_.Name })
+        $effVersion = $AsVersion
+        $n = 1
+        while ($existingTagNames -contains $effVersion) {
+            $effVersion = "$AsVersion.$n"
+            $n++
         }
+        $output.Add("## [$effVersion] - $(Format-VersionDate (Get-Date) $DateFormat)")
+        Write-IssueGroup -Output $output -Bucket $unreleased -BugTypes $BugTypes
+        $output.Add('')
+    } elseif ($unreleased.Count -gt 0) {
+        $output.Add('## [Unreleased]')
+        Write-IssueGroup -Output $output -Bucket $unreleased -BugTypes $BugTypes -ShowResolvedDate
         $output.Add('')
     }
 
