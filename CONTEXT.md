@@ -141,8 +141,15 @@ _Avoid_: ManualCapture, Custom; alta manual
 El registro de que ya leí el Book. Puede llevar fecha o no llevarla: un Book leído hace
 años, sin saber cuándo, sigue estando leído. Un Book **sin** Reading y uno **con** Reading
 sin fecha son dos cosas distintas, y el sistema las distingue — por eso hay un
-ReadingStatus con tres valores, no una casilla.
+ReadingStatus con cuatro valores, no una casilla.
 _Avoid_: Read como sustantivo, Finished; leído (como adjetivo suelto)
+
+**InProgress** · en la interfaz: «lo estoy leyendo»:
+El Book que tengo empezado y no he terminado. Es el único de los cuatro valores de
+ReadingStatus que no se deduce de nada: no está leído y tampoco es de los que no he
+abierto, así que lleva columna propia (`is_reading`) y le gana a las otras dos. Los cuatro
+estados son excluyentes entre sí.
+_Avoid_: Reading (eso es haber leído el Book), Current, Started; en curso, leyendo
 
 **Note** · en la interfaz: «apunte»:
 Lo que yo escribo sobre el Book: el comentario o el resumen de lo más relevante de la
@@ -377,8 +384,12 @@ Las nueve primeras tienen ADR en `docs/adr/`, porque son las costosas de reverti
    ninguna regeneración la toca.
 10. **El Book es la edición, no la obra.** No hay concepto de Work: el original y su
    traducción son dos Books sin relación entre sí.
-11. **El Reading distingue tres estados, no dos:** sin leer, leído sin fecha, y leído con
-   fecha. Cualquier interfaz que sólo ofrezca una casilla de «leído» pierde el de en medio.
+11. **El Reading distingue cuatro estados, no dos:** sin leer, lo estoy leyendo, leído sin
+   fecha, y leído con fecha. Cualquier interfaz que sólo ofrezca una casilla de «leído»
+   pierde los dos de en medio. Tres salen de `is_read` y `read_on`; el que estoy leyendo
+   lleva columna propia —no se deduce de esos dos— y le gana a los otros, que es lo que
+   mantiene los cuatro excluyentes. En la ficha son un control de tres opciones, con la
+   fecha debajo de «Leído», porque tres casillas sueltas dejarían combinarlos (BIB-59).
 12. **Shelf y Wanted son la misma entidad con distinto Status**, no dos listas separadas.
     Al escanear un Book que estaba Wanted, pasa a `owned` solo, con deshacer.
 13. **Las Quotes son del Book; las Notes son mías.** No se mezclan en la misma superficie
@@ -426,6 +437,23 @@ Las nueve primeras tienen ADR en `docs/adr/`, porque son las costosas de reverti
     **el texto original se conserva**, y rehacerla parte siempre de ese original y nunca
     de la traducción anterior. Su Origin es `translated`, que la Vitrina marca distinto
     de la escrita por IA.
+27. **La Vitrina abre en tres filas de «Los que tengo», y las revuelve en cada carga.**
+    Cuántos libros son tres filas lo mide el navegador contra las tarjetas ya dibujadas
+    —son cuatro por fila a un ancho y cinco a otro—, no un número escrito a mano. El
+    resto ya viene en el HTML y «Cargar más» lo descubre sin pedirle nada al servidor,
+    porque la cara pública contesta GET y nada más (ADR-003); sin scripts la retícula
+    está entera y el control no aparece. El orden es al azar para que las tres filas sean
+    una muestra del acervo y no siempre su primer estante. «Los que me faltan» se imprime
+    completo —es una lista corta— y en pantalla angosta no se recorta nada (BIB-60).
+28. **La portada de la Vitrina va en tres secciones: «Lo que estoy leyendo», «Los que me
+    faltan» y «Los que tengo», en ese orden.** Las dos primeras son listas cortas y se
+    imprimen completas; el acervo va abajo, que es donde hay lugar para él. «Lo que estoy
+    leyendo» sólo existe cuando hay al menos un Book en curso, igual que «Los que me
+    faltan»: un encabezado sobre nada se lee como una lista que no cargó. El Book en curso
+    **sigue apareciendo y contándose en «Los que tengo»** —arriba se dice qué tengo
+    empezado y abajo cuántos libros hay, y un libro no deja de ser mío mientras lo leo—, y
+    se pide sobre el acervo, así que uno que esté Por comprar se imprime bajo «los que me
+    faltan» y no en dos secciones a la vez (BIB-61).
 
 Cuando aparezca una decisión que no se pueda tomar sobre la marcha, se abre otra vez una
 sección de lo que sigue abierto al final de este archivo, y la tarea que dependa de ella

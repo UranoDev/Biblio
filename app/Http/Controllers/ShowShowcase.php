@@ -21,10 +21,13 @@ final class ShowShowcase extends Controller
 {
     public function __invoke(): View
     {
-        $onShelf = Showcase::onShelf();
+        $onShelf = Showcase::onShelfAtRandom();
         $wanted = Showcase::wanted();
 
         return view('showcase.index', [
+            // What is being read is part of the Shelf, so it is not added to
+            // the count of the page: it is the same Books, said first.
+            'beingRead' => Showcase::beingRead(),
             'onShelf' => $onShelf,
             'wanted' => $wanted,
             'meta' => Meta::showcase(

@@ -31,6 +31,46 @@ final class Showcase
     }
 
     /**
+     * The Books on the Shelf as the front page draws them: the whole Shelf, in
+     * a different order on every load.
+     *
+     * The front page opens on the first rows and keeps the rest behind «cargar
+     * más» (BIB-60), so the order decides which books are seen without
+     * scrolling. By title that would be the same handful for ever —whatever
+     * starts with an A— and the library would look like its first shelf.
+     * Shuffled, the three rows are a sample of the whole collection.
+     *
+     * The page of a Category keeps the order by title: there the whole list is
+     * printed, and a list that is read from top to bottom is read in an order.
+     *
+     * @return Collection<int, Book>
+     */
+    public static function onShelfAtRandom(): Collection
+    {
+        return self::query()->owned()->reorder()->inRandomOrder()->get();
+    }
+
+    /**
+     * The Books I am in the middle of: the ones on the Shelf marked as being
+     * read right now (BIB-59).
+     *
+     * They are asked for on the Shelf, not across everything visible. A Book I
+     * do not have yet cannot be one I am reading, and if a row ever says both
+     * things at once it is printed under «los que me faltan» — the section that
+     * matches its Status — instead of twice on the same page.
+     *
+     * They stay in the Shelf section as well: that section is the collection
+     * and its count is how many Books there are, and a Book stops being one I
+     * have for no reason while I am reading it.
+     *
+     * @return Collection<int, Book>
+     */
+    public static function beingRead(): Collection
+    {
+        return self::query()->owned()->beingRead()->get();
+    }
+
+    /**
      * The Books that are Wanted, all of them or the ones of one Category.
      *
      * @return Collection<int, Book>
@@ -43,10 +83,10 @@ final class Showcase
     /**
      * Every visible Book, on the Shelf or Wanted.
      *
-     * The two sections of the front page are two questions —what I have, what I
-     * am missing—, and this is the other one: what there is. The sitemap asks
-     * it, because a crawler walks addresses and does not care which section a
-     * Book is printed in.
+     * The sections of the front page are questions about a part —what I am
+     * reading, what I am missing, what I have—, and this is the other one: what
+     * there is. The sitemap asks it, because a crawler walks addresses and does
+     * not care which section a Book is printed in.
      *
      * @return Collection<int, Book>
      */
