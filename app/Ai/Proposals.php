@@ -2,7 +2,6 @@
 
 namespace App\Ai;
 
-use App\Ai\CanonicalCategories;
 use App\Enums\Origin;
 use App\Enums\RegenerationTarget;
 use App\Jobs\ProposeForBook;
@@ -198,7 +197,7 @@ final class Proposals
             // proposes them, and it is the same single request either way—, and
             // what decides is what was asked for, not what came back.
             if ($target->includesCategories()) {
-                $book->categories()->sync($this->categoryIds($proposal->categories));
+                $book->categories()->sync($this->categoryIds($proposal->categories, $book));
 
                 $attributes['categories_provider'] = $proposal->provider;
                 $attributes['categories_ai_model'] = $proposal->aiModel;
@@ -254,8 +253,10 @@ final class Proposals
             $lines[] = 'Description: '.$book->description;
         }
 
+        $canonical = Category::query()->canonical()->orderBy('name')->pluck('name')->all();
+
         $lines[] = '';
-        $lines[] = "Pick from this list of categories. Only propose a new one when the book genuinely does not fit any of them:\n- ".implode("\n- ", CanonicalCategories::LIST);
+        $lines[] = "Pick from this list of categories. Only propose a new one when the book genuinely does not fit any of them:\n- ".implode("\n- ", $canonical);
 
         if ($withDescription) {
             $lines[] = '';
@@ -271,10 +272,14 @@ final class Proposals
      * They are matched by slug, which is what makes "Realismo mágico" and
      * "realismo magico" the same Category instead of two.
      *
+     * When the AI proposes a name that is not in the canonical list, the
+     * Category is created as non-canonical and the Book that triggered it is
+     * recorded, so the admin can review and approve it (BIB-68).
+     *
      * @param  list<string>  $names
      * @return list<int>
      */
-    private function categoryIds(array $names): array
+    private function categoryIds(array $names, Book $book): array
     {
         $ids = [];
 
@@ -286,6 +291,10 @@ final class Proposals
             }
 
             $category = Category::query()->firstOrCreate(['slug' => $slug], ['name' => $name]);
+
+            if ($category->wasRecentlyCreated && ! $category->is_canonical) {
+                $category->forceFill(['suggested_by_book_id' => $book->getKey()])->save();
+            }
 
             $ids[] = (int) $category->getKey();
         }

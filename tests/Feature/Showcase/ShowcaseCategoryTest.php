@@ -4,6 +4,7 @@ use App\Models\Book;
 use App\Models\Category;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Str;
 
 /*
  * Walking the Showcase by Category: the address of one Category, and the
@@ -27,7 +28,10 @@ beforeEach(function () {
  */
 function categoryOf(string $name, iterable $books): Category
 {
-    $category = Category::factory()->named($name)->create();
+    $category = Category::query()->firstOrCreate(
+        ['slug' => Str::slug($name)],
+        ['name' => $name],
+    );
 
     $category->books()->attach(collect($books)->map->getKey()->all());
 

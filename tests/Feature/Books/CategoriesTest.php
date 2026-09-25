@@ -23,7 +23,7 @@ function categories(): Testable
 /** One Category with as many Books as asked for. */
 function categoryWith(string $name, int $books = 0): Category
 {
-    $category = Category::factory()->named($name)->create();
+    $category = Category::factory()->named($name)->create(['is_canonical' => true]);
 
     if ($books > 0) {
         $category->books()->attach(Book::factory()->count($books)->create());
@@ -55,7 +55,7 @@ it('abre las Categorías desde la barra lateral', function () {
 
 it('dice cuántos Libros tiene cada Categoría', function () {
     $several = categoryWith('Narrativa', 3);
-    $one = categoryWith('Poesía', 1);
+    $one = categoryWith('Lírica', 1);
 
     categories()
         ->assertSeeHtml('data-test="count-'.$several->getKey().'"')
@@ -72,24 +72,24 @@ it('dice cuándo una Categoría se quedó sin Libros', function () {
 
 it('deja ver sólo las Categorías de un Libro o ninguno', function () {
     categoryWith('Narrativa', 3);
-    categoryWith('Poesía', 1);
+    categoryWith('Lírica', 1);
     categoryWith('Ensayo');
 
     categories()
         ->set('onlySmall', true)
         ->assertDontSee('Narrativa')
-        ->assertSee('Poesía')
+        ->assertSee('Lírica')
         ->assertSee('Ensayo');
 });
 
 it('busca una Categoría por parte de su nombre', function () {
     categoryWith('Narrativa', 1);
-    categoryWith('Poesía', 1);
+    categoryWith('Lírica', 1);
 
     categories()
         ->set('search', 'Narra')
         ->assertSee('Narrativa')
-        ->assertDontSee('Poesía');
+        ->assertDontSee('Lírica');
 });
 
 it('avisa cuando ninguna Categoría se llama así', function () {
@@ -101,6 +101,7 @@ it('avisa cuando ninguna Categoría se llama así', function () {
 });
 
 it('avisa cuando todavía no hay ninguna Categoría', function () {
+    Category::query()->delete();
     categories()->assertSeeHtml('data-test="empty"');
 });
 
@@ -124,7 +125,7 @@ it('renombra una Categoría y con ella su slug', function () {
 });
 
 it('el renombre alcanza a todos sus Libros', function () {
-    $category = categoryWith('Novela', 3);
+    $category = categoryWith('Novela corta', 3);
 
     categories()
         ->call('startRename', $category->getKey())
@@ -139,18 +140,18 @@ it('el renombre alcanza a todos sus Libros', function () {
 });
 
 it('el enlace viejo sigue llegando a la Categoría renombrada', function () {
-    $category = categoryWith('Novela', 1);
+    $category = categoryWith('Novela corta', 1);
 
     categories()
         ->call('startRename', $category->getKey())
         ->set('name', 'Narrativa')
         ->call('rename');
 
-    expect(Category::bySlug('novela')?->is($category))->toBeTrue();
+    expect(Category::bySlug('novela-corta')?->is($category))->toBeTrue();
 });
 
 it('propone fusionar cuando el nombre ya es de otra Categoría', function () {
-    $category = categoryWith('Novela', 1);
+    $category = categoryWith('Novela corta', 1);
     categoryWith('Narrativa', 1);
 
     categories()
@@ -159,11 +160,11 @@ it('propone fusionar cuando el nombre ya es de otra Categoría', function () {
         ->call('rename')
         ->assertHasErrors('name');
 
-    expect($category->fresh()->name)->toBe('Novela');
+    expect($category->fresh()->name)->toBe('Novela corta');
 });
 
 it('no renombra con el nombre en blanco', function () {
-    $category = categoryWith('Novela', 1);
+    $category = categoryWith('Novela corta', 1);
 
     categories()
         ->call('startRename', $category->getKey())
@@ -171,7 +172,7 @@ it('no renombra con el nombre en blanco', function () {
         ->call('rename')
         ->assertHasErrors('name');
 
-    expect($category->fresh()->name)->toBe('Novela');
+    expect($category->fresh()->name)->toBe('Novela corta');
 });
 
 /*
@@ -243,5 +244,5 @@ it('no ofrece fusionar una Categoría consigo misma', function () {
         ->instance()
         ->others;
 
-    expect($others->pluck('name')->all())->toBe(['Ciencia ficción']);
+    expect($others->pluck('name')->all())->not->toContain('Sci-fi');
 });

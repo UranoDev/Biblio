@@ -61,8 +61,26 @@ new #[Title('Categorías')] class extends Component
 
         return Category::query()
             ->withBookCount()
+            ->with(['books' => fn ($query) => $query->select('books.id', 'books.title')->orderBy('title')])
             ->when($typed !== '', fn (Builder $query) => $query->where('name', 'like', '%'.$typed.'%'))
             ->when($this->onlySmall, fn (Builder $query) => $query->has('books', '<=', 1))
+            ->get();
+    }
+
+    /**
+     * Non-canonical Categories that have at least one Book: the ones the AI
+     * proposed that do not fit the canonical list, waiting for admin review.
+     *
+     * @return Collection<int, Category>
+     */
+    #[Computed]
+    public function pendingReview(): Collection
+    {
+        return Category::query()
+            ->pendingReview()
+            ->with('suggestedBy:id,title')
+            ->withCount('books')
+            ->orderBy('name')
             ->get();
     }
 
@@ -201,6 +219,20 @@ new #[Title('Categorías')] class extends Component
             .$this->books($left).'.';
     }
 
+    /**
+     * Marks a Category as canonical, clearing the pending-review flag.
+     *
+     * Used both from the pending-review section (AI-suggested categories) and
+     * from the main list (any non-canonical category).
+     */
+    public function markAsCanonical(int $id): void
+    {
+        $category = $this->category($id);
+        $category->forceFill(['is_canonical' => true, 'suggested_by_book_id' => null])->save();
+        $this->stopEditing();
+        $this->notice = '«'.$category->name.'» ahora forma parte de la lista canónica.';
+    }
+
     /** Closes whatever was open, leaving the list as it was. */
     public function stopEditing(): void
     {
@@ -208,7 +240,7 @@ new #[Title('Categorías')] class extends Component
 
         $this->resetValidation();
 
-        unset($this->categories, $this->total, $this->others);
+        unset($this->categories, $this->total, $this->others, $this->pendingReview);
     }
 
     /** «un Libro» or «N Libros», which gets written in several places. */
@@ -235,6 +267,42 @@ new #[Title('Categorías')] class extends Component
 
     @if ($notice)
         <flux:text class="text-base" data-test="notice">{{ $notice }}</flux:text>
+    @endif
+
+    @if ($this->pendingReview->isNotEmpty())
+        <div class="flex flex-col gap-3 rounded-lg border border-amber-200 bg-amber-50 p-4 dark:border-amber-500/20 dark:bg-amber-500/10">
+            <div class="flex flex-col gap-1">
+                <flux:heading size="sm">Pendientes de revisión</flux:heading>
+                <flux:text class="text-sm">
+                    La IA propuso estas categorías. Apruébalas si son válidas, o fusiónalas con una existente.
+                </flux:text>
+            </div>
+
+            <ul class="flex flex-col divide-y divide-amber-200 dark:divide-amber-500/20" data-test="pending-review">
+                @foreach ($this->pendingReview as $category)
+                    <li class="flex flex-wrap items-center justify-between gap-3 py-3" wire:key="pending-{{ $category->getKey() }}">
+                        <div class="flex flex-col gap-0.5">
+                            <span class="font-medium text-zinc-900 dark:text-zinc-100">{{ $category->name }}</span>
+                            <flux:text class="text-sm">
+                                {{ $this->books((int) $category->books_count) }}
+                                @if ($category->suggestedBy !== null)
+                                    · propuesta al clasificar «{{ $category->suggestedBy->title }}»
+                                @endif
+                            </flux:text>
+                        </div>
+
+                        <flux:button
+                            size="sm"
+                            variant="primary"
+                            wire:click="markAsCanonical({{ $category->getKey() }})"
+                            data-test="approve-{{ $category->getKey() }}"
+                        >
+                            Aprobar
+                        </flux:button>
+                    </li>
+                @endforeach
+            </ul>
+        </div>
     @endif
 
     <div class="flex flex-wrap items-end gap-6">
@@ -276,18 +344,51 @@ new #[Title('Categorías')] class extends Component
                 <li class="flex flex-col gap-3 py-4" wire:key="category-{{ $category->getKey() }}">
                     <div class="flex flex-wrap items-center justify-between gap-3">
                         <div class="flex flex-col gap-1">
-                            <flux:heading data-test="name-{{ $category->getKey() }}">
-                                {{ $category->name }}
-                            </flux:heading>
+                            <div class="flex flex-wrap items-center gap-2">
+                                <flux:heading data-test="name-{{ $category->getKey() }}">
+                                    {{ $category->name }}
+                                </flux:heading>
+
+                                @if ($category->is_canonical)
+                                    <span class="inline-flex items-center rounded px-1.5 py-0.5 text-xs font-medium ring-1 ring-inset bg-green-50 text-green-700 ring-green-600/20 dark:bg-green-500/10 dark:text-green-400 dark:ring-green-500/20">
+                                        Canónica
+                                    </span>
+                                @endif
+                            </div>
 
                             <flux:text class="text-sm" data-test="count-{{ $category->getKey() }}">
                                 {{ (int) $category->books_count === 0
                                     ? 'Ningún Libro'
                                     : $this->books((int) $category->books_count) }}
                             </flux:text>
+
+                            @if ($category->books->isNotEmpty())
+                                <div class="flex flex-wrap gap-x-3 gap-y-0.5">
+                                    @foreach ($category->books->take(5) as $book)
+                                        <span class="text-xs text-zinc-500 dark:text-zinc-400">{{ $book->title }}</span>
+                                    @endforeach
+
+                                    @if ((int) $category->books_count > 5)
+                                        <span class="text-xs text-zinc-400 dark:text-zinc-500">
+                                            y {{ (int) $category->books_count - 5 }} más
+                                        </span>
+                                    @endif
+                                </div>
+                            @endif
                         </div>
 
                         <div class="flex gap-2">
+                            @if (! $category->is_canonical)
+                                <flux:button
+                                    size="sm"
+                                    variant="subtle"
+                                    wire:click="markAsCanonical({{ $category->getKey() }})"
+                                    data-test="make-canonical-{{ $category->getKey() }}"
+                                >
+                                    Hacer canónica
+                                </flux:button>
+                            @endif
+
                             <flux:button
                                 size="sm"
                                 variant="subtle"

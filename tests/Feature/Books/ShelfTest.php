@@ -315,7 +315,7 @@ it('filtra por Category', function () {
 
 it('ofrece sólo las Categories que algún Book tiene', function () {
     $used = Category::factory()->named('Novela mexicana')->create();
-    Category::factory()->named('Poesía')->create();
+    Category::factory()->named('Lírica')->create();
 
     Book::factory()->create()->categories()->attach($used);
 

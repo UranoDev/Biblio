@@ -501,7 +501,7 @@ it('agrega una Category y reusa la que ya existe', function () {
         ->call('addCategory')
         ->assertHasNoErrors();
 
-    expect(Category::count())->toBe(1)
+    expect(Category::query()->where('is_canonical', false)->count())->toBe(1)
         ->and($book->fresh()->categories->pluck('name')->all())->toBe(['Novela mexicana']);
 });
 
@@ -518,7 +518,7 @@ it('no agrega una Category en blanco', function () {
 
     sheetOf($book)->set('category', '  ')->call('addCategory')->assertHasErrors('category');
 
-    expect(Category::count())->toBe(0);
+    expect(Category::query()->where('is_canonical', false)->count())->toBe(0);
 });
 
 it('quita una Category del Book sin borrarla', function () {
@@ -529,7 +529,7 @@ it('quita una Category del Book sin borrarla', function () {
     sheetOf($book)->call('removeCategory', $category->getKey());
 
     expect($book->fresh()->categories)->toHaveCount(0)
-        ->and(Category::count())->toBe(1);
+        ->and(Category::query()->where('is_canonical', false)->count())->toBe(1);
 });
 
 // Qué se sabe de la generación (ADR-006).

@@ -273,7 +273,7 @@ it('la retícula se queda mirando mientras haya algo en la cola', function () {
 
 it('corregir las Categories a mano queda anotado en el Book', function () {
     $book = Book::factory()->create();
-    $category = Category::factory()->named('Poesía')->create();
+    $category = Category::query()->where('slug', 'poesia')->first();
 
     expect($book->categoriesEditedByHand())->toBeFalse();
 

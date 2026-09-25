@@ -114,7 +114,7 @@ it('regenerar sólo las Descriptions deja las Categories como estaban', function
         ->categoriesGenerated('gemini', 'gemini-2.5-flash')
         ->create();
 
-    $book->categories()->attach(Category::factory()->named('Poesía')->create());
+    $book->categories()->attach(Category::query()->where('slug', 'poesia')->first());
 
     regenerations()->start(RegenerationTarget::Descriptions, onlyPrevious: false);
 

@@ -70,7 +70,7 @@ class CategoryTest extends TestCase
 
     public function test_renaming_keeps_the_books(): void
     {
-        $category = Category::factory()->named('Novela')->create();
+        $category = Category::factory()->named('Novela gráfica')->create();
         $books = Book::factory()->count(2)->create();
         $category->books()->attach($books);
 
@@ -81,19 +81,19 @@ class CategoryTest extends TestCase
 
     public function test_the_old_address_still_reaches_the_renamed_category(): void
     {
-        $category = Category::factory()->named('Novela')->create();
+        $category = Category::factory()->named('Novela gráfica')->create();
 
         $category->rename('Narrativa');
 
-        $this->assertTrue(Category::bySlug('novela')?->is($category));
+        $this->assertTrue(Category::bySlug('novela-grafica')?->is($category));
         $this->assertTrue(Category::bySlug('narrativa')?->is($category));
     }
 
     public function test_an_address_nobody_ever_had_reaches_nothing(): void
     {
-        Category::factory()->named('Novela')->create();
+        Category::factory()->named('Novela gráfica')->create();
 
-        $this->assertNull(Category::bySlug('poesia'));
+        $this->assertNull(Category::bySlug('astronomia'));
     }
 
     public function test_a_respelling_that_leaves_the_slug_where_it_was_keeps_no_history(): void
@@ -108,23 +108,23 @@ class CategoryTest extends TestCase
 
     public function test_renaming_back_takes_the_address_away_from_the_history(): void
     {
-        $category = Category::factory()->named('Novela')->create();
+        $category = Category::factory()->named('Novela gráfica')->create();
 
         $category->rename('Narrativa');
-        $category->rename('Novela');
+        $category->rename('Novela gráfica');
 
-        $this->assertSame('novela', $category->fresh()->slug);
+        $this->assertSame('novela-grafica', $category->fresh()->slug);
         $this->assertSame(['narrativa'], $category->fresh()->formerSlugs->pluck('slug')->all());
-        $this->assertTrue(Category::bySlug('novela')?->is($category));
+        $this->assertTrue(Category::bySlug('novela-grafica')?->is($category));
     }
 
     public function test_a_blank_name_renames_nothing(): void
     {
-        $category = Category::factory()->named('Novela')->create();
+        $category = Category::factory()->named('Novela gráfica')->create();
 
         $category->rename('   ');
 
-        $this->assertSame('Novela', $category->fresh()->name);
+        $this->assertSame('Novela gráfica', $category->fresh()->name);
     }
 
     /*
@@ -183,19 +183,19 @@ class CategoryTest extends TestCase
     public function test_the_addresses_the_absorbed_category_had_before_survive_the_merge(): void
     {
         $stays = Category::factory()->named('Narrativa')->create();
-        $absorbed = Category::factory()->named('Novela')->create();
+        $absorbed = Category::factory()->named('Novela gráfica')->create();
         $absorbed->rename('Novelas');
 
         $stays->absorb($absorbed);
 
-        $this->assertTrue(Category::bySlug('novela')?->is($stays));
+        $this->assertTrue(Category::bySlug('novela-grafica')?->is($stays));
         $this->assertTrue(Category::bySlug('novelas')?->is($stays));
         $this->assertSame(2, CategorySlug::query()->count());
     }
 
     public function test_merging_a_category_into_itself_does_nothing(): void
     {
-        $category = Category::factory()->named('Novela')->create();
+        $category = Category::factory()->named('Novela gráfica')->create();
         $category->books()->attach(Book::factory()->create());
 
         $category->absorb($category);
@@ -207,7 +207,7 @@ class CategoryTest extends TestCase
     public function test_the_books_of_the_absorbed_category_are_not_deleted(): void
     {
         $stays = Category::factory()->named('Narrativa')->create();
-        $absorbed = Category::factory()->named('Novela')->create();
+        $absorbed = Category::factory()->named('Novela gráfica')->create();
         $book = Book::factory()->create();
         $absorbed->books()->attach($book);
 
@@ -227,13 +227,15 @@ class CategoryTest extends TestCase
         $several = Category::factory()->named('Narrativa')->create();
         $several->books()->attach(Book::factory()->count(3)->create());
 
-        Category::factory()->named('Poesía')->create()->books()->attach(Book::factory()->create());
+        Category::factory()->named('Lírica')->create()->books()->attach(Book::factory()->create());
         Category::factory()->named('Ensayo')->create();
 
         $counts = Category::query()->withBookCount()->get()
             ->mapWithKeys(fn (Category $each) => [$each->name => (int) $each->books_count])
             ->all();
 
-        $this->assertSame(['Ensayo' => 0, 'Narrativa' => 3, 'Poesía' => 1], $counts);
+        $this->assertSame(3, $counts['Narrativa']);
+        $this->assertSame(1, $counts['Lírica']);
+        $this->assertSame(0, $counts['Ensayo']);
     }
 }

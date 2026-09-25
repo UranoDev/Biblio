@@ -27,10 +27,13 @@ use Illuminate\Support\Str;
  * @property int $id
  * @property string $name
  * @property string $slug
+ * @property bool $is_canonical
+ * @property int|null $suggested_by_book_id
  * @property Carbon|null $created_at
  * @property Carbon|null $updated_at
  * @property-read Collection<int, Book> $books
  * @property-read Collection<int, CategorySlug> $formerSlugs
+ * @property-read Book|null $suggestedBy
  */
 class Category extends Model
 {
@@ -41,10 +44,21 @@ class Category extends Model
 
     protected $guarded = ['id'];
 
+    protected function casts(): array
+    {
+        return ['is_canonical' => 'boolean'];
+    }
+
     /** @return BelongsToMany<Book, $this> */
     public function books(): BelongsToMany
     {
         return $this->belongsToMany(Book::class, 'book_category');
+    }
+
+    /** The Book whose AI run first proposed this non-canonical Category. */
+    public function suggestedBy(): \Illuminate\Database\Eloquent\Relations\BelongsTo
+    {
+        return $this->belongsTo(Book::class, 'suggested_by_book_id');
     }
 
     /**
@@ -145,6 +159,20 @@ class Category extends Model
 
         $this->unsetRelation('books');
         $this->unsetRelation('formerSlugs');
+    }
+
+    /** Categories in the canonical list. */
+    #[Scope]
+    protected function canonical(Builder $query): void
+    {
+        $query->where('is_canonical', true);
+    }
+
+    /** Non-canonical Categories that have at least one Book — these need admin review. */
+    #[Scope]
+    protected function pendingReview(Builder $query): void
+    {
+        $query->where('is_canonical', false)->has('books');
     }
 
     /**

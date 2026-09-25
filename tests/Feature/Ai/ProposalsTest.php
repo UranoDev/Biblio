@@ -60,7 +60,7 @@ it('reutiliza la Category que ya existe en vez de crear otra igual', function ()
 
     proposals()->queueFor($book);
 
-    expect(Category::count())->toBe(1)
+    expect(Category::query()->where('is_canonical', false)->count())->toBe(1)
         ->and($book->fresh()->categories->first()->id)->toBe($existing->id);
 });
 

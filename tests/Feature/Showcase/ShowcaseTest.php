@@ -306,9 +306,9 @@ it('no ofrece la Categoría que se quedó sin Libros', function () {
 });
 
 it('ofrece las Categorías por nombre', function () {
-    foreach (['Poesía', 'Ensayo', 'Narrativa'] as $name) {
+    foreach (['Lírica', 'Ensayo', 'Narrativa'] as $name) {
         Category::factory()->named($name)->create()->books()->attach(Book::factory()->create());
     }
 
-    expect(Showcase::categories()->pluck('name')->all())->toBe(['Ensayo', 'Narrativa', 'Poesía']);
+    expect(Showcase::categories()->pluck('name')->all())->toBe(['Ensayo', 'Lírica', 'Narrativa']);
 });
