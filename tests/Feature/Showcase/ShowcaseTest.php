@@ -133,6 +133,141 @@ it('no le hace leer el Libro dos veces a quien oye la página', function () {
 
 /*
 |--------------------------------------------------------------------------
+| Las primeras filas de «Los que tengo»
+|--------------------------------------------------------------------------
+|
+| La portada abre en tres filas y guarda el resto detrás de un control (BIB-60).
+| Cuántos Libros son esas tres filas lo mide el navegador contra las tarjetas ya
+| dibujadas, así que lo que se puede comprobar desde acá es lo otro: que el HTML
+| trae el acervo completo, que sin scripts no queda nada escondido detrás de un
+| botón, y que el recorte es de «Los que tengo» y de nadie más.
+*/
+
+it('manda el acervo completo en el HTML, aunque la portada abra en las primeras filas', function () {
+    $titles = ['Pedro Páramo', 'La montaña mágica', 'Rayuela', 'El llano en llamas'];
+
+    foreach ($titles as $title) {
+        Book::factory()->owned()->create(['title' => $title]);
+    }
+
+    $response = $this->get(route('showcase'));
+
+    foreach ($titles as $title) {
+        $response->assertSee($title);
+    }
+});
+
+it('deja el control apagado hasta que el navegador mide las filas', function () {
+    Book::factory()->owned()->count(4)->create();
+
+    $html = $this->get(route('showcase'))->assertSee('Cargar más')->getContent();
+
+    // Sin scripts la retícula está entera y el control no está: lo enciende el
+    // mismo guión que esconde las tarjetas, así que nunca queda un botón que no
+    // hace nada delante de Libros que no se ven.
+    expect($html)->toMatch('/<button(?=[^>]*data-test="first-rows-more")[^>]*\shidden\s/');
+});
+
+it('recorta «Los que tengo» y no «Los que me faltan»', function () {
+    Book::factory()->owned()->create(['title' => 'El que tengo']);
+    Book::factory()->wanted()->create(['title' => 'El que me falta']);
+
+    $response = $this->get(route('showcase'))->assertSee('El que me falta');
+
+    expect(substr_count($response->getContent(), 'data-test="first-rows"'))->toBe(1);
+
+    $response->assertSeeInOrder(['Los que me faltan', 'data-test="first-rows"'], false);
+});
+
+it('trae el acervo visible cuando lo pide revuelto, y nada más', function () {
+    Book::factory()->owned()->create(['title' => 'El que sale']);
+    Book::factory()->owned()->hidden()->create(['title' => 'El oculto']);
+    Book::factory()->wanted()->create(['title' => 'El que me falta']);
+
+    expect(Showcase::onShelfAtRandom()->pluck('title')->all())->toBe(['El que sale']);
+});
+
+it('revuelve el acervo en cada carga, para que las tres filas no sean siempre las mismas', function () {
+    Book::factory()->owned()->count(20)->create();
+
+    $first = Showcase::onShelfAtRandom()->modelKeys();
+    $second = Showcase::onShelfAtRandom()->modelKeys();
+
+    expect($first)->not->toBe($second)
+        ->and(array_diff($first, $second))->toBe([]);
+});
+
+/*
+|--------------------------------------------------------------------------
+| The section «Lo que estoy leyendo»
+|--------------------------------------------------------------------------
+|
+| The front page opens with what is started and not finished (BIB-61). It is a
+| short list, so what is settled here is when the section exists and when it does
+| not, where it lands among the other two, and that the Book being read is still
+| one of «Los que tengo» — the section above says what I am reading and the one
+| below says how many books there are.
+*/
+
+it('enseña en su propia sección el Libro que estoy leyendo', function () {
+    Book::factory()->owned()->beingRead()->create(['title' => 'La casa de los espíritus']);
+
+    $this->get(route('showcase'))
+        ->assertSee('Lo que estoy leyendo')
+        ->assertSee('La casa de los espíritus');
+});
+
+it('no arma la sección de lo que estoy leyendo cuando no hay ninguno empezado', function () {
+    Book::factory()->owned()->read()->create();
+    Book::factory()->owned()->create();
+
+    $this->get(route('showcase'))->assertDontSee('Lo que estoy leyendo');
+});
+
+it('pone las secciones en su orden: lo que estoy leyendo, los que me faltan, los que tengo', function () {
+    Book::factory()->owned()->beingRead()->create();
+    Book::factory()->wanted()->create();
+
+    $this->get(route('showcase'))->assertSeeInOrder([
+        'Lo que estoy leyendo',
+        'Los que me faltan',
+        'Los que tengo',
+    ]);
+});
+
+it('deja el Libro en curso dentro del acervo, y lo sigue contando', function () {
+    $beingRead = Book::factory()->owned()->beingRead()->create(['title' => 'El que tengo empezado']);
+    Book::factory()->owned()->create(['title' => 'El otro que tengo']);
+
+    expect(Showcase::beingRead()->modelKeys())->toBe([$beingRead->getKey()])
+        ->and(Showcase::onShelfAtRandom()->modelKeys())->toContain($beingRead->getKey());
+
+    $this->get(route('showcase'))->assertSee('2 libros');
+});
+
+it('no saca a la Vitrina el Libro oculto que estoy leyendo', function () {
+    Book::factory()->owned()->beingRead()->hidden()->create(['title' => 'El empezado a escondidas']);
+    Book::factory()->owned()->beingRead()->create(['title' => 'El empezado a la vista']);
+
+    $this->get(route('showcase'))
+        ->assertSee('El empezado a la vista')
+        ->assertDontSee('El empezado a escondidas');
+
+    expect(Showcase::beingRead()->pluck('title')->all())->toBe(['El empezado a la vista']);
+});
+
+it('no pone en lo que estoy leyendo un Libro que todavía no tengo', function () {
+    Book::factory()->wanted()->beingRead()->create(['title' => 'El que me falta']);
+
+    $this->get(route('showcase'))
+        ->assertSee('El que me falta')
+        ->assertDontSee('Lo que estoy leyendo');
+
+    expect(Showcase::beingRead())->toBeEmpty();
+});
+
+/*
+|--------------------------------------------------------------------------
 | The Categories a visitor can navigate by
 |--------------------------------------------------------------------------
 |
