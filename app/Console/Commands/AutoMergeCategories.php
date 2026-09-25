@@ -88,8 +88,11 @@ class AutoMergeCategories extends Command
 
             $canonicalName = trim($response->structured['canonical'] ?? '');
 
+            $bookList = $category->books->pluck('title')->join(', ');
+
             if ($canonicalName === '' || strtolower($canonicalName) === 'ninguna') {
                 $this->line("  No match:  {$category->name}");
+                $this->line("             <fg=gray>{$bookList}</>");
                 $skipped++;
                 continue;
             }
@@ -101,6 +104,7 @@ class AutoMergeCategories extends Command
 
             if (! $canonical instanceof Category) {
                 $this->warn("  Unknown canonical '{$canonicalName}' returned for '{$category->name}'");
+                $this->line("             <fg=gray>{$bookList}</>");
                 $skipped++;
                 continue;
             }
