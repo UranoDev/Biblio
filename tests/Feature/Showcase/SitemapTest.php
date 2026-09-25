@@ -15,15 +15,16 @@ beforeEach(function () {
 });
 
 it('lista la portada, cada Libro visible y cada Categoría', function () {
-    $book = Book::factory()->create(['title' => 'Pedro Páramo']);
+    $books = Book::factory()->count(5)->create();
+    $books->first()->fill(['title' => 'Pedro Páramo'])->save();
     $category = Category::factory()->create(['name' => 'Novela mexicana']);
-    $book->categories()->attach($category);
+    $category->books()->attach($books->map->getKey()->all());
 
     $this->get('/sitemap.xml')
         ->assertOk()
         ->assertHeader('Content-Type', 'application/xml; charset=UTF-8')
         ->assertSee(route('showcase'), escape: false)
-        ->assertSee(route('showcase.book', $book), escape: false)
+        ->assertSee(route('showcase.book', $books->first()), escape: false)
         ->assertSee(route('showcase.category', $category), escape: false);
 });
 

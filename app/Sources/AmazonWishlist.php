@@ -84,7 +84,7 @@ final class AmazonWishlist
                 publisher: null,
                 year: null,
                 edition: null,
-                coverUrl: null,
+                coverUrl: $item['coverUrl'],
                 description: null,
                 source: Enums\Source::Amazon,
                 reference: $asin,
@@ -95,15 +95,15 @@ final class AmazonWishlist
     }
 
     /**
-     * Extracts ASIN → [title, authors] pairs from the wishlist HTML.
+     * Extracts ASIN → [title, authors, coverUrl] triples from the wishlist HTML.
      *
      * Wishlist item anchors carry `id="itemName_COLIID"` where COLIID is an
      * internal wishlist item ID — not the ASIN. The real ASIN lives in the
      * anchor's href under the `/dp/ASIN/` path segment. Both are needed: the
-     * ASIN for the ISBN conversion and the COLIID to find the author credit in
-     * the surrounding HTML.
+     * ASIN for the ISBN conversion and the COLIID to find the author credit and
+     * the item image in the surrounding HTML.
      *
-     * @return array<string, array{title: string, authors: list<string>}>
+     * @return array<string, array{title: string, authors: list<string>, coverUrl: ?string}>
      */
     private function items(string $html): array
     {
@@ -126,7 +126,8 @@ final class AmazonWishlist
 
             $asin = $hrefMatch[1];
 
-            // The wishlist item ID (coliid) is used to locate the author credit.
+            // The wishlist item ID (coliid) is used to locate the author credit
+            // and the item image.
             preg_match('/\bid="itemName_([^"]+)"/i', $anchor, $coliidMatch);
             $coliid = $coliidMatch[1] ?? '';
 
@@ -144,6 +145,7 @@ final class AmazonWishlist
                 $items[$asin] = [
                     'title' => $title,
                     'authors' => $this->authors($html, $coliid),
+                    'coverUrl' => $this->coverUrl($html, $coliid),
                 ];
             }
         }
@@ -190,6 +192,51 @@ final class AmazonWishlist
         }
 
         return [];
+    }
+
+    /**
+     * Extracts the cover image URL for a wishlist item, or null when none is
+     * found.
+     *
+     * Amazon places an `<img id="itemImage_{coliid}">` element near each item
+     * anchor. The src attribute holds the thumbnail URL; the size modifier
+     * (e.g. `._SX300_SY300_QL70_`) is replaced with `._SL500_` to get a cover
+     * at a resolution suitable for the Shelf without an extra round-trip.
+     */
+    private function coverUrl(string $html, string $coliid): ?string
+    {
+        if ($coliid === '') {
+            return null;
+        }
+
+        // Find the full <img> tag whose id matches this wishlist item.
+        if (preg_match(
+            '/<img\b[^>]*\bid="itemImage_'.preg_quote($coliid, '/').'[^"]*"[^>]*>/i',
+            $html,
+            $imgMatch
+        ) !== 1) {
+            return null;
+        }
+
+        if (preg_match('/\bsrc="(https?:[^"]+)"/i', $imgMatch[0], $srcMatch) !== 1) {
+            return null;
+        }
+
+        return $this->normalizeImageUrl($srcMatch[1]);
+    }
+
+    /**
+     * Replaces Amazon's thumbnail size modifier with a 500 px version.
+     *
+     * Amazon image URLs carry one or more size tokens between dots
+     * (e.g. `._SX200_SY200_QL70_`). Swapping that block for `._SL500_`
+     * yields a 500 px image in the same request, without an extra redirect.
+     */
+    private function normalizeImageUrl(string $url): string
+    {
+        // Match the modifier block: one dot, underscore, uppercase letter,
+        // any uppercase/digit/comma/underscore chars, trailing underscore, dot.
+        return preg_replace('/\._[A-Z][A-Z0-9,_]*_(?=\.[a-z]+$)/i', '._SL500_', $url) ?? $url;
     }
 
     /**
