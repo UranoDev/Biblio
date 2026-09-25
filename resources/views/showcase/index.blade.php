@@ -5,10 +5,10 @@
     land on a Quote from a search and walk back. So this page says whose library
     this is and lets it be walked, instead of introducing a product.
 
-    Three sections, in this order: what I am reading, what I am missing, what I
-    have. The first two are short and answer what is going on right now; the
-    Shelf is the collection and goes underneath, where there is room for it
-    (BIB-61).
+    Two sections: «En mi lista» (what I am reading and what I still need to buy,
+    merged — BIB-63) and the Shelf (what I have). «En mi lista» is short and
+    answers what is going on right now; the Shelf is the collection and goes
+    underneath, where there is room for it (BIB-61).
 
     «Por comprar» is the name this system uses inside; a visitor is told «los
     que me faltan», which needs nothing explained (ADR-003).
@@ -19,42 +19,25 @@
     </header>
 
     {{--
-        The section of what is being read only exists when there is something in
-        it, the same as the one below: a heading over nothing reads as a list
-        that failed to load.
+        «En mi lista» merges what I am reading and what I have not bought yet
+        into one section (BIB-63). Each card carries a small label — «Leyendo»
+        or «Por comprar» — so the two groups are told apart without two headings.
 
-        These Books are on the Shelf too and are printed there again. This
-        section says which ones I have open right now, and the one below says
-        how many books there are — two different questions, and the second one
-        answers wrong if a Book leaves the collection while it is being read.
+        Books being read are shown first; the Wanted follow. Both are also
+        counted together in the heading count, the same way a real list works.
     --}}
-    @if ($beingRead->isNotEmpty())
-        <section class="flex flex-col gap-8" data-test="being-read">
+    @php $myList = $beingRead->merge($wanted); @endphp
+    @if ($myList->isNotEmpty())
+        <section class="flex flex-col gap-8" data-test="my-list">
             <div class="flex flex-col gap-2 border-t border-divider pt-8">
-                <p class="type-section-heading text-ink-muted" data-test="being-read-count">
-                    {{ $beingRead->count() }} {{ $beingRead->count() === 1 ? 'libro' : 'libros' }}
+                <p class="type-section-heading text-ink-muted" data-test="my-list-count">
+                    {{ $myList->count() }} {{ $myList->count() === 1 ? 'libro' : 'libros' }}
                 </p>
 
-                <h2 class="text-2xl font-bold tracking-tight">Lo que estoy leyendo</h2>
+                <h2 class="text-2xl font-bold tracking-tight">En mi lista</h2>
             </div>
 
-            <x-showcase.grid :books="$beingRead" />
-        </section>
-    @endif
-
-    @if ($wanted->isNotEmpty())
-        <section class="flex flex-col gap-8" data-test="wanted">
-            <div class="flex flex-col gap-2 border-t border-divider pt-8">
-                <p class="type-section-heading text-ink-muted" data-test="wanted-count">
-                    {{ $wanted->count() }} {{ $wanted->count() === 1 ? 'libro' : 'libros' }}
-                </p>
-
-                <h2 class="text-2xl font-bold tracking-tight">Los que me faltan</h2>
-
-                <p class="max-w-prose text-ink-muted">Los quiero y todavía no los tengo.</p>
-            </div>
-
-            <x-showcase.grid :books="$wanted" />
+            <x-showcase.grid :books="$myList" :show-status="true" />
         </section>
     @endif
 

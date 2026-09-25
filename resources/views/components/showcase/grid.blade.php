@@ -1,4 +1,4 @@
-@props(['books'])
+@props(['books', 'showStatus' => false])
 
 {{--
     The grid of the Showcase: the same one the Shelf draws, because a visitor
@@ -38,6 +38,14 @@
 
                 <div class="flex min-w-0 flex-col gap-1">
                     <span class="type-book-title line-clamp-3">{{ $book->title }}</span>
+
+                    @if ($showStatus)
+                        @if ($book->is_reading)
+                            <span class="type-section-heading text-ink">Leyendo</span>
+                        @elseif ($book->status === \App\Enums\Status::Wanted)
+                            <span class="type-section-heading text-ink-muted">Por comprar</span>
+                        @endif
+                    @endif
 
                     @if (filled($book->authors))
                         <span class="type-authors line-clamp-2 text-ink-muted">
