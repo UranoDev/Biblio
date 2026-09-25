@@ -39,6 +39,8 @@ Route::middleware(['auth', 'verified'])->group(function () {
      */
     Route::livewire('settings/failed-jobs', 'pages::settings.failed-jobs')->name('failed-jobs');
 
+    Route::livewire('settings/amazon-wishlist', 'pages::settings.amazon-wishlist')->name('amazon-wishlist');
+
     Route::livewire('settings/security', 'pages::settings.security')
         ->middleware([
             'password.confirm',

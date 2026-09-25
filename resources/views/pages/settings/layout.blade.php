@@ -8,6 +8,7 @@
             <flux:navlist.item :href="route('regenerate')" wire:navigate>Regenerar</flux:navlist.item>
             <flux:navlist.item :href="route('quote-images')" wire:navigate>Imágenes para compartir</flux:navlist.item>
             <flux:navlist.item :href="route('covers')" wire:navigate>Portadas</flux:navlist.item>
+            <flux:navlist.item :href="route('amazon-wishlist')" wire:navigate>Lista de Amazon</flux:navlist.item>
             <flux:navlist.item :href="route('failed-jobs')" wire:navigate>Trabajos fallidos</flux:navlist.item>
         </flux:navlist>
     </div>

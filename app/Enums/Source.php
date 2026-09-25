@@ -11,6 +11,7 @@ enum Source: string
     case OpenLibrary = 'open_library';
     case GoogleBooks = 'google_books';
     case Manual = 'manual';
+    case Amazon = 'amazon';
 
     public function label(): string
     {
@@ -18,6 +19,7 @@ enum Source: string
             self::OpenLibrary => 'Open Library',
             self::GoogleBooks => 'Google Books',
             self::Manual => 'Captura manual',
+            self::Amazon => 'Lista de Amazon',
         };
     }
 }
