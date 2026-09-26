@@ -14,8 +14,8 @@
     que me faltan», which needs nothing explained (ADR-003).
 --}}
 <x-showcase.layout :meta="$meta">
-    <header class="flex max-w-prose flex-col gap-5">
-        <svg viewBox="0 0 68 76" class="h-10 w-auto" style="fill:#c2783a" aria-hidden="true">
+    <header class="flex items-center gap-4">
+        <svg viewBox="0 0 68 76" class="h-10 w-auto shrink-0" style="fill:#c2783a" aria-hidden="true">
             <rect x="3"  y="14" width="7" height="56" rx="1.5"/>
             <rect x="11" y="26" width="6" height="44" rx="1.5"/>
             <rect x="18" y="10" width="8" height="60" rx="1.5"/>
@@ -26,8 +26,10 @@
             <rect x="58" y="34" width="6" height="36" rx="1.5"/>
             <rect x="2"  y="71" width="64" height="3" rx="1" opacity="0.35"/>
         </svg>
-        <h1 class="text-4xl font-bold tracking-tight md:text-5xl">{{ config('app.name') }}</h1>
-        <p class="text-lg text-ink-muted">Aquí viven tus libros.</p>
+        <div class="flex flex-col gap-0.5">
+            <h1 class="text-xl font-bold uppercase tracking-widest leading-none">{{ config('app.name') }}</h1>
+            <p class="text-sm italic" style="color:#c2783a">Aquí viven tus libros.</p>
+        </div>
     </header>
 
     {{--
