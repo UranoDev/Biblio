@@ -65,6 +65,7 @@
         <link rel="icon" href="/favicon.ico" sizes="any">
         <link rel="icon" href="/favicon.svg" type="image/svg+xml">
         <link rel="apple-touch-icon" href="/apple-touch-icon.png">
+        <link rel="manifest" href="/site.webmanifest">
 
         @fonts
 
@@ -86,8 +87,19 @@
                 @endif
 
                 <div class="flex flex-wrap items-center justify-between gap-4">
-                    <a href="{{ route('showcase') }}" class="type-section-heading text-link">
-                        {{ config('app.name') }}
+                    <a href="{{ route('showcase') }}" class="flex items-center gap-2 text-link">
+                        <svg viewBox="0 0 68 76" class="h-5 w-auto fill-current" aria-hidden="true">
+                            <rect x="3"  y="14" width="7" height="56" rx="1.5"/>
+                            <rect x="11" y="26" width="6" height="44" rx="1.5"/>
+                            <rect x="18" y="10" width="8" height="60" rx="1.5"/>
+                            <rect x="27" y="30" width="6" height="40" rx="1.5"/>
+                            <rect x="34" y="18" width="7" height="52" rx="1.5"/>
+                            <rect x="42" y="22" width="6" height="48" rx="1.5"/>
+                            <rect x="49" y="8"  width="8" height="62" rx="1.5"/>
+                            <rect x="58" y="34" width="6" height="36" rx="1.5"/>
+                            <rect x="2"  y="71" width="64" height="3" rx="1" opacity="0.35"/>
+                        </svg>
+                        <span class="type-section-heading">{{ config('app.name') }}</span>
                     </a>
 
                     <nav class="flex gap-4 text-sm text-ink-muted">

@@ -1,0 +1,13 @@
+{
+  "name": "Mi Biblioteca",
+  "short_name": "Biblio",
+  "description": "Aquí viven tus libros.",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#faf6ee",
+  "theme_color": "#c2783a",
+  "icons": [
+    { "src": "/icon-192.png", "sizes": "192x192", "type": "image/png" },
+    { "src": "/icon-512.png", "sizes": "512x512", "type": "image/png" }
+  ]
+}
