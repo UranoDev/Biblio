@@ -209,20 +209,29 @@ final class AmazonWishlist
             return null;
         }
 
-        // Find the full <img> tag whose id matches this wishlist item.
-        if (preg_match(
-            '/<img\b[^>]*\bid="itemImage_'.preg_quote($coliid, '/').'[^"]*"[^>]*>/i',
-            $html,
-            $imgMatch
-        ) !== 1) {
+        // Find the element whose id matches this wishlist item. In the current
+        // Amazon HTML this is a <div id="itemImage_COLIID"> that wraps the <img>;
+        // older and test formats place the id directly on the <img>. Either way,
+        // walk back to the opening tag and scan forward for the first <img src>.
+        $pos = strpos($html, 'id="itemImage_' . $coliid . '"');
+
+        if ($pos === false) {
             return null;
         }
 
-        if (preg_match('/\bsrc="(https?:[^"]+)"/i', $imgMatch[0], $srcMatch) !== 1) {
+        $tagStart = strrpos(substr($html, 0, $pos), '<');
+
+        if ($tagStart === false) {
             return null;
         }
 
-        return $this->normalizeImageUrl($srcMatch[1]);
+        $window = substr($html, $tagStart, 1200);
+
+        if (preg_match('/<img\b[^>]*\bsrc="(https?:[^"]+)"/i', $window, $m) !== 1) {
+            return null;
+        }
+
+        return $this->normalizeImageUrl($m[1]);
     }
 
     /**
