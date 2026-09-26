@@ -16,6 +16,7 @@
 <x-showcase.layout :meta="$meta">
     <header class="flex max-w-prose flex-col gap-5">
         <h1 class="text-4xl font-bold tracking-tight md:text-5xl">{{ config('app.name') }}</h1>
+        <p class="text-lg text-ink-muted">Aquí viven tus libros.</p>
     </header>
 
     {{--

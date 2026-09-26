@@ -204,10 +204,10 @@ it('avisal ISBN inválido', function () {
     expect(Book::count())->toBe(0);
 });
 
-it('registra en el Shelf por omisión', function () {
+it('registra como Leído por omisión', function () {
     manualEntry()->set('title', 'Cartucho')->call('register');
 
-    expect(Book::sole()->status)->toBe(Status::Owned);
+    expect(Book::sole()->status)->toBe(Status::Read);
 });
 
 it('registra Wanted cuando se elige esa Status', function () {
@@ -276,7 +276,7 @@ it('deja la pantalla en blanco para capturar el Book siguiente', function () {
         ->assertSet('isbn', '')
         ->assertSet('authors', [''])
         ->assertSet('registered', null)
-        ->assertSet('status', Status::Owned->value)
+        ->assertSet('status', Status::Read->value)
         ->assertSee('Registrar el Libro');
 
     expect(Book::count())->toBe(1);

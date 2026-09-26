@@ -56,7 +56,7 @@ new #[Title('Captura manual')] class extends Component
             $this->authors = [$author];
         }
 
-        $this->status = Status::Owned->value;
+        $this->status = Status::Read->value;
     }
 
     #[Computed]
@@ -107,7 +107,7 @@ new #[Title('Captura manual')] class extends Component
         $this->reset('title', 'authors', 'publisher', 'year', 'edition', 'isbn', 'registered');
         $this->resetValidation();
 
-        $this->status = Status::Owned->value;
+        $this->status = Status::Read->value;
 
         unset($this->book);
     }
