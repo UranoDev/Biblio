@@ -1,5 +1,18 @@
 # Changelog
 
+## [2026.09.25.16] - 2026 sep 25
+### Fix / Bugs
+- **BIB-58**: Un libro nace Leído por default
+- **BIB-67**: Evaluar CSS crítico inline para reducir bloqueo de renderización
+- **BIB-66**: Servir portadas de libros en formato WebP
+### Features
+- **BIB-72**: Incluir logo y favicons en el sitio
+- **BIB-71**: Cambiar eslogan a «Aquí viven tus libros.»
+- **BIB-62**: Importar wishlist de Amazon como libros Por Comprar y sincronizar semanalmente
+- **BIB-63**: Unificar «Lo que estoy leyendo» y «Los que me faltan» en una sola sección «En mi lista»
+- **BIB-65**: Añadir landmark <main> al layout del Showcase
+- **BIB-44**: La búsqueda por título de Google Books llega más pobre de lo que supuso el ADR-002
+
 ## [2026.09.25.15] - 2026 sep 25
 _Sin issues cerrados en esta ventana_
 
