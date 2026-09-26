@@ -15,6 +15,17 @@
 --}}
 <x-showcase.layout :meta="$meta">
     <header class="flex max-w-prose flex-col gap-5">
+        <svg viewBox="0 0 68 76" class="h-10 w-auto" style="fill:#c2783a" aria-hidden="true">
+            <rect x="3"  y="14" width="7" height="56" rx="1.5"/>
+            <rect x="11" y="26" width="6" height="44" rx="1.5"/>
+            <rect x="18" y="10" width="8" height="60" rx="1.5"/>
+            <rect x="27" y="30" width="6" height="40" rx="1.5"/>
+            <rect x="34" y="18" width="7" height="52" rx="1.5"/>
+            <rect x="42" y="22" width="6" height="48" rx="1.5"/>
+            <rect x="49" y="8"  width="8" height="62" rx="1.5"/>
+            <rect x="58" y="34" width="6" height="36" rx="1.5"/>
+            <rect x="2"  y="71" width="64" height="3" rx="1" opacity="0.35"/>
+        </svg>
         <h1 class="text-4xl font-bold tracking-tight md:text-5xl">{{ config('app.name') }}</h1>
         <p class="text-lg text-ink-muted">Aquí viven tus libros.</p>
     </header>

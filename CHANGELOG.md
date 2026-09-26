@@ -1,5 +1,8 @@
 # Changelog
 
+## [2026.09.25.17] - 2026 sep 25
+_Sin issues cerrados en esta ventana_
+
 ## [2026.09.25.16] - 2026 sep 25
 ### Fix / Bugs
 - **BIB-58**: Un libro nace Leído por default
