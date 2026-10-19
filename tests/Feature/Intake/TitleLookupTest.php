@@ -1,10 +1,12 @@
 <?php
 
+use App\Enums\Source;
 use App\Enums\Status;
 use App\Jobs\DownloadCover;
 use App\Models\Book;
 use App\Models\User;
 use App\Sources\Candidates;
+use App\Sources\LookupResult;
 use Illuminate\Support\Facades\Queue;
 use Illuminate\Support\Facades\Route;
 use Livewire\Features\SupportTesting\Testable;
@@ -274,4 +276,46 @@ it('no usa la palabra «búsqueda»: aquí se consulta la Source', function () {
     }
 
     $screen->assertSee('Consultar la Fuente');
+});
+
+it('registra el Libro solo con título y autor, sin consultar la Fuente ni pedir ISBN', function () {
+    // The Source is not asked: what gets registered is what was typed.
+    sourcesAnswer(LookupResult::withoutRecord(), fn () => throw new LogicException('The Source was asked.'));
+
+    Livewire::test('pages::title-lookup')
+        ->set('title', 'Apuntes de mi abuelo')
+        ->set('author', 'Juan Pérez')
+        ->set('status', Status::Owned->value)
+        ->call('registerAsTyped')
+        ->assertSet('notice', '«Apuntes de mi abuelo» quedó registrado sin ISBN. Situación: Acervo.');
+
+    $book = Book::sole();
+
+    expect($book->title)->toBe('Apuntes de mi abuelo')
+        ->and($book->authors)->toBe(['Juan Pérez'])
+        ->and($book->isbn)->toBeNull()
+        ->and($book->source)->toBe(Source::Manual)
+        ->and($book->status)->toBe(Status::Owned);
+});
+
+it('registra solo con título cuando el autor queda en blanco', function () {
+    sourcesAnswer(LookupResult::withoutRecord());
+
+    Livewire::test('pages::title-lookup')
+        ->set('title', 'Recetario familiar')
+        ->call('registerAsTyped');
+
+    expect(Book::sole()->authors)->toBe([])
+        ->and(Book::sole()->status)->toBe(Status::Wanted);
+});
+
+it('no registra sin título', function () {
+    sourcesAnswer(LookupResult::withoutRecord());
+
+    Livewire::test('pages::title-lookup')
+        ->set('author', 'Juan Pérez')
+        ->call('registerAsTyped')
+        ->assertHasErrors(['title' => 'required']);
+
+    expect(Book::count())->toBe(0);
 });

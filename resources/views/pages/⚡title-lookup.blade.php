@@ -1,6 +1,8 @@
 <?php
 
 use App\Enums\Status;
+use App\Intake\AddBook;
+use App\Intake\NewBook;
 use App\Intake\RegisterCandidate;
 use App\Models\Book;
 use App\Sources\Candidate;
@@ -149,6 +151,30 @@ new #[Title('Alta por título')] class extends Component
             .$result->book->status->label().'.';
     }
 
+    /**
+     * Registers the Book with the title and the Author as typed, without going
+     * through a Source: for the books no catalog has, or that carry no ISBN.
+     * It is a ManualEntry with two fields, so it is born marked as such.
+     */
+    public function registerAsTyped(AddBook $add): void
+    {
+        $this->validate($this->rules(), $this->messages());
+
+        $author = trim($this->author);
+
+        $book = $add->byHand(new NewBook(
+            title: trim($this->title),
+            authors: $author === '' ? [] : [$author],
+            status: Status::tryFrom($this->status) ?? Status::Wanted,
+        ));
+
+        $this->forgetTheBooks();
+        $this->duplicate = null;
+        $this->registered = $book->getKey();
+        $this->notice = '«'.$book->title.'» quedó registrado sin ISBN. Situación: '
+            .$book->status->label().'.';
+    }
+
     /** Leaves the screen ready for the next Book. */
     public function another(): void
     {
@@ -248,7 +274,18 @@ new #[Title('Alta por título')] class extends Component
                 <flux:radio value="{{ \App\Enums\Status::Owned->value }}" label="Acervo" />
             </flux:radio.group>
 
-            <flux:button type="submit" variant="primary" class="self-start">Consultar la Fuente</flux:button>
+            <div class="flex flex-wrap gap-3">
+                <flux:button type="submit" variant="primary">Consultar la Fuente</flux:button>
+
+                <flux:button
+                    type="button"
+                    variant="subtle"
+                    wire:click="registerAsTyped"
+                    data-test="register-as-typed"
+                >
+                    Registrar solo con título y autor
+                </flux:button>
+            </div>
         </form>
 
         @if ($notice)
