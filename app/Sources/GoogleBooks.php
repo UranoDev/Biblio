@@ -23,13 +23,17 @@ final class GoogleBooks implements Source
     /** How many editions are asked for in a TitleLookup. */
     public const MAX_CANDIDATES = 20;
 
-    /** Where every request of this Source is made. */
+    /** Where the searches and the volumes of this Source are asked for. */
     public const VOLUMES_PATH = '/books/v1/volumes';
+
+    /** Where the ISBN lookup that does not go through the search is asked for. */
+    public const LOOKUP_PATH = '/books';
 
     public function __construct(
         private readonly string $url,
         private readonly ?string $key,
         private readonly int $timeout,
+        private readonly string $lookupUrl = 'https://books.google.com',
     ) {}
 
     public function identifier(): Enums\Source
@@ -46,6 +50,25 @@ final class GoogleBooks implements Source
     public static function isbnParameters(Isbn $isbn): array
     {
         return ['q' => "isbn:{$isbn->value()}"];
+    }
+
+    /**
+     * What the ISBN lookup of books.google.com asks for: the same one behind
+     * the "view on Google Books" buttons. It answers with the id of the volume
+     * that carries the ISBN, and it answers for volumes the search has not
+     * indexed yet —a book that came out weeks ago is the usual case.
+     *
+     * @return array<string, mixed>
+     */
+    public static function lookupParameters(Isbn $isbn): array
+    {
+        return ['bibkeys' => "ISBN:{$isbn->value()}", 'jscmd' => 'viewapi'];
+    }
+
+    /** Where one volume is asked for by its id. */
+    public static function volumePath(string $id): string
+    {
+        return self::VOLUMES_PATH.'/'.rawurlencode($id);
     }
 
     /**
@@ -75,12 +98,13 @@ final class GoogleBooks implements Source
     public function byIsbn(Isbn $isbn): LookupResult
     {
         try {
-            $body = $this->query(self::isbnParameters($isbn));
+            $volume = $this->firstVolume($this->query(self::isbnParameters($isbn)))
+                ?? $this->volumeFromLookup($isbn);
         } catch (SourceUnavailable $failure) {
             return LookupResult::unavailable($failure->getMessage());
         }
 
-        $info = $this->info($this->firstVolume($body));
+        $info = $this->info($volume);
         $title = $info === null ? null : $this->title($info);
 
         if ($info === null || $title === null) {
@@ -180,11 +204,24 @@ final class GoogleBooks implements Source
      */
     private function isbn(array $info): ?Isbn
     {
+        return $this->isbns($info)[0] ?? null;
+    }
+
+    /**
+     * Every valid ISBN the volume publishes, the thirteen-digit ones first:
+     * that is the one stored normalized.
+     *
+     * @param  array<string, mixed>  $info
+     * @return list<Isbn>
+     */
+    private function isbns(array $info): array
+    {
         $identifiers = is_array($info['industryIdentifiers'] ?? null)
             ? $info['industryIdentifiers']
             : [];
 
-        // The thirteen-digit one first: that is the one stored normalized.
+        $isbns = [];
+
         foreach (['ISBN_13', 'ISBN_10'] as $type) {
             foreach ($identifiers as $identifier) {
                 if (! is_array($identifier) || ($identifier['type'] ?? null) !== $type) {
@@ -198,14 +235,90 @@ final class GoogleBooks implements Source
                 }
 
                 try {
-                    return Isbn::from($value);
+                    $isbns[] = Isbn::from($value);
                 } catch (InvalidIsbn) {
                     continue;
                 }
             }
         }
 
+        return $isbns;
+    }
+
+    /**
+     * The volume the ISBN lookup points to, when the search found none.
+     *
+     * The search of Google Books takes weeks to index a new book, while the
+     * volume already exists and carries its ISBN. The lookup gets its id, and
+     * the volume is read by that id. It is only kept when it publishes the same
+     * ISBN that was asked for: the lookup answers with some volume even for
+     * ISBNs that barely identify anything.
+     *
+     * @return array<string, mixed>|null
+     *
+     * @throws SourceUnavailable
+     */
+    private function volumeFromLookup(Isbn $isbn): ?array
+    {
+        $id = $this->lookedUpVolumeId($isbn);
+
+        if ($id === null) {
+            return null;
+        }
+
+        $volume = $this->get($this->url.self::volumePath($id), [], missingIsEmpty: true);
+        $info = $volume === null ? null : $this->info($volume);
+
+        if ($info === null) {
+            return null;
+        }
+
+        foreach ($this->isbns($info) as $published) {
+            if ($published->value() === $isbn->value()) {
+                return $volume;
+            }
+        }
+
         return null;
+    }
+
+    /**
+     * The id of the volume, read from the lookup. It does not answer JSON but
+     * a line of JavaScript —`var _GBSBookInfo = {…};`— with the JSON inside.
+     *
+     * @throws SourceUnavailable
+     */
+    private function lookedUpVolumeId(Isbn $isbn): ?string
+    {
+        try {
+            $response = Http::timeout($this->timeout)
+                ->get($this->lookupUrl.self::LOOKUP_PATH, self::lookupParameters($isbn));
+        } catch (Throwable $failure) {
+            throw new SourceUnavailable('Google Books did not answer the ISBN lookup: '.$failure->getMessage(), previous: $failure);
+        }
+
+        if (! $response->successful()) {
+            throw new SourceUnavailable("Google Books answered HTTP {$response->status()} to the ISBN lookup.");
+        }
+
+        $body = $response->body();
+        $start = strpos($body, '{');
+        $end = strrpos($body, '}');
+
+        if ($start === false || $end === false) {
+            return null;
+        }
+
+        $books = json_decode(substr($body, $start, $end - $start + 1), true);
+        $infoUrl = is_array($books) ? ($books["ISBN:{$isbn->value()}"]['info_url'] ?? null) : null;
+
+        if (! is_string($infoUrl)) {
+            return null;
+        }
+
+        parse_str((string) parse_url($infoUrl, PHP_URL_QUERY), $query);
+
+        return $this->text($query['id'] ?? null);
     }
 
     /**
@@ -216,6 +329,18 @@ final class GoogleBooks implements Source
      */
     private function query(array $parameters): array
     {
+        return $this->get($this->url.self::VOLUMES_PATH, $parameters) ?? [];
+    }
+
+    /**
+     * @param  array<string, mixed>  $parameters
+     * @param  bool  $missingIsEmpty  a 404 means "there is no such volume", not a failure
+     * @return array<mixed>|null
+     *
+     * @throws SourceUnavailable
+     */
+    private function get(string $url, array $parameters, bool $missingIsEmpty = false): ?array
+    {
         if ($this->hasKey()) {
             $parameters['key'] = $this->key;
         }
@@ -223,9 +348,13 @@ final class GoogleBooks implements Source
         try {
             $response = Http::acceptJson()
                 ->timeout($this->timeout)
-                ->get($this->url.self::VOLUMES_PATH, $parameters);
+                ->get($url, $parameters);
         } catch (Throwable $failure) {
             throw new SourceUnavailable('Google Books did not answer: '.$failure->getMessage(), previous: $failure);
+        }
+
+        if ($missingIsEmpty && $response->status() === 404) {
+            return null;
         }
 
         if ($response->status() === 429) {

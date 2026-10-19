@@ -20,6 +20,8 @@ php artisan sources:record <nombre> --source=open-library --resource=works/OL274
 php artisan sources:record <nombre> --source=open-library --title=<título> --author=<autor>
 php artisan sources:record <nombre> --source=google-books --isbn=<ISBN>
 php artisan sources:record <nombre> --source=google-books --title=<título> --author=<autor>
+php artisan sources:record <nombre> --source=google-books --lookup --isbn=<ISBN>
+php artisan sources:record <nombre> --source=google-books --volume=<id>
 ```
 
 La petición que manda es **la que manda el adaptador**: los parámetros de la búsqueda
@@ -71,6 +73,9 @@ Todo se grabó el **24 de septiembre de 2026**.
 | `google-books-search-with-markup.json` | `--title="Atomic Habits"` | De los títulos que se probaron, el único cuya Description llega de verdad con etiquetas. |
 | `google-books-no-results.json` | un título que no existe | `totalItems: 0`, que no es lo mismo que no haber podido contestar. |
 | `google-books-quota-exhausted.json` | `--isbn=9780060883287 --without-key --expect=429` | El 429 de la cuota compartida, tal como lo contesta Google. Se graba sin llave a propósito: la cuota anónima ya está agotada. |
+| `google-books-not-indexed.json` | `--isbn=9798902680222` | «Borderlands», que salió el 28 de julio de 2026: la búsqueda contesta `totalItems: 0` aunque el volumen ya existe. Grabado el 19 de octubre de 2026. |
+| `google-books-lookup.json` | `--lookup --isbn=9798902680222` | La consulta por ISBN de books.google.com, que sí lo conoce y da el id del volumen. No es JSON: es una línea de JavaScript con el JSON adentro. |
+| `google-books-volume-by-id.json` | `--volume=91rKEQAAQBAJ` | El volumen de «Borderlands» pedido por su id, con su ISBN en `industryIdentifiers`. |
 
 ## Lo que no está acá, y por qué
 

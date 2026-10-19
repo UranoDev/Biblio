@@ -44,6 +44,8 @@ final class RecordSourceResponse extends Command
         {--resource= : una ruta de Open Library, como /works/OL274505W o /authors/OL27363A}
         {--title= : el título a buscar, para grabar el TitleLookup}
         {--author= : el autor que acompaña al título}
+        {--lookup : con --isbn, graba la consulta por ISBN de books.google.com en vez de la búsqueda}
+        {--volume= : el id de un volumen de Google Books, para grabarlo por su id}
         {--without-key : no manda la llave de Google Books, para grabar lo que contesta la cuota compartida}
         {--expect=200 : el estado HTTP que se espera; con otro no se escribe nada}';
 
@@ -152,15 +154,34 @@ final class RecordSourceResponse extends Command
     /** @return array{0: string, 1: array<string, mixed>} */
     private function googleBooksRequest(): array
     {
-        $url = rtrim((string) config('sources.google_books.url'), '/').GoogleBooks::VOLUMES_PATH;
+        $base = rtrim((string) config('sources.google_books.url'), '/');
+        $url = $base.GoogleBooks::VOLUMES_PATH;
         $isbn = $this->isbn();
         $title = $this->text($this->option('title'));
+        $volume = $this->text($this->option('volume'));
+
+        // The lookup goes to another host and never carries the key.
+        if ($this->option('lookup') === true) {
+            if ($isbn === null) {
+                throw new \InvalidArgumentException('--lookup necesita --isbn.');
+            }
+
+            return [
+                rtrim((string) config('sources.google_books.lookup_url'), '/').GoogleBooks::LOOKUP_PATH,
+                GoogleBooks::lookupParameters($isbn),
+            ];
+        }
+
+        if ($volume !== null) {
+            $url = $base.GoogleBooks::volumePath($volume);
+        }
 
         $parameters = match (true) {
+            $volume !== null => [],
             $isbn !== null => GoogleBooks::isbnParameters($isbn),
             $title !== null => GoogleBooks::searchParameters($title, $this->text($this->option('author'))),
             default => throw new \InvalidArgumentException(
-                'A Google Books hay que pedirle algo: --isbn o --title.'
+                'A Google Books hay que pedirle algo: --isbn, --title o --volume.'
             ),
         };
 

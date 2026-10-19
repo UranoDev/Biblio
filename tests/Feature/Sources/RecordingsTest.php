@@ -22,6 +22,10 @@ it('tiene grabaciones que guardar', function () {
 it('guarda JSON que se puede leer', function (string $file) {
     $body = recorded(pathinfo($file, PATHINFO_FILENAME));
 
+    // The ISBN lookup of books.google.com answers a line of JavaScript with
+    // the JSON inside, and it is recorded as it arrives.
+    $body = preg_replace('/^var _GBSBookInfo = (.*);\s*$/s', '$1', $body);
+
     expect($body)->not->toBe('')
         ->and(json_decode($body, true))->toBeArray();
 })->with(recordings());

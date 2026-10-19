@@ -82,11 +82,88 @@ it('funciona igual sin llave, pero no la manda', function () {
 });
 
 it('devuelve sin Record cuando Google no encuentral ISBN', function () {
-    Http::fake(['www.googleapis.com/*' => Http::response(recorded('google-books-no-results'))]);
+    Http::fake([
+        'www.googleapis.com/*' => Http::response(recorded('google-books-no-results')),
+        // Built here: no recording has a lookup that knows nothing.
+        'books.google.com/*' => Http::response('var _GBSBookInfo = {};'),
+    ]);
 
     $result = googleBooks()->byIsbn(Isbn::from('9788437604176'));
 
     expect($result->isbnUnknown())->toBeTrue();
+});
+
+/**
+ * «Borderlands» by Ken Salazar, ISBN 9798902680222, out on 2026-07-28. On
+ * 2026-10-19 the search returned `totalItems: 0` and the volume already existed.
+ */
+function fakeNotIndexed(mixed $volume = null, mixed $lookup = null): void
+{
+    Http::fake([
+        'www.googleapis.com/books/v1/volumes/91rKEQAAQBAJ*' => $volume ?? Http::response(recorded('google-books-volume-by-id')),
+        'www.googleapis.com/*' => Http::response(recorded('google-books-not-indexed')),
+        'books.google.com/*' => $lookup ?? Http::response(recorded('google-books-lookup')),
+    ]);
+}
+
+it('encuentral libro que la búsqueda todavía no indexa, por la consulta de ISBN', function () {
+    fakeNotIndexed();
+
+    $record = googleBooks()->byIsbn(Isbn::from('9798902680222'))->record;
+
+    expect($record->title)->toBe('Borderlands: My Fight for an Inclusive America')
+        ->and($record->authors)->toBe(['Ken Salazar'])
+        ->and($record->publisher)->toBe('Simon and Schuster')
+        ->and($record->year)->toBe(2026)
+        ->and($record->source)->toBe(Source::GoogleBooks);
+});
+
+it('lee el volumen con la llave, y la consulta de ISBN sin ella', function () {
+    fakeNotIndexed();
+
+    googleBooks('la-llave')->byIsbn(Isbn::from('9798902680222'));
+
+    Http::assertSent(fn ($request) => str_contains($request->url(), '/volumes/91rKEQAAQBAJ')
+        && str_contains($request->url(), 'key=la-llave'));
+    Http::assertSent(fn ($request) => str_starts_with($request->url(), 'https://books.google.com/books?')
+        && str_contains(urldecode($request->url()), 'bibkeys=ISBN:9798902680222')
+        && ! str_contains($request->url(), 'key='));
+});
+
+it('no usa la consulta de ISBN cuando la búsqueda ya encontró el volumen', function () {
+    Http::fake(['www.googleapis.com/*' => Http::response(recorded('google-books-volume'))]);
+
+    googleBooks()->byIsbn(Isbn::from('9780307474728'));
+
+    Http::assertNotSent(fn ($request) => str_contains($request->url(), 'books.google.com'));
+});
+
+it('descarta el volumen de la consulta cuando no publica el ISBN pedido', function () {
+    // Built here: the lookup answering with a volume of another ISBN.
+    fakeNotIndexed(volume: Http::response([
+        'id' => '91rKEQAAQBAJ',
+        'volumeInfo' => [
+            'title' => 'Otro libro',
+            'industryIdentifiers' => [['type' => 'ISBN_13', 'identifier' => '9780307474728']],
+        ],
+    ]));
+
+    expect(googleBooks()->byIsbn(Isbn::from('9798902680222'))->isbnUnknown())->toBeTrue();
+});
+
+it('devuelve sin Record cuando el volumen de la consulta ya no existe', function () {
+    fakeNotIndexed(volume: Http::response(['error' => ['code' => 404]], 404));
+
+    expect(googleBooks()->byIsbn(Isbn::from('9798902680222'))->isbnUnknown())->toBeTrue();
+});
+
+it('avisa que no pudo contestar cuando la consulta de ISBN falla', function () {
+    fakeNotIndexed(lookup: Http::response('', 503));
+
+    $result = googleBooks()->byIsbn(Isbn::from('9798902680222'));
+
+    expect($result->answered())->toBeFalse()
+        ->and($result->reason)->toContain('ISBN lookup');
 });
 
 it('tratal 429 como Source que no pudo contestar, no como ISBN desconocido', function (?string $key) {

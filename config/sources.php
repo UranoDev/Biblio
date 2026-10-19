@@ -72,10 +72,17 @@ return [
     | that runs out and returns HTTP 429. That is reported as "the Source could
     | not answer", never as "it does not know it".
     |
+    | The search takes weeks to index a new book. When it finds nothing, the
+    | ISBN lookup of books.google.com gets asked for the volume, which already
+    | exists, and the volume is read by its id (2026-10-19: «Borderlands»,
+    | 9798902680222, out on 2026-07-28, has a volume and the search returned
+    | `totalItems: 0`).
+    |
     */
 
     'google_books' => [
         'url' => env('GOOGLE_BOOKS_URL', 'https://www.googleapis.com'),
+        'lookup_url' => env('GOOGLE_BOOKS_LOOKUP_URL', 'https://books.google.com'),
         'key' => env('GOOGLE_BOOKS_API_KEY'),
     ],
 

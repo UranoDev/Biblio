@@ -1,0 +1,106 @@
+{
+  "kind": "books#volume",
+  "id": "91rKEQAAQBAJ",
+  "etag": "nM/35pHdjZg",
+  "selfLink": "https://www.googleapis.com/books/v1/volumes/91rKEQAAQBAJ",
+  "volumeInfo": {
+    "title": "Borderlands",
+    "subtitle": "My Fight for an Inclusive America",
+    "authors": [
+      "Ken Salazar"
+    ],
+    "publisher": "Simon and Schuster",
+    "publishedDate": "2026-07-28",
+    "description": "\u003cb\u003e“From the ranch to the Senate and the president’s cabinet, Ken lived the American dream and had a career defined by hard work and selfless public service. \u003ci\u003eBorderlands\u003c/i\u003e offers every American insight into what our country can be at its best, and how we must overcome divisive politics to solve the hardest challenges we face together.” —Senator Mark Kelly\u003cbr\u003e \u003cbr\u003e “\u003ci\u003eBorderlands\u003c/i\u003e is a powerful reminder that the story of America cannot be told without the story of the border and the people who live there. Ken Salazar brings dignity, truth, and a reminder that diversity is America’s superpower, to a conversation our country urgently needs.” —Eva Longoria\u003c/b\u003e\u003cbr\u003e \u003cbr\u003e\u003cb\u003eInformed by his life journey, former US ambassador to Mexico, US senator, and US secretary of the Interior Ken Salazar shares his unrivaled vantage on the US-Mexico relationship, the border and migration crisis, and his belief that the diversity of our many communities and cultures is America’s superpower.\u003c/b\u003e\u003cbr\u003e\u003cbr\u003eLike many Mexican Americans, the Salazars have deep roots in the American Southwest. They have ranched and farmed along the banks of the Rio Grande for more than four centuries, dating back to the founding of the nation’s oldest capital, Santa Fe, when the entire Southwest was part of Spain or Mexico. They have called the San Luis Valley home since the end of the Mexican-American War in 1848.\u003cbr\u003e \u003cbr\u003eThrough the lens of Ken’s life and extraordinary career in politics, \u003ci\u003eBorderlands\u003c/i\u003e traces the relationship of the United States and Mexico from its early days to the present. Framed by Donald Trump’s attacks on American diversity, Ken recounts the early conflicts between our two countries; the treaties that created our modern and broken border; the political malpractice of both major US parties where it concerns migration and the border; and the necessity to fight for an inclusive and united America\u003ci\u003e.\u003c/i\u003e \u003cbr\u003e \u003cbr\u003eTold through personal stories from childhood to his time in Washington D.C. and Mexico City, Ken asks us to consider:\u003cbr\u003e \u003cul\u003e \u003cli\u003eWhat does it mean to be a US citizen?\u003c/li\u003e \u003cli\u003eIn a nation of immigrants, who counts as American?\u003c/li\u003e \u003cli\u003eHow do we catalyze a movement to preserve and strengthen our democracy—one that recognizes the richness of American diversity as our nation’s enduring strength?\u003c/li\u003e \u003c/ul\u003e \u003cbr\u003e\u003ci\u003eBorderlands\u003c/i\u003e is a clarion call for a different way forward, one that unites North America instead of divides it. It invites you to come and see the prairies, deserts, and mountains, and feel the history and culture of our peoples. Come and meet your neighbors. Come and witness the strength of American diversity for yourself.",
+    "industryIdentifiers": [
+      {
+        "type": "ISBN_13",
+        "identifier": "9798902680222"
+      }
+    ],
+    "readingModes": {
+      "text": true,
+      "image": false
+    },
+    "pageCount": 368,
+    "printedPageCount": 372,
+    "printType": "BOOK",
+    "categories": [
+      "Biography & Autobiography / Political",
+      "Political Science / Public Policy / Immigration",
+      "Biography & Autobiography / Hispanic & Latino"
+    ],
+    "maturityRating": "NOT_MATURE",
+    "allowAnonLogging": false,
+    "contentVersion": "1.2.2.0.preview.2",
+    "panelizationSummary": {
+      "containsEpubBubbles": false,
+      "containsImageBubbles": false
+    },
+    "imageLinks": {
+      "smallThumbnail": "http://books.google.com/books/publisher/content?id=91rKEQAAQBAJ&printsec=frontcover&img=1&zoom=5&edge=curl&imgtk=AFLRE70OFM5DXxkPKOqohbvF0FOHUrkRFe9p7w3yxwnoKW6xmkDJPJKBzHvSLX5FLvLbqm7UmPg3NWKzxygXgD_I3Vwt8KEmkyKpxai9PL3uer_GmttvO8NWzGrYVFBnnI_DF_oVxPPb&source=gbs_api",
+      "thumbnail": "http://books.google.com/books/publisher/content?id=91rKEQAAQBAJ&printsec=frontcover&img=1&zoom=1&edge=curl&imgtk=AFLRE708h74npsZ1Mfyux2s6n4_L_3vg4XP2sWjSnr_bdfOfn0iVTi3uRsaAwbGOb9KyPreGi5D7A157WIv1dwjygTkm1sI47A5L9dByZrJEBkGLxXc57lfANlNwEaDpJoGAe0jVLbwi&source=gbs_api",
+      "small": "http://books.google.com/books/publisher/content?id=91rKEQAAQBAJ&printsec=frontcover&img=1&zoom=2&edge=curl&imgtk=AFLRE72ghipQhrTntDaI6xUBnwemQszJWj7Wb5IxbAwS2e3MJB6ejVrShUFbFO7vIrNbMyCEt-7QhWblmSZOCdl1XiD7Gs2QtzDviHhPU1WPlnimr0O37IR2a4HeUm-KniB60naipzo8&source=gbs_api",
+      "medium": "http://books.google.com/books/publisher/content?id=91rKEQAAQBAJ&printsec=frontcover&img=1&zoom=3&edge=curl&imgtk=AFLRE71xFhVsXUSh_r0PWEO0QuAXSpF7bmNqaiFnzvyzoLHBpnQtRdb-aEdtNFtmBOuAODZh8i_3vlSkL2C2pcIfLnBCNOPeuxvnfqFkkoMBiQsc8vDm-7eWE_IsRp_wqkEb7jTqzLvI&source=gbs_api",
+      "large": "http://books.google.com/books/publisher/content?id=91rKEQAAQBAJ&printsec=frontcover&img=1&zoom=4&edge=curl&imgtk=AFLRE715X22ODY3_DiQVm0zZ76KTEmrtmhSXCe7txdOL2Ed7oGj_vX6yUUmsrVWK61ySA1j84wlLiHK8Gh5qzy1N3ZLaf1Rn88oqhnfmmAxqI_ppQ7ME30gwWW8Gtv9QXPTI8IYCS-jw&source=gbs_api",
+      "extraLarge": "http://books.google.com/books/publisher/content?id=91rKEQAAQBAJ&printsec=frontcover&img=1&zoom=6&edge=curl&imgtk=AFLRE73bx11wwx3O5raUOKz3EvauFKXblLYmfJhp_Dki9YkwRRYvWuVokbJRBvtakgFHUmwwolGTfWRErhQ8R9nuqKC7WZvSreINk3tiSrOZxWyFFjxd8VDtrXa7EEiRAS2AXpSy0HNf&source=gbs_api"
+    },
+    "language": "en",
+    "previewLink": "http://books.google.com.mx/books?id=91rKEQAAQBAJ&hl=&source=gbs_api",
+    "infoLink": "https://play.google.com/store/books/details?id=91rKEQAAQBAJ&source=gbs_api",
+    "canonicalVolumeLink": "https://play.google.com/store/books/details?id=91rKEQAAQBAJ"
+  },
+  "layerInfo": {
+    "layers": [
+      {
+        "layerId": "geo",
+        "volumeAnnotationsVersion": "2"
+      }
+    ]
+  },
+  "saleInfo": {
+    "country": "MX",
+    "saleability": "FOR_SALE",
+    "isEbook": true,
+    "listPrice": {
+      "amount": 312.13,
+      "currencyCode": "MXN"
+    },
+    "retailPrice": {
+      "amount": 312.13,
+      "currencyCode": "MXN"
+    },
+    "buyLink": "https://play.google.com/store/books/details?id=91rKEQAAQBAJ&rdid=book-91rKEQAAQBAJ&rdot=1&source=gbs_api",
+    "offers": [
+      {
+        "finskyOfferType": 1,
+        "listPrice": {
+          "amountInMicros": 312130000,
+          "currencyCode": "MXN"
+        },
+        "retailPrice": {
+          "amountInMicros": 312130000,
+          "currencyCode": "MXN"
+        },
+        "giftable": true
+      }
+    ]
+  },
+  "accessInfo": {
+    "country": "MX",
+    "viewability": "PARTIAL",
+    "embeddable": true,
+    "publicDomain": false,
+    "textToSpeechPermission": "ALLOWED_FOR_ACCESSIBILITY",
+    "epub": {
+      "isAvailable": true,
+      "acsTokenLink": "http://books.google.com.mx/books/download/Borderlands-sample-epub.acsm?id=91rKEQAAQBAJ&format=epub&output=acs4_fulfillment_token&dl_type=sample&source=gbs_api"
+    },
+    "pdf": {
+      "isAvailable": false
+    },
+    "webReaderLink": "http://play.google.com/books/reader?id=91rKEQAAQBAJ&hl=&source=gbs_api",
+    "accessViewStatus": "SAMPLE",
+    "quoteSharingAllowed": false
+  }
+}

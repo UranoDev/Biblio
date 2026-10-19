@@ -145,6 +145,7 @@ class AppServiceProvider extends ServiceProvider
                         ? null
                         : (string) config('sources.google_books.key'),
                     timeout: $timeout,
+                    lookupUrl: (string) config('sources.google_books.lookup_url'),
                 ),
                 default => throw new InvalidArgumentException("«{$name}» is not a known Source; check config/sources.php."),
             };
