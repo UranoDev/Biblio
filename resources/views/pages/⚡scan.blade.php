@@ -136,23 +136,41 @@ new #[Title('Escaneo')] class extends Component
     x-data="{
         timer: null,
         wait: {{ (int) config('intake.idle') }},
+        // The ISBN the Sources are being asked about. While it is set the field
+        // is read-only: it keeps the focus, but a code scanned in the meantime
+        // does not get mixed with the one on its way.
+        searching: null,
         focus() {
             this.$refs.isbn?.focus()
         },
         stop() {
             clearTimeout(this.timer)
         },
-        onIdle(value) {
+        async send(value) {
             this.stop()
 
-            if (! this.looksComplete(value)) {
+            if (this.searching !== null) {
                 return
             }
 
-            this.timer = setTimeout(() => {
+            this.searching = value.trim()
+
+            try {
                 this.$wire.set('isbn', value, false)
-                this.$wire.register()
-            }, this.wait)
+                await this.$wire.register()
+            } finally {
+                this.searching = null
+                this.$nextTick(() => this.focus())
+            }
+        },
+        onIdle(value) {
+            this.stop()
+
+            if (this.searching !== null || ! this.looksComplete(value)) {
+                return
+            }
+
+            this.timer = setTimeout(() => this.send(value), this.wait)
         },
         looksComplete(value) {
             const clean = value.replace(/[\s-]/g, '').toUpperCase()
@@ -174,11 +192,13 @@ new #[Title('Escaneo')] class extends Component
         <flux:text>Pasa el código de barras por el Escáner y el Libro se registra con la Ficha de la Fuente.</flux:text>
     </div>
 
-    <form wire:submit="register" x-on:submit="stop()" class="max-w-md">
+    <form x-on:submit.prevent="send($refs.isbn.value)" class="flex max-w-md flex-col gap-3">
         <flux:input
             x-ref="isbn"
             wire:model="isbn"
             x-on:input="onIdle($event.target.value)"
+            x-bind:readonly="searching !== null"
+            x-bind:aria-busy="searching !== null"
             label="ISBN"
             description="Los Escáneres que no mandan Enter registran solos, al dejar de teclear."
             autofocus
@@ -186,6 +206,21 @@ new #[Title('Escaneo')] class extends Component
             inputmode="numeric"
             data-test="isbn-field"
         />
+
+        <div
+            x-show="searching !== null"
+            x-cloak
+            role="status"
+            class="flex items-center gap-3 rounded-lg border border-sky-200 bg-sky-50 px-4 py-3 text-sky-900 dark:border-sky-800 dark:bg-sky-950 dark:text-sky-100"
+            data-test="searching"
+        >
+            <flux:icon.loading class="size-5 shrink-0" />
+
+            <div class="flex flex-col">
+                <span class="font-medium">Buscando el ISBN <span x-text="searching"></span> en las Fuentes…</span>
+                <span class="text-sm">El campo se libera cuando contesten. No hace falta volver a escanear.</span>
+            </div>
+        </div>
     </form>
 
     @if ($notice)
