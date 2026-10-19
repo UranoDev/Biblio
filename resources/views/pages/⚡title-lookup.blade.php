@@ -156,10 +156,10 @@ new #[Title('Alta por título')] class extends Component
      * through a Source: for the books no catalog has, or that carry no ISBN.
      * It is a ManualEntry with two fields, so it is born marked as such.
      *
-     * It is always born on the Shelf, whatever the Situación says: a book
-     * without an ISBN is almost always an old one already in hand.
+     * Each button says where the Book is born, so the Situación selector,
+     * which belongs to the editions of the Source, does not apply here.
      */
-    public function registerAsTyped(AddBook $add): void
+    public function registerAsTyped(AddBook $add, string $status = 'owned'): void
     {
         $this->validate($this->rules(), $this->messages());
 
@@ -168,7 +168,7 @@ new #[Title('Alta por título')] class extends Component
         $book = $add->byHand(new NewBook(
             title: trim($this->title),
             authors: $author === '' ? [] : [$author],
-            status: Status::Owned,
+            status: $status === Status::Wanted->value ? Status::Wanted : Status::Owned,
         ));
 
         $this->forgetTheBooks();
@@ -283,10 +283,19 @@ new #[Title('Alta por título')] class extends Component
                 <flux:button
                     type="button"
                     variant="subtle"
-                    wire:click="registerAsTyped"
+                    wire:click="registerAsTyped(@js(\App\Enums\Status::Owned->value))"
                     data-test="register-as-typed"
                 >
                     Registrar en el Acervo solo con título y autor
+                </flux:button>
+
+                <flux:button
+                    type="button"
+                    variant="subtle"
+                    wire:click="registerAsTyped(@js(\App\Enums\Status::Wanted->value))"
+                    data-test="register-as-typed-wanted"
+                >
+                    Registrar en Por comprar solo con título y autor
                 </flux:button>
             </div>
         </form>

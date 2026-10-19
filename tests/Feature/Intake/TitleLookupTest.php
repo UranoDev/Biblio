@@ -329,3 +329,32 @@ it('no registra sin título', function () {
 
     expect(Book::count())->toBe(0);
 });
+
+it('registra en Por comprar con el botón de Por comprar, solo con título y autor', function () {
+    sourcesAnswer(LookupResult::withoutRecord());
+
+    Livewire::test('pages::title-lookup')
+        ->set('title', 'Recetario familiar')
+        ->set('status', Status::Owned->value)
+        ->call('registerAsTyped', Status::Wanted->value)
+        ->assertSet('notice', '«Recetario familiar» quedó registrado sin ISBN. Situación: Por comprar.');
+
+    expect(Book::sole()->status)->toBe(Status::Wanted)
+        ->and(Book::sole()->isbn)->toBeNull();
+});
+
+it('no deja que el registro solo con título y autor nazca en otra Situación', function () {
+    sourcesAnswer(LookupResult::withoutRecord());
+
+    Livewire::test('pages::title-lookup')
+        ->set('title', 'Recetario familiar')
+        ->call('registerAsTyped', Status::Read->value);
+
+    expect(Book::sole()->status)->toBe(Status::Owned);
+});
+
+it('muestra los dos botones de registro solo con título y autor', function () {
+    Livewire::test('pages::title-lookup')
+        ->assertSee('Registrar en el Acervo solo con título y autor')
+        ->assertSee('Registrar en Por comprar solo con título y autor');
+});
