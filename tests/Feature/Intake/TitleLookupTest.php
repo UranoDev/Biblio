@@ -285,7 +285,6 @@ it('registra el Libro solo con título y autor, sin consultar la Fuente ni pedir
     Livewire::test('pages::title-lookup')
         ->set('title', 'Apuntes de mi abuelo')
         ->set('author', 'Juan Pérez')
-        ->set('status', Status::Owned->value)
         ->call('registerAsTyped')
         ->assertSet('notice', '«Apuntes de mi abuelo» quedó registrado sin ISBN. Situación: Acervo.');
 
@@ -305,8 +304,19 @@ it('registra solo con título cuando el autor queda en blanco', function () {
         ->set('title', 'Recetario familiar')
         ->call('registerAsTyped');
 
-    expect(Book::sole()->authors)->toBe([])
-        ->and(Book::sole()->status)->toBe(Status::Wanted);
+    expect(Book::sole()->authors)->toBe([]);
+});
+
+it('registra en el Acervo aunque la Situación diga Por comprar', function () {
+    sourcesAnswer(LookupResult::withoutRecord());
+
+    Livewire::test('pages::title-lookup')
+        ->set('title', 'Recetario familiar')
+        ->set('status', Status::Wanted->value)
+        ->call('registerAsTyped')
+        ->assertSet('notice', '«Recetario familiar» quedó registrado sin ISBN. Situación: Acervo.');
+
+    expect(Book::sole()->status)->toBe(Status::Owned);
 });
 
 it('no registra sin título', function () {

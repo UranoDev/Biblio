@@ -155,6 +155,9 @@ new #[Title('Alta por título')] class extends Component
      * Registers the Book with the title and the Author as typed, without going
      * through a Source: for the books no catalog has, or that carry no ISBN.
      * It is a ManualEntry with two fields, so it is born marked as such.
+     *
+     * It is always born on the Shelf, whatever the Situación says: a book
+     * without an ISBN is almost always an old one already in hand.
      */
     public function registerAsTyped(AddBook $add): void
     {
@@ -165,7 +168,7 @@ new #[Title('Alta por título')] class extends Component
         $book = $add->byHand(new NewBook(
             title: trim($this->title),
             authors: $author === '' ? [] : [$author],
-            status: Status::tryFrom($this->status) ?? Status::Wanted,
+            status: Status::Owned,
         ));
 
         $this->forgetTheBooks();
@@ -283,7 +286,7 @@ new #[Title('Alta por título')] class extends Component
                     wire:click="registerAsTyped"
                     data-test="register-as-typed"
                 >
-                    Registrar solo con título y autor
+                    Registrar en el Acervo solo con título y autor
                 </flux:button>
             </div>
         </form>
