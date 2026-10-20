@@ -51,3 +51,29 @@ it('no da dirección cuando Amazon contesta un error', function () {
 
     expect(amazonCovers()->coverUrl(Isbn::from('9786070725364')))->toBeNull();
 });
+
+it('saca el código del producto de los enlaces que da Amazon', function (string $link, ?string $asin) {
+    expect(AmazonCovers::asinOf($link))->toBe($asin);
+})->with([
+    'dp con título' => ['https://www.amazon.com.mx/Borderlands-Fight-Inclusive-America/dp/B0F2X1Y3ZQ?ref=sr_1_1', 'B0F2X1Y3ZQ'],
+    'dp solo' => ['https://www.amazon.com.mx/dp/6070725360', '6070725360'],
+    'gp/product' => ['https://www.amazon.com/gp/product/B0F2X1Y3ZQ/ref=ppx_yo_dt', 'B0F2X1Y3ZQ'],
+    'minúsculas' => ['https://www.amazon.com.mx/dp/b0f2x1y3zq', 'B0F2X1Y3ZQ'],
+    'el código suelto' => ['B0F2X1Y3ZQ', 'B0F2X1Y3ZQ'],
+    'búsqueda, no producto' => ['https://www.amazon.com.mx/s?k=9798902680215', null],
+    'otro sitio' => ['https://www.google.com/search?q=borderlands', null],
+    'vacío' => ['', null],
+]);
+
+it('da la portada del producto del enlace', function () {
+    Http::fake(['images-na.ssl-images-amazon.com/*' => Http::response(recordedCover('amazon-6070725360.jpg'))]);
+
+    expect(amazonCovers()->coverUrlForLink('https://www.amazon.com.mx/La-estrella-Ratner/dp/6070725360'))
+        ->toBe('https://images-na.ssl-images-amazon.com/images/P/6070725360.01.LZZZZZZZ.jpg');
+});
+
+it('no da portada para un enlace cuyo producto no tiene imagen', function () {
+    Http::fake(['images-na.ssl-images-amazon.com/*' => Http::response(recordedCover('amazon-empty-pixel.gif'))]);
+
+    expect(amazonCovers()->coverUrlForLink('https://www.amazon.com.mx/dp/B0F2X1Y3ZQ'))->toBeNull();
+});

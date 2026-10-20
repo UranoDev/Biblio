@@ -6,6 +6,8 @@ use App\Covers\InvalidImage;
 use App\Enums\CoverOrigin;
 use App\Jobs\DownloadCover;
 use App\Models\Book;
+use App\Sources\AmazonCovers;
+use Illuminate\Support\Facades\Http;
 use Livewire\Attributes\On;
 use Livewire\Component;
 use Livewire\WithFileUploads;
@@ -28,6 +30,9 @@ new class extends Component
     public $file = null;
 
     public ?string $notice = null;
+
+    /** The link to the product on Amazon whose Cover is wanted. */
+    public string $amazonLink = '';
 
     /**
      * The photograph just chosen, as the browser can show it before it is
@@ -91,6 +96,70 @@ new class extends Component
     public function readingSaved(): void
     {
         $this->book->refresh();
+    }
+
+    /**
+     * Brings the Cover from the Amazon product the owner found in the browser.
+     *
+     * It is for the editions the cascade cannot reach on its own: an ISBN
+     * starting with 979 has no ten-digit form, and searching Amazon from the
+     * server gets a captcha. The link carries the code of the product, and the
+     * image of that code is served without one.
+     */
+    public function fromAmazon(AmazonCovers $amazon, CoverStore $store): void
+    {
+        $link = trim($this->amazonLink);
+
+        if ($link === '') {
+            $this->addError('amazonLink', 'Pega el enlace del Libro en Amazon.');
+
+            return;
+        }
+
+        if (AmazonCovers::asinOf($link) === null) {
+            $this->addError('amazonLink', 'Ese enlace no es de un producto de Amazon. Cópialo de la página del Libro, la que muestra la portada.');
+
+            return;
+        }
+
+        $url = $amazon->coverUrlForLink($link);
+
+        if ($url === null) {
+            $this->addError('amazonLink', 'Amazon no tiene imagen de portada para ese producto.');
+
+            return;
+        }
+
+        try {
+            $binary = Http::timeout((int) config('covers.timeout', 10))->get($url)->throw()->body();
+
+            $this->book->forceFill(['cover_source_url' => $url])->save();
+
+            // Chosen by the owner: it replaces whatever Cover the Book showed,
+            // their own photograph included.
+            $store->store(
+                $this->book,
+                $binary,
+                $this->book->coverOrigin() === CoverOrigin::Owner ? CoverOrigin::Owner : CoverOrigin::Source,
+            );
+        } catch (InvalidImage $failure) {
+            $this->addError('amazonLink', $failure->getMessage());
+
+            return;
+        } catch (CoverNotStored) {
+            $this->addError('amazonLink', 'La Portada no se pudo guardar en el disco.');
+
+            return;
+        } catch (\Throwable) {
+            $this->addError('amazonLink', 'Amazon no contestó. Vuelve a intentarlo en un momento.');
+
+            return;
+        }
+
+        $this->reset('amazonLink', 'file');
+        $this->book->refresh();
+
+        $this->notice = 'La Portada quedó guardada, traída de Amazon.';
     }
 
     public function retry(): void
@@ -208,6 +277,21 @@ new class extends Component
                     wire:target="file,save"
                 >
                     Guardar
+                </flux:button>
+            </form>
+
+            <form wire:submit="fromAmazon" class="flex flex-col gap-3" data-test="cover-from-amazon">
+                <flux:input
+                    wire:model="amazonLink"
+                    label="Portada desde Amazon"
+                    description="Pega el enlace de la página del Libro en Amazon y se trae su portada."
+                    placeholder="https://www.amazon.com.mx/…/dp/…"
+                    autocomplete="off"
+                    data-test="amazon-link-field"
+                />
+
+                <flux:button type="submit" variant="outline" class="self-start" wire:target="fromAmazon">
+                    Traer la portada de Amazon
                 </flux:button>
             </form>
 

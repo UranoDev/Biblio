@@ -32,6 +32,16 @@ class AppServiceProvider extends ServiceProvider
      */
     public function register(): void
     {
+        // Asked from the cascade and from the Book sheet, where a link to an
+        // Amazon product is pasted for the editions the cascade cannot reach.
+        $this->app->singleton(
+            AmazonCovers::class,
+            fn (): AmazonCovers => new AmazonCovers(
+                url: (string) config('sources.amazon_covers.url'),
+                timeout: (int) config('sources.timeout', 10),
+            ),
+        );
+
         $this->app->singleton(
             SourceResolver::class,
             fn (): SourceResolver => new SourceResolver(
@@ -126,8 +136,6 @@ class AppServiceProvider extends ServiceProvider
      */
     protected function coverSources(): array
     {
-        $timeout = (int) config('sources.timeout', 10);
-
         $covers = [];
 
         /** @var list<string> $order */
@@ -135,10 +143,7 @@ class AppServiceProvider extends ServiceProvider
 
         foreach ($order as $name) {
             $covers[] = match ($name) {
-                'amazon' => new AmazonCovers(
-                    url: (string) config('sources.amazon_covers.url'),
-                    timeout: $timeout,
-                ),
+                'amazon' => $this->app->make(AmazonCovers::class),
                 default => throw new InvalidArgumentException("«{$name}» is not a known Cover source; check config/sources.php."),
             };
         }

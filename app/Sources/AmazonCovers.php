@@ -40,12 +40,50 @@ final class AmazonCovers implements CoverSource
     {
         $ten = $isbn->asTen();
 
-        if ($ten === null) {
-            return null;
+        return $ten === null ? null : $this->checked(self::address($this->url, $ten));
+    }
+
+    /**
+     * The Cover of the product an Amazon link points at.
+     *
+     * It is the way in for the editions with an ISBN that starts with 979: they
+     * have no ten-digit form, and the code Amazon gives them can only be read
+     * off the page of the product. Searching Amazon for it from the server gets
+     * a captcha (amazon.com.mx) or a 503 (amazon.com) —checked on 2026-10-20—
+     * so the owner, who did find it in the browser, pastes the link.
+     */
+    public function coverUrlForLink(string $link): ?string
+    {
+        $asin = self::asinOf($link);
+
+        return $asin === null ? null : $this->checked(self::address($this->url, $asin));
+    }
+
+    /**
+     * The product code of an Amazon link, or of the code pasted on its own.
+     *
+     * The links Amazon hands out carry it after `/dp/`, `/gp/product/` or
+     * `/product/`, followed by a slash, a `?` or nothing. Ten characters, letters
+     * and digits.
+     */
+    public static function asinOf(string $link): ?string
+    {
+        $link = trim($link);
+
+        if (preg_match('/^[A-Z0-9]{10}$/i', $link) === 1) {
+            return strtoupper($link);
         }
 
-        $address = self::address($this->url, $ten);
+        if (preg_match('#/(?:dp|gp/product|product)/([A-Z0-9]{10})(?:[/?\#]|$)#i', $link, $match) === 1) {
+            return strtoupper($match[1]);
+        }
 
+        return null;
+    }
+
+    /** The address, when what it serves is an image the size of a Cover. */
+    private function checked(string $address): ?string
+    {
         try {
             $response = Http::timeout($this->timeout)->get($address);
         } catch (ConnectionException) {
@@ -67,9 +105,12 @@ final class AmazonCovers implements CoverSource
         return $address;
     }
 
-    /** Where the large image of that ISBN-10 is served. */
-    public static function address(string $url, string $ten): string
+    /**
+     * Where the large image of a product is served: by its ASIN, which for a
+     * book with an ISBN starting with 978 is its ISBN-10.
+     */
+    public static function address(string $url, string $code): string
     {
-        return rtrim($url, '/')."/images/P/{$ten}.01.LZZZZZZZ.jpg";
+        return rtrim($url, '/')."/images/P/{$code}.01.LZZZZZZZ.jpg";
     }
 }

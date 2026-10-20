@@ -5,6 +5,7 @@ use App\Enums\CoverOrigin;
 use App\Jobs\DownloadCover;
 use App\Models\Book;
 use Illuminate\Http\UploadedFile;
+use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Queue;
 use Illuminate\Support\Facades\Storage;
 use Livewire\Livewire;
@@ -310,4 +311,52 @@ it('una portada guardada borra la marca de imagen rechazada', function () {
         ->call('save');
 
     expect($book->fresh()->cover_refused)->toBeFalse();
+});
+
+it('trae la portada de Amazon con el enlace del producto', function () {
+    Http::fake([
+        'images-na.ssl-images-amazon.com/*' => Http::response(recordedCover('amazon-6070725360.jpg')),
+    ]);
+    $book = Book::factory()->coverRefused()->create();
+
+    Livewire::test('book-cover', ['book' => $book])
+        ->set('amazonLink', 'https://www.amazon.com.mx/La-estrella-Ratner/dp/6070725360?ref=sr_1_1')
+        ->call('fromAmazon')
+        ->assertHasNoErrors()
+        ->assertSet('notice', 'La Portada quedó guardada, traída de Amazon.')
+        ->assertSee('Vino de la Fuente.');
+
+    $book->refresh();
+
+    expect($book->hasCover())->toBeTrue()
+        ->and($book->cover_source_url)->toBe('https://images-na.ssl-images-amazon.com/images/P/6070725360.01.LZZZZZZZ.jpg')
+        ->and($book->coverDownloadHasFailed())->toBeFalse()
+        ->and($book->cover_refused)->toBeFalse();
+});
+
+it('avisa cuando el enlace no es de un producto de Amazon', function () {
+    Http::fake();
+    $book = Book::factory()->coverGenerated()->create();
+
+    Livewire::test('book-cover', ['book' => $book])
+        ->set('amazonLink', 'https://www.amazon.com.mx/s?k=9798902680215')
+        ->call('fromAmazon')
+        ->assertHasErrors('amazonLink');
+
+    Http::assertNothingSent();
+    expect($book->fresh()->hasCover())->toBeFalse();
+});
+
+it('avisa cuando Amazon no tiene imagen para ese producto', function () {
+    Http::fake([
+        'images-na.ssl-images-amazon.com/*' => Http::response(recordedCover('amazon-empty-pixel.gif')),
+    ]);
+    $book = Book::factory()->coverGenerated()->create();
+
+    Livewire::test('book-cover', ['book' => $book])
+        ->set('amazonLink', 'https://www.amazon.com.mx/dp/B0F2X1Y3ZQ')
+        ->call('fromAmazon')
+        ->assertHasErrors('amazonLink');
+
+    expect($book->fresh()->hasCover())->toBeFalse();
 });
