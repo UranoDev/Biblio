@@ -136,7 +136,7 @@ new #[Title('Lista de Amazon')] class extends Component
 
                     <flux:button
                         type="button"
-                        variant="subtle"
+                        variant="outline"
                         class="self-start"
                         wire:click="importNow"
                         data-test="import-now"

@@ -348,3 +348,14 @@ it('muestra un solo botón de registro solo con título y autor', function () {
         ->assertSee('Registrar solo con título y autor')
         ->assertDontSee('Registrar en Por comprar');
 });
+
+it('al guardar ofrece capturar otro Libro por título o ir al Escaneo', function () {
+    sourcesAnswer(LookupResult::withoutRecord());
+
+    Livewire::test('pages::title-lookup')
+        ->set('title', 'Recetario familiar')
+        ->call('registerAsTyped')
+        ->assertSee('Capturar otro Libro por título')
+        ->assertSee('Ir al Escaneo')
+        ->assertSee('href="'.route('scan').'"', false);
+});

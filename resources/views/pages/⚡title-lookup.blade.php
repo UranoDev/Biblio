@@ -245,10 +245,12 @@ new #[Title('Alta por título')] class extends Component
         <div class="flex flex-col gap-6" data-test="registered">
             <flux:text class="text-base" data-test="notice">{{ $notice }}</flux:text>
 
-            <div class="flex gap-3">
-                <flux:button wire:click="another" variant="primary">Dar de alta otro Libro</flux:button>
+            <div class="flex flex-wrap gap-3">
+                <flux:button wire:click="another" variant="primary" icon="book-open-text" data-test="another">
+                    Capturar otro Libro por título
+                </flux:button>
 
-                <flux:button :href="route('scan')" variant="subtle" wire:navigate>
+                <flux:button :href="route('scan')" variant="outline" icon="plus" wire:navigate data-test="go-to-scan">
                     Ir al Escaneo
                 </flux:button>
             </div>
@@ -298,7 +300,7 @@ new #[Title('Alta por título')] class extends Component
 
         @if ($this->theOneAlreadyThere && $this->hasBookSheet)
             <flux:button
-                variant="subtle"
+                variant="outline"
                 class="self-start"
                 :href="route('book', $this->theOneAlreadyThere)"
                 wire:navigate
@@ -310,7 +312,7 @@ new #[Title('Alta por título')] class extends Component
 
         @if ($withoutEditions)
             <flux:button
-                variant="subtle"
+                variant="outline"
                 class="self-start"
                 :href="route('manual-entry', array_filter(['title' => $lookedUp, 'author' => trim($author)]))"
                 wire:navigate

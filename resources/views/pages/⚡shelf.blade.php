@@ -435,7 +435,7 @@ new #[Title('Acervo')] class extends Component
             @endif
 
             @if ($this->filtering)
-                <flux:button variant="subtle" wire:click="clearFilters" data-test="clear-filters">
+                <flux:button variant="outline" wire:click="clearFilters" data-test="clear-filters">
                     Quitar los filtros
                 </flux:button>
             @endif

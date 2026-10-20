@@ -114,7 +114,7 @@ new #[Title('Búsqueda de citas')] class extends Component
         />
 
         @if ($this->searching)
-            <flux:button variant="subtle" wire:click="clearSearch" data-test="clear-search">
+            <flux:button variant="outline" wire:click="clearSearch" data-test="clear-search">
                 Limpiar
             </flux:button>
         @endif
@@ -192,7 +192,7 @@ new #[Title('Búsqueda de citas')] class extends Component
 
                 <div class="flex gap-2">
                     <flux:button
-                        variant="subtle"
+                        variant="outline"
                         icon="chevron-left"
                         wire:click="previousPage"
                         :disabled="$this->results->onFirstPage()"
@@ -202,7 +202,7 @@ new #[Title('Búsqueda de citas')] class extends Component
                     </flux:button>
 
                     <flux:button
-                        variant="subtle"
+                        variant="outline"
                         icon-trailing="chevron-right"
                         wire:click="nextPage"
                         :disabled="! $this->results->hasMorePages()"

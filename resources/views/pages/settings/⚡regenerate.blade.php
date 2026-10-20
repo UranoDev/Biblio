@@ -157,7 +157,7 @@ new #[Title('Regenerar')] class extends Component
                     </flux:callout.text>
                 </flux:callout>
 
-                <flux:button :href="route('ai-model.edit')" variant="subtle" class="self-start" wire:navigate>
+                <flux:button :href="route('ai-model.edit')" variant="outline" class="self-start" wire:navigate>
                     Elegir el modelo
                 </flux:button>
             @else
@@ -260,7 +260,7 @@ new #[Title('Regenerar')] class extends Component
 
                         <flux:button
                             wire:click="retryFailed"
-                            variant="subtle"
+                            variant="outline"
                             class="self-start"
                             data-test="retry-failed"
                         >

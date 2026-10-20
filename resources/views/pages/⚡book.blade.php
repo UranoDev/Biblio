@@ -683,7 +683,7 @@ new #[Title('Ficha del Libro')] class extends Component
                                     <flux:button
                                         type="button"
                                         icon="x-mark"
-                                        variant="subtle"
+                                        variant="outline"
                                         wire:click="removeAuthor({{ $index }})"
                                         aria-label="Quitar este Autor"
                                     />
@@ -694,7 +694,7 @@ new #[Title('Ficha del Libro')] class extends Component
                         </div>
                     @endforeach
 
-                    <flux:button type="button" variant="subtle" class="self-start" wire:click="addAuthor">
+                    <flux:button type="button" variant="outline" class="self-start" wire:click="addAuthor">
                         Agregar otro Autor
                     </flux:button>
                 </div>
@@ -758,7 +758,7 @@ new #[Title('Ficha del Libro')] class extends Component
         @if (in_array($this->descriptionStatus, [GenerationStatus::Failed, GenerationStatus::NotAsked], true))
             <flux:button
                 size="sm"
-                variant="subtle"
+                variant="outline"
                 icon="arrow-path"
                 class="self-start"
                 wire:click="regenerateDescription"
@@ -769,7 +769,7 @@ new #[Title('Ficha del Libro')] class extends Component
         @elseif ($this->descriptionStatus === GenerationStatus::Off)
             <flux:button
                 size="sm"
-                variant="subtle"
+                variant="outline"
                 icon="sparkles"
                 class="self-start"
                 :href="route('ai-model.edit')"
@@ -849,7 +849,7 @@ new #[Title('Ficha del Libro')] class extends Component
                         <flux:button
                             size="xs"
                             icon="x-mark"
-                            variant="subtle"
+                            variant="outline"
                             wire:click="removeCategory({{ $each->getKey() }})"
                             :aria-label="'Quitar '.$each->name"
                         />
@@ -887,7 +887,7 @@ new #[Title('Ficha del Libro')] class extends Component
                 data-test="category-field"
             />
 
-            <flux:button type="submit" variant="subtle">Agregar</flux:button>
+            <flux:button type="submit" variant="outline">Agregar</flux:button>
         </form>
     </section>
 
@@ -941,7 +941,7 @@ new #[Title('Ficha del Libro')] class extends Component
                 </flux:button>
 
                 @if ($editingQuote)
-                    <flux:button type="button" variant="subtle" wire:click="cancelQuote" data-test="cancel-quote">
+                    <flux:button type="button" variant="outline" wire:click="cancelQuote" data-test="cancel-quote">
                         Cancelar
                     </flux:button>
                 @endif
@@ -959,7 +959,7 @@ new #[Title('Ficha del Libro')] class extends Component
 
                     <flux:button
                         size="xs"
-                        variant="subtle"
+                        variant="outline"
                         wire:click="editQuote({{ $quote->getKey() }})"
                         data-test="edit-quote"
                     >
@@ -968,7 +968,7 @@ new #[Title('Ficha del Libro')] class extends Component
 
                     <flux:button
                         size="xs"
-                        variant="subtle"
+                        variant="outline"
                         wire:click="deleteQuote({{ $quote->getKey() }})"
                         wire:confirm="¿Borrar esta cita?"
                         data-test="delete-quote"
@@ -1092,7 +1092,7 @@ new #[Title('Ficha del Libro')] class extends Component
                 <flux:button type="submit" variant="primary">Guardar el préstamo</flux:button>
 
                 @if ($book->lent_to !== null)
-                    <flux:button type="button" variant="subtle" wire:click="returned" data-test="returned">
+                    <flux:button type="button" variant="outline" wire:click="returned" data-test="returned">
                         Ya me lo devolvieron
                     </flux:button>
                 @endif

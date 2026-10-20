@@ -332,3 +332,16 @@ textarea:focus[data-flux-control],
 select:focus[data-flux-control] {
     @apply outline-hidden ring-2 ring-accent ring-offset-2 ring-offset-accent-foreground;
 }
+
+/*
+ * Every button reads as a button: Flux's outline border is a neutral gray that
+ * all but disappears on the paper, so it takes the rule colour of the app.
+ * Unlayered, it wins over the Tailwind utilities Flux puts on the button.
+ */
+html:not(.dark) [data-flux-button].bg-white {
+    border-color: var(--color-rule);
+}
+
+html:not(.dark) [data-flux-button].bg-white:hover {
+    border-color: var(--color-ink-muted);
+}

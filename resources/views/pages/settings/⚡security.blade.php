@@ -302,7 +302,7 @@ new #[Title('Ajustes de seguridad')] class extends Component {
                                 </div>
 
                                 <flux:button
-                                    variant="ghost"
+                                    variant="outline"
                                     size="sm"
                                     icon="trash"
                                     icon:variant="outline"

@@ -160,7 +160,7 @@ new class extends Component
             </form>
 
             @if ($book->canRetryCover())
-                <flux:button wire:click="retry" variant="subtle" class="self-start">
+                <flux:button wire:click="retry" variant="outline" class="self-start">
                     Reintentar la descarga
                 </flux:button>
             @endif
@@ -170,7 +170,7 @@ new class extends Component
                  not exist yet (BIB-34). --}}
             @if ($book->hasCover())
                 <flux:modal.trigger name="quitar-portada">
-                    <flux:button variant="subtle" class="self-start" data-test="remove-cover">
+                    <flux:button variant="outline" class="self-start" data-test="remove-cover">
                         Quitar la Portada
                     </flux:button>
                 </flux:modal.trigger>

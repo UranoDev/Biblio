@@ -62,7 +62,7 @@ new #[Title('Inicio')] class extends Component
                     Escanear uno
                 </flux:button>
 
-                <flux:button variant="subtle" :href="route('title-lookup')" wire:navigate data-test="start-title-lookup">
+                <flux:button variant="outline" :href="route('title-lookup')" wire:navigate data-test="start-title-lookup">
                     Darlo de alta por título
                 </flux:button>
             </div>

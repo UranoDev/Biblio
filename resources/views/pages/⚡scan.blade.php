@@ -270,7 +270,7 @@ new #[Title('Escaneo')] class extends Component
                 @if ($entry['undoable'])
                     <flux:button
                         size="sm"
-                        variant="subtle"
+                        variant="outline"
                         wire:click="undo('{{ $entry['key'] }}')"
                     >
                         Deshacer

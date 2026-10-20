@@ -435,7 +435,7 @@ new #[Title('Modelo de IA')] class extends Component
                     @if ($this->canRegenerate)
                         <flux:button
                             :href="route('regenerate')"
-                            variant="subtle"
+                            variant="outline"
                             class="mt-2 self-start"
                             wire:navigate
                             data-test="go-to-regenerate"

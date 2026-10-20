@@ -202,11 +202,11 @@ new #[Title('Captura manual')] class extends Component
             <div class="flex gap-3">
                 <flux:button wire:click="another" variant="primary">Capturar otro Libro</flux:button>
 
-                <flux:button :href="route('book', $this->book)" variant="subtle" wire:navigate>
+                <flux:button :href="route('book', $this->book)" variant="outline" wire:navigate>
                     Ver la ficha
                 </flux:button>
 
-                <flux:button :href="route('scan')" variant="subtle" wire:navigate>
+                <flux:button :href="route('scan')" variant="outline" wire:navigate>
                     Ir al Escaneo
                 </flux:button>
             </div>
@@ -234,7 +234,7 @@ new #[Title('Captura manual')] class extends Component
                                     <flux:button
                                         type="button"
                                         icon="x-mark"
-                                        variant="subtle"
+                                        variant="outline"
                                         wire:click="removeAuthor({{ $index }})"
                                         aria-label="Quitar este Autor"
                                     />
@@ -245,7 +245,7 @@ new #[Title('Captura manual')] class extends Component
                         </div>
                     @endforeach
 
-                    <flux:button type="button" variant="subtle" class="self-start" wire:click="addAuthor">
+                    <flux:button type="button" variant="outline" class="self-start" wire:click="addAuthor">
                         Agregar otro Autor
                     </flux:button>
                 </div>

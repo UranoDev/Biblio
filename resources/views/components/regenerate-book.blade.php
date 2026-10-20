@@ -16,7 +16,7 @@
 <flux:dropdown position="bottom" align="start">
     <flux:button
         :size="$size"
-        variant="subtle"
+        variant="outline"
         icon:trailing="chevron-down"
         data-test="regenerate-{{ $book->getKey() }}"
     >

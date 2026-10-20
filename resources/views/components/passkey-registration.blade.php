@@ -105,7 +105,7 @@
                     <span x-show="loading" x-cloak>{{ __('Registering...') }}</span>
                 </flux:button>
                 <flux:button
-                    variant="ghost"
+                    variant="outline"
                     x-on:click="cancel()"
                 >
                     {{ __('Cancel') }}

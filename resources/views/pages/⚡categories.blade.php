@@ -385,7 +385,7 @@ new #[Title('Categorías')] class extends Component
                             @if (! $category->is_canonical)
                                 <flux:button
                                     size="sm"
-                                    variant="subtle"
+                                    variant="outline"
                                     wire:click="markAsCanonical({{ $category->getKey() }})"
                                     data-test="make-canonical-{{ $category->getKey() }}"
                                 >
@@ -395,7 +395,7 @@ new #[Title('Categorías')] class extends Component
 
                             <flux:button
                                 size="sm"
-                                variant="subtle"
+                                variant="outline"
                                 wire:click="startRename({{ $category->getKey() }})"
                                 data-test="rename-{{ $category->getKey() }}"
                             >
@@ -405,7 +405,7 @@ new #[Title('Categorías')] class extends Component
                             @if ($this->total > 1)
                                 <flux:button
                                     size="sm"
-                                    variant="subtle"
+                                    variant="outline"
                                     wire:click="startMerge({{ $category->getKey() }})"
                                     data-test="merge-{{ $category->getKey() }}"
                                 >
@@ -429,7 +429,7 @@ new #[Title('Categorías')] class extends Component
                                 Guardar
                             </flux:button>
 
-                            <flux:button variant="subtle" wire:click="stopEditing">Cancelar</flux:button>
+                            <flux:button variant="outline" wire:click="stopEditing">Cancelar</flux:button>
                         </form>
                     @endif
 
@@ -463,7 +463,7 @@ new #[Title('Categorías')] class extends Component
                                     Fusionar
                                 </flux:button>
 
-                                <flux:button variant="subtle" wire:click="stopEditing">Cancelar</flux:button>
+                                <flux:button variant="outline" wire:click="stopEditing">Cancelar</flux:button>
                             </div>
                         </form>
                     @endif

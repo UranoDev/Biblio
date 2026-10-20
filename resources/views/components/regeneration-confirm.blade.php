@@ -22,7 +22,7 @@
             Reemplazarlas
         </flux:button>
 
-        <flux:button variant="subtle" wire:click="cancelRegeneration" data-test="confirm-regeneration-no">
+        <flux:button variant="outline" wire:click="cancelRegeneration" data-test="confirm-regeneration-no">
             Dejarlas como están
         </flux:button>
     </div>
