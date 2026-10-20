@@ -29,6 +29,25 @@ new class extends Component
 
     public ?string $notice = null;
 
+    /**
+     * The photograph just chosen, as the browser can show it before it is
+     * saved: the Cover changes the moment the file is picked, and Guardar is
+     * what keeps it. Null while there is none, or when what was picked cannot
+     * be previewed.
+     */
+    public function preview(): ?string
+    {
+        if (! $this->file || ! method_exists($this->file, 'isPreviewable') || ! $this->file->isPreviewable()) {
+            return null;
+        }
+
+        try {
+            return $this->file->temporaryUrl();
+        } catch (Throwable) {
+            return null;
+        }
+    }
+
     public function save(CoverStore $store): void
     {
         $this->validate(
@@ -54,8 +73,12 @@ new class extends Component
             return;
         }
 
-        $this->reset('file', 'notice');
+        $this->reset('file');
         $this->book->refresh();
+
+        // A photograph from a phone takes a while to go up and to be stored,
+        // and a Cover that changes without a word looks like one that did not.
+        $this->notice = 'La Portada quedó guardada.';
     }
 
     /**
@@ -107,7 +130,16 @@ new class extends Component
         {{-- The stamp of the Reading sits over the Cover, and the line above
              the title says the state in words (BIB-38). --}}
         <div class="relative w-40 shrink-0">
-            <x-cover :book="$book" size="full" />
+            @if ($preview = $this->preview())
+                <img
+                    src="{{ $preview }}"
+                    alt="Vista previa de la Portada de {{ $book->title }}"
+                    class="cover-edge aspect-2/3 w-full rounded-lg object-cover"
+                    data-test="cover-preview"
+                >
+            @else
+                <x-cover :book="$book" size="full" />
+            @endif
 
             <x-reading-stamp :book="$book" decorative />
         </div>
@@ -117,6 +149,9 @@ new class extends Component
 
             {{-- Which of the three Portadas this is. The Origin is not named on
                  screen; what it says is shown. --}}
+            @if ($this->preview())
+                <flux:text data-test="cover-origin">Así se ve tu foto. Guárdala para que se quede.</flux:text>
+            @else
             <flux:text data-test="cover-origin">
                 @switch ($book->coverOrigin())
                     @case (CoverOrigin::Owner)
@@ -129,6 +164,7 @@ new class extends Component
                         Está generada con el título y los autores.
                 @endswitch
             </flux:text>
+            @endif
 
             {{-- La descarga que falló no deja rastro en ningún otro lado: la
                  cola la da por terminada y el servidor no escribe bitácora
@@ -156,7 +192,23 @@ new class extends Component
                     :label="$book->hasGeneratedCover() ? 'Subir tu foto de la Portada' : 'Reemplazar la Portada'"
                 />
 
-                <flux:button type="submit" variant="primary" class="self-start">Guardar</flux:button>
+                {{-- The file goes up the moment it is chosen. Saving before it
+                     arrives saves nothing, so the button waits for it and the
+                     screen says it is on its way. --}}
+                <div wire:loading.flex wire:target="file" class="items-center gap-2" data-test="cover-uploading">
+                    <flux:icon.loading class="size-4" />
+                    <flux:text>Subiendo la foto…</flux:text>
+                </div>
+
+                <flux:button
+                    type="submit"
+                    variant="primary"
+                    class="self-start"
+                    wire:loading.attr="disabled"
+                    wire:target="file,save"
+                >
+                    Guardar
+                </flux:button>
             </form>
 
             @if ($book->canRetryCover())

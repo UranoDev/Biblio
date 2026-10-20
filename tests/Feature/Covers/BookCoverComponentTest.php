@@ -245,3 +245,44 @@ it('deja de decirlo en cuanto se sube una Portada a mano', function () {
 
     expect($book->fresh()->coverDownloadHasFailed())->toBeFalse();
 });
+
+it('dice que la Portada quedó guardada y la muestra sin recargar', function () {
+    $book = Book::factory()->coverGenerated()->create();
+
+    Livewire::test('book-cover', ['book' => $book])
+        ->set('file', UploadedFile::fake()->createWithContent('portada.jpg', testImage(400, 600)))
+        ->call('save')
+        ->assertSet('notice', 'La Portada quedó guardada.')
+        ->assertSee('Es tu foto.')
+        ->assertSee(route('cover', ['book' => $book->fresh(), 'size' => 'full']), false);
+});
+
+it('avisa mientras sube la foto y no deja guardar antes de que llegue', function () {
+    $book = Book::factory()->coverGenerated()->create();
+
+    Livewire::test('book-cover', ['book' => $book])
+        ->assertSee('Subiendo la foto…')
+        ->assertSeeHtml('wire:target="file,save"');
+});
+
+it('muestra la foto elegida en lugar de la Portada antes de guardarla', function () {
+    $book = Book::factory()->coverGenerated()->create();
+
+    Livewire::test('book-cover', ['book' => $book])
+        ->assertDontSeeHtml('data-test="cover-preview"')
+        ->set('file', UploadedFile::fake()->createWithContent('portada.jpg', testImage(400, 600)))
+        ->assertSeeHtml('data-test="cover-preview"')
+        ->assertSee('Así se ve tu foto. Guárdala para que se quede.');
+
+    expect($book->fresh()->hasCover())->toBeFalse();
+});
+
+it('deja de mostrar la vista previa al guardar', function () {
+    $book = Book::factory()->coverGenerated()->create();
+
+    Livewire::test('book-cover', ['book' => $book])
+        ->set('file', UploadedFile::fake()->createWithContent('portada.jpg', testImage(400, 600)))
+        ->call('save')
+        ->assertDontSeeHtml('data-test="cover-preview"')
+        ->assertSee('Es tu foto.');
+});
