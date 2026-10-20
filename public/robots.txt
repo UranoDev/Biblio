@@ -14,6 +14,7 @@ Disallow: /shelf
 Disallow: /scan
 Disallow: /title-lookup
 Disallow: /manual-entry
+Disallow: /style-guide
 # La página pública de un libro es /book/123 y la del back office es /books/123:
 # se distinguen por una sola letra, así que la pública se declara explícita.
 Allow: /book/

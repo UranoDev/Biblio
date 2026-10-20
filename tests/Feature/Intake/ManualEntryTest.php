@@ -210,6 +210,15 @@ it('registra como Leído por omisión', function () {
     expect(Book::sole()->status)->toBe(Status::Read);
 });
 
+it('ofrece las tres Situaciones como radio buttons, con Acervo, leído marcado', function () {
+    manualEntry()
+        ->assertSet('status', Status::Read->value)
+        ->assertSee('Acervo, leído')
+        ->assertSee('Acervo, por leer')
+        ->assertSee('Por comprar')
+        ->assertDontSee('segmented');
+});
+
 it('registra Wanted cuando se elige esa Status', function () {
     manualEntry()
         ->set('title', 'Cartucho')

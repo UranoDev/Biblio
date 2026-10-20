@@ -406,6 +406,20 @@ it('cambia el Status en los dos sentidos', function () {
     expect($book->fresh()->status)->toBe(Status::Owned);
 });
 
+it('marca Acervo en la Situación de un Libro leído o en lectura', function (Status $status) {
+    $book = Book::factory()->create(['status' => $status]);
+
+    sheetOf($book)->assertSet('status', Status::Owned->value);
+})->with([Status::Read, Status::Reading]);
+
+it('conserva la lectura al guardar la Situación de un Libro que ya está en el Acervo', function () {
+    $book = Book::factory()->create(['status' => Status::Read]);
+
+    sheetOf($book)->call('saveShelving')->assertHasNoErrors();
+
+    expect($book->fresh()->status)->toBe(Status::Read);
+});
+
 it('prende y apaga el interruptor de oculto', function () {
     $book = Book::factory()->create(['is_hidden' => false]);
 

@@ -251,22 +251,23 @@ new #[Title('Captura manual')] class extends Component
                 </div>
             </flux:field>
 
-            <div class="grid gap-6 sm:grid-cols-2">
+            <div class="grid items-start gap-6 sm:grid-cols-2">
                 <flux:input wire:model="publisher" label="Editorial" autocomplete="off" />
                 <flux:input wire:model="year" label="Año" inputmode="numeric" autocomplete="off" />
                 <flux:input wire:model="edition" label="Edición" autocomplete="off" />
                 <flux:input
                     wire:model="isbn"
                     label="ISBN"
-                    description="Si no trae código de barras, déjalo en blanco."
+                    description:trailing="Si no trae código de barras, déjalo en blanco."
                     inputmode="numeric"
                     autocomplete="off"
                     data-test="isbn-field"
                 />
             </div>
 
-            <flux:radio.group wire:model="status" label="Situación" variant="segmented">
-                <flux:radio value="{{ \App\Enums\Status::Owned->value }}" label="Acervo" />
+            <flux:radio.group wire:model="status" label="Situación">
+                <flux:radio value="{{ \App\Enums\Status::Read->value }}" label="Acervo, leído" />
+                <flux:radio value="{{ \App\Enums\Status::Owned->value }}" label="Acervo, por leer" />
                 <flux:radio value="{{ \App\Enums\Status::Wanted->value }}" label="Por comprar" />
             </flux:radio.group>
 

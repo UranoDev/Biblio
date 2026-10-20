@@ -301,9 +301,13 @@ new #[Title('Ficha del Libro')] class extends Component
             ['status.required' => 'Falta la Situación.'],
         );
 
-        Status::from($this->status) === Status::Owned
-            ? $this->book->moveToShelf()
-            : $this->book->moveBackToWanted();
+        // On the Shelf already —bought, being read or read— it stays as it is:
+        // moving it to the Shelf again would wipe out its Reading.
+        if (Status::from($this->status) === Status::Wanted) {
+            $this->book->moveBackToWanted();
+        } elseif (! $this->book->status->isOnShelf()) {
+            $this->book->moveToShelf();
+        }
 
         $this->isHidden
             ? $this->book->hide()
@@ -519,7 +523,8 @@ new #[Title('Ficha del Libro')] class extends Component
         $this->readOn = $this->book->read_on?->format('Y-m-d') ?? '';
         $this->lentTo = (string) $this->book->lent_to;
         $this->lentOn = $this->book->lent_on?->format('Y-m-d') ?? '';
-        $this->status = $this->book->status->value;
+        // The radio asks where the Book lives, not how far it was read.
+        $this->status = $this->book->status->isOnShelf() ? Status::Owned->value : Status::Wanted->value;
         $this->isHidden = $this->book->is_hidden;
 
         unset($this->categoriesStatus, $this->descriptionStatus);
@@ -1107,7 +1112,7 @@ new #[Title('Ficha del Libro')] class extends Component
         <flux:heading size="lg">Situación y Vitrina</flux:heading>
 
         <form wire:submit="saveShelving" class="flex flex-col gap-6">
-            <flux:radio.group wire:model="status" label="Situación" variant="segmented">
+            <flux:radio.group wire:model="status" label="Situación">
                 <flux:radio value="{{ \App\Enums\Status::Owned->value }}" label="Acervo" />
                 <flux:radio value="{{ \App\Enums\Status::Wanted->value }}" label="Por comprar" />
             </flux:radio.group>

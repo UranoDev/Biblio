@@ -334,14 +334,32 @@ select:focus[data-flux-control] {
 }
 
 /*
- * Every button reads as a button: Flux's outline border is a neutral gray that
- * all but disappears on the paper, so it takes the rule colour of the app.
+ * Every button reads as a button. Flux's outline is a white box with a pale
+ * border -- the same thing a field is -- so on the paper a button looked like
+ * one more field to type into. The secondary button gets no white box and an
+ * Ink border instead: a field is white, a button is drawn in Ink.
  * Unlayered, it wins over the Tailwind utilities Flux puts on the button.
  */
 html:not(.dark) [data-flux-button].bg-white {
-    border-color: var(--color-rule);
+    background-color: transparent;
+    border-color: var(--color-ink);
+    color: var(--color-ink);
+    font-weight: 500;
 }
 
 html:not(.dark) [data-flux-button].bg-white:hover {
-    border-color: var(--color-ink-muted);
+    background-color: rgb(26 26 24 / 0.06);
+    border-color: var(--color-ink);
+}
+
+/* A link is underlined: color alone does not tell it apart from text. */
+.text-link {
+    text-decoration-line: underline;
+    text-decoration-color: var(--color-rule);
+    text-decoration-thickness: 1px;
+    text-underline-offset: 4px;
+}
+
+.text-link:hover {
+    text-decoration-color: currentColor;
 }

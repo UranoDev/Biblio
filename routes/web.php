@@ -131,6 +131,8 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::livewire('manual-entry', 'pages::manual-entry')->name('manual-entry');
 
     Route::livewire('books/{book}', 'pages::book')->name('book');
+
+    Route::livewire('style-guide', 'pages::style-guide')->name('style-guide');
 });
 
 require __DIR__.'/settings.php';

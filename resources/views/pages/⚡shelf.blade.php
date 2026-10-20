@@ -347,7 +347,7 @@ new #[Title('Acervo')] class extends Component
         />
 
         <div class="flex flex-wrap items-end gap-4">
-            <flux:radio.group wire:model.live="status" variant="segmented" label="Situación" data-test="status-filter">
+            <flux:radio.group wire:model.live="status" label="Situación" class="flex flex-wrap gap-x-6 gap-y-2 *:data-flux-field:mb-0!" data-test="status-filter">
                 <flux:radio value="" label="Todo ({{ $this->counts[''] }})" />
                 <flux:radio
                     value="{{ \App\Enums\Status::Owned->value }}"
