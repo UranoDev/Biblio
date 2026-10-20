@@ -70,5 +70,6 @@
     { "Id": "BIB-71", "ResolvedAt": "2026-09-25 23:39:52", "Type": "Cosmetics", "Summary": "Cambiar eslogan a «Aquí viven tus libros.»" },
     { "Id": "BIB-58", "ResolvedAt": "2026-09-25 23:39:52", "Type": "Bug", "Summary": "Un libro nace Leído por default" },
     { "Id": "BIB-1", "ResolvedAt": "2026-09-25 23:42:56", "Type": "Epic", "Summary": "Mi Biblioteca — catálogo de los libros que tengo y los que quiero" },
-    { "Id": "BIB-72", "ResolvedAt": "2026-09-25 23:42:56", "Type": "Feature", "Summary": "Incluir logo y favicons en el sitio" }
+    { "Id": "BIB-72", "ResolvedAt": "2026-09-25 23:42:56", "Type": "Feature", "Summary": "Incluir logo y favicons en el sitio" },
+    { "Id": "BIB-73", "ResolvedAt": "2026-10-20 09:58:24", "Type": "Feature", "Summary": "Alta con foto de la portada: OCR llena el formulario" }
 ]
