@@ -20,4 +20,23 @@ return [
 
     'idle' => (int) env('INTAKE_IDLE_MS', 600),
 
+    /*
+    |--------------------------------------------------------------------------
+    | Reading the photograph of a Cover
+    |--------------------------------------------------------------------------
+    |
+    | ManualEntry can start from a photograph of the Cover: an AI reads what is
+    | printed on it and fills in the form (BIB-73). The model has to accept
+    | images. Checked on 2026-10-19: `deepseek-chat` read «La estrella de
+    | Ratner, Don DeLillo» off a cover. Its key is DEEPSEEK_API_KEY, the same
+    | one the provider list in config/ai.php reads.
+    |
+    */
+
+    'cover_reader' => [
+        'provider' => env('COVER_READER_PROVIDER', 'deepseek'),
+        'model' => env('COVER_READER_MODEL', 'deepseek-chat'),
+        'timeout' => (int) env('COVER_READER_TIMEOUT', 60),
+    ],
+
 ];

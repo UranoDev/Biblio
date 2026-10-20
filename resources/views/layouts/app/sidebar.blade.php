@@ -47,6 +47,10 @@
                         Alta por título
                     </flux:sidebar.item>
 
+                    <flux:sidebar.item icon="camera" :href="route('manual-entry')" :current="request()->routeIs('manual-entry')" wire:navigate>
+                        Captura manual
+                    </flux:sidebar.item>
+
                     {{--
                         Ajustes vivía en el menú del perfil, arriba a la derecha,
                         donde costaba encontrarlo (BIB-56). Entra por Perfil,
