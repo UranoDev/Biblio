@@ -119,6 +119,7 @@ it('rechaza lo que no es un ISBN sin consultar a ninguna Source', function () {
     expect($result->outcome)->toBe(ScanOutcome::InvalidIsbn)
         ->and($result->typed)->toBe('1234567890')
         ->and($result->isbn)->toBeNull()
+        ->and($result->offersManualEntry())->toBeTrue()
         ->and(Book::count())->toBe(0);
 });
 

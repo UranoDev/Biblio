@@ -149,6 +149,37 @@ it('ofrece la ManualEntry con el ISBN que ninguna Source conoce', function () {
         ->assertSee(route('manual-entry', ['isbn' => '9788437604176']), false);
 });
 
+it('ofrece la ManualEntry sin ISBN cuando lo leído no es un ISBN', function () {
+    sourcesAnswer(LookupResult::withoutRecord());
+
+    scan(Livewire::test('pages::scan'), '9788437604177')
+        ->assertSet('offersManualEntry', true)
+        ->assertSet('isbnWithoutSource', null)
+        ->assertSee('Capturar a mano')
+        ->assertSee('href="'.route('manual-entry').'"', false);
+});
+
+it('no ofrece la ManualEntry cuando las Sources no pudieron contestar', function () {
+    sourcesAnswer(LookupResult::unavailable('HTTP 429'));
+
+    scan(Livewire::test('pages::scan'), '9788437604176')
+        ->assertSet('offersManualEntry', false)
+        ->assertDontSee('Capturar a mano');
+});
+
+it('quita la oferta de ManualEntry al registrar el siguiente', function () {
+    sourcesAnswer(fn ($isbn) => (string) $isbn === '9788437604176'
+        ? LookupResult::withoutRecord()
+        : LookupResult::withRecord(recordOf((string) $isbn)));
+
+    $screen = scan(Livewire::test('pages::scan'), '9788437604176')
+        ->assertSet('offersManualEntry', true);
+
+    scan($screen, testIsbn(1))
+        ->assertSet('offersManualEntry', false)
+        ->assertDontSee('Capturar a mano');
+});
+
 it('avisal ISBN inválido y no interrumpe la ráfaga', function () {
     sourcesAnswer(fn ($isbn) => LookupResult::withRecord(recordOf((string) $isbn)));
 

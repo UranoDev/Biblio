@@ -24,9 +24,12 @@ new #[Title('Escaneo')] class extends Component
     /** How the last Scan ended. It is read at a glance and does not interrupt. */
     public ?string $notice = null;
 
+    /** The last Scan registered nothing and ManualEntry is what is left. */
+    public bool $offersManualEntry = false;
+
     /**
      * The ISBN no Source knows. It is kept so ManualEntry starts out with it and
-     * it does not have to be typed again.
+     * it does not have to be typed again. Null when what was read is not an ISBN.
      */
     public ?string $isbnWithoutSource = null;
 
@@ -43,7 +46,7 @@ new #[Title('Escaneo')] class extends Component
 
         // The field is always emptied, even when the Scan registered nothing:
         // whatever is left typed sticks to the next code.
-        $this->reset('isbn', 'isbnWithoutSource');
+        $this->reset('isbn', 'isbnWithoutSource', 'offersManualEntry');
 
         if ($typed !== '') {
             $this->writeDown($scan->register($typed));
@@ -77,6 +80,7 @@ new #[Title('Escaneo')] class extends Component
         $this->notice = $this->noticeFor($result);
 
         if ($result->offersManualEntry()) {
+            $this->offersManualEntry = true;
             $this->isbnWithoutSource = $result->isbn?->value();
         }
 
@@ -227,14 +231,16 @@ new #[Title('Escaneo')] class extends Component
         <flux:text class="text-base" data-test="notice">{{ $notice }}</flux:text>
     @endif
 
-    @if ($isbnWithoutSource)
+    @if ($offersManualEntry)
         <flux:button
-            variant="subtle"
+            variant="outline"
+            icon="pencil-square"
             class="self-start"
-            :href="route('manual-entry', ['isbn' => $isbnWithoutSource])"
+            :href="route('manual-entry', array_filter(['isbn' => $isbnWithoutSource]))"
             wire:navigate
+            data-test="go-to-manual-entry"
         >
-            Capturar a mano el ISBN {{ $isbnWithoutSource }}
+            {{ $isbnWithoutSource ? 'Capturar a mano el ISBN '.$isbnWithoutSource : 'Capturar a mano' }}
         </flux:button>
     @endif
 

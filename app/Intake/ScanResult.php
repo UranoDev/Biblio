@@ -60,9 +60,12 @@ final readonly class ScanResult
         return $this->outcome === ScanOutcome::MovedToShelf;
     }
 
-    /** No Source knows it: the remaining path is to type it out by hand. */
+    /**
+     * No Source knows it, or what was read is not an ISBN: the remaining path
+     * is to type it out by hand.
+     */
     public function offersManualEntry(): bool
     {
-        return $this->outcome === ScanOutcome::UnknownIsbn;
+        return in_array($this->outcome, [ScanOutcome::UnknownIsbn, ScanOutcome::InvalidIsbn], true);
     }
 }
