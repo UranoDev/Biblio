@@ -11,6 +11,7 @@ use App\Models\Category;
 use App\Models\Quote;
 use App\Models\User;
 use Illuminate\Support\Facades\Queue;
+use Illuminate\Support\Facades\Storage;
 use Livewire\Features\SupportTesting\Testable;
 use Livewire\Livewire;
 
@@ -702,4 +703,57 @@ it('abre con un Book sin Quotes', function () {
     $this->get(route('book', $book))
         ->assertOk()
         ->assertSee('no tiene Citas guardadas');
+});
+
+// Eliminar el Libro.
+
+it('elimina el Libro con sus Citas y sus archivos, y regresa al Acervo', function () {
+    Storage::fake();
+
+    $book = Book::factory()->create([
+        'title' => 'Cartucho',
+        'cover_path' => 'covers/1.jpg',
+        'cover_thumbnail_path' => 'covers/1-thumb.jpg',
+        'share_image_path' => 'cards/1.png',
+    ]);
+    $quote = Quote::factory()->for($book)->create([
+        'card_image_path' => 'quotes/1-card.png',
+        'story_image_path' => 'quotes/1-story.png',
+    ]);
+
+    foreach (['covers/1.jpg', 'covers/1-thumb.jpg', 'cards/1.png', 'quotes/1-card.png', 'quotes/1-story.png'] as $file) {
+        Storage::put($file, 'x');
+    }
+
+    sheetOf($book)
+        ->call('deleteBook')
+        ->assertRedirect(route('shelf'));
+
+    expect(Book::find($book->id))->toBeNull()
+        ->and(Quote::find($quote->id))->toBeNull();
+
+    foreach (['covers/1.jpg', 'covers/1-thumb.jpg', 'cards/1.png', 'quotes/1-card.png', 'quotes/1-story.png'] as $file) {
+        Storage::assertMissing($file);
+    }
+
+    $this->get(route('shelf'))->assertSee('«Cartucho» quedó eliminado.');
+});
+
+it('deja la Categoría que sugirió el Libro, sin la referencia', function () {
+    $book = Book::factory()->create();
+    $category = Category::factory()->create(['suggested_by_book_id' => $book->id]);
+
+    sheetOf($book)->call('deleteBook');
+
+    expect($category->fresh())->not->toBeNull()
+        ->and($category->fresh()->suggested_by_book_id)->toBeNull();
+});
+
+it('muestra el botón de eliminar al final de la ficha, con confirmación', function () {
+    $book = Book::factory()->create();
+
+    sheetOf($book)
+        ->assertSee('Eliminar el Libro')
+        ->assertSee('Sí, eliminar el Libro')
+        ->assertSee('No se puede deshacer.');
 });

@@ -1,5 +1,6 @@
 <?php
 
+use App\Books\DeleteBook;
 use App\Concerns\RegeneratesBooks;
 use App\Domain\Isbn;
 use App\Enums\GenerationStatus;
@@ -291,6 +292,21 @@ new #[Title('Ficha del Libro')] class extends Component
         $this->fillFromBook();
 
         $this->notice = 'El Libro ya no está prestado.';
+    }
+
+    /**
+     * Deletes the Book with its Cover, its Quotes and its images, and goes back
+     * to the Shelf, which says which one was deleted. There is no undo.
+     */
+    public function deleteBook(DeleteBook $delete): void
+    {
+        $title = $this->book->title;
+
+        $delete->delete($this->book);
+
+        session()->flash('shelf-notice', '«'.$title.'» quedó eliminado.');
+
+        $this->redirectRoute('shelf', navigate: true);
     }
 
     /** The Status and Hidden: where the Book lives and whether it gets shown. */
@@ -1126,5 +1142,46 @@ new #[Title('Ficha del Libro')] class extends Component
 
             <flux:button type="submit" variant="primary" class="self-start">Guardar la Situación</flux:button>
         </form>
+    </section>
+
+    <flux:separator />
+
+    <section class="flex flex-col gap-4" data-test="delete-book">
+        <flux:heading size="lg">Eliminar el Libro</flux:heading>
+
+        <flux:text>
+            Borra el Libro con su Portada, sus Citas y su Apunte. Sale del Acervo y de la Vitrina, y no se puede deshacer.
+        </flux:text>
+
+        <flux:modal.trigger name="confirm-book-deletion">
+            <flux:button variant="danger" icon="trash" class="self-start" data-test="delete-book-button">
+                Eliminar el Libro
+            </flux:button>
+        </flux:modal.trigger>
+
+        <flux:modal name="confirm-book-deletion" class="max-w-lg">
+            <div class="flex flex-col gap-6">
+                <div class="flex flex-col gap-2">
+                    <flux:heading size="lg">¿Eliminar «{{ $book->title }}»?</flux:heading>
+
+                    <flux:text>
+                        @if ($book->quotes()->exists())
+                            Se borran también sus {{ $book->quotes()->count() }} Citas.
+                        @endif
+                        No se puede deshacer.
+                    </flux:text>
+                </div>
+
+                <div class="flex justify-end gap-3">
+                    <flux:modal.close>
+                        <flux:button variant="outline">Cancelar</flux:button>
+                    </flux:modal.close>
+
+                    <flux:button variant="danger" icon="trash" wire:click="deleteBook" data-test="confirm-delete-book">
+                        Sí, eliminar el Libro
+                    </flux:button>
+                </div>
+            </div>
+        </flux:modal>
     </section>
 </div>

@@ -335,6 +335,10 @@ new #[Title('Acervo')] class extends Component
         </flux:text>
     </div>
 
+    @if (session('shelf-notice'))
+        <flux:text class="text-base" data-test="shelf-notice">{{ session('shelf-notice') }}</flux:text>
+    @endif
+
     <div class="flex flex-col gap-4">
         <flux:input
             wire:model.live.debounce.300ms="search"
