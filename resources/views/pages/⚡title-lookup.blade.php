@@ -254,7 +254,7 @@ new #[Title('Alta por título')] class extends Component
         </div>
     @else
         <form wire:submit="lookUp" class="flex flex-col gap-6">
-            <div class="grid gap-6 sm:grid-cols-2">
+            <div class="grid items-start gap-6 sm:grid-cols-2">
                 <flux:input
                     wire:model="title"
                     label="Título"
@@ -266,23 +266,25 @@ new #[Title('Alta por título')] class extends Component
                 <flux:input
                     wire:model="author"
                     label="Autor"
-                    description="Opcional. Acota las ediciones que devuelve la Fuente."
+                    description:trailing="Opcional. Acota las ediciones que devuelve la Fuente."
                     autocomplete="off"
                     data-test="author-field"
                 />
             </div>
 
-            <flux:radio.group wire:model="status" label="Situación" variant="segmented">
+            <flux:radio.group wire:model="status" label="Situación">
                 <flux:radio value="{{ \App\Enums\Status::Wanted->value }}" label="Por comprar" />
                 <flux:radio value="{{ \App\Enums\Status::Owned->value }}" label="Acervo" />
             </flux:radio.group>
 
-            <div class="flex flex-wrap gap-3">
-                <flux:button type="submit" variant="primary">Consultar la Fuente</flux:button>
+            <flux:button type="submit" variant="primary" class="self-start">Consultar la Fuente</flux:button>
 
+            <flux:separator />
+
+            <div class="flex flex-wrap gap-3">
                 <flux:button
                     type="button"
-                    variant="subtle"
+                    variant="outline"
                     wire:click="registerAsTyped(@js(\App\Enums\Status::Owned->value))"
                     data-test="register-as-typed"
                 >
@@ -291,7 +293,7 @@ new #[Title('Alta por título')] class extends Component
 
                 <flux:button
                     type="button"
-                    variant="subtle"
+                    variant="outline"
                     wire:click="registerAsTyped(@js(\App\Enums\Status::Wanted->value))"
                     data-test="register-as-typed-wanted"
                 >
