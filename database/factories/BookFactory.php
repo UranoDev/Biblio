@@ -341,6 +341,18 @@ class BookFactory extends Factory
     }
 
     /**
+     * With the image the Source pointed at refused as not being a Cover: an
+     * inner page, a marker, a flat colour. Asking the same address again gets
+     * the same image.
+     */
+    public function coverRefused(string $reason = 'La imagen es de un solo color plano, así que no es una portada.'): static
+    {
+        return $this->coverDownloadFailed($reason)->state(fn (array $attributes) => [
+            'cover_refused' => true,
+        ]);
+    }
+
+    /**
      * With the photograph the owner took. No retry against the Sources
      * replaces it.
      */

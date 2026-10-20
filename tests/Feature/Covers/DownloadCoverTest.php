@@ -163,7 +163,8 @@ it('dejal Book con su Cover generado cuando Open Library devuelve su pixel de 1Ã
 
     expect($book->hasCover())->toBeFalse()
         ->and($book->cover_source_url)->toBe('https://covers.openlibrary.org/b/isbn/9788437604176-L.jpg')
-        ->and($book->canRetryCover())->toBeTrue()
+        ->and($book->cover_refused)->toBeTrue()
+        ->and($book->canRetryCover())->toBeFalse()
         ->and(Storage::disk()->allFiles())->toBeEmpty();
 });
 
@@ -180,7 +181,8 @@ it('dejal Book con su Cover generado cuando Google Books devuelve su Â«image not
 
     expect($book->hasCover())->toBeFalse()
         ->and($book->cover_source_url)->toContain('books.google.com')
-        ->and($book->canRetryCover())->toBeTrue()
+        ->and($book->cover_refused)->toBeTrue()
+        ->and($book->canRetryCover())->toBeFalse()
         ->and(Storage::disk()->allFiles())->toBeEmpty();
 })->with([
     'google-books-not-available.png',

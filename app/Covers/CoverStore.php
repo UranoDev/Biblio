@@ -72,6 +72,7 @@ final readonly class CoverStore
             // one uploaded by hand answers the same failed download.
             'cover_failed_at' => null,
             'cover_failure' => null,
+            'cover_refused' => false,
         ])->save();
 
         $this->deleteFiles($previous);

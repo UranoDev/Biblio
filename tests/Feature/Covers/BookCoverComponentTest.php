@@ -286,3 +286,28 @@ it('deja de mostrar la vista previa al guardar', function () {
         ->assertDontSeeHtml('data-test="cover-preview"')
         ->assertSee('Es tu foto.');
 });
+
+it('no ofrece reintentar la descarga cuando la imagen se rechazó por no ser portada', function () {
+    $book = Book::factory()->coverRefused()->create();
+
+    Livewire::test('book-cover', ['book' => $book])
+        ->assertSee('La última descarga de la Portada falló')
+        ->assertDontSee('Reintentar la descarga');
+});
+
+it('sigue ofreciendo reintentar cuando la Fuente contestó 404', function () {
+    $book = Book::factory()->coverDownloadFailed()->create();
+
+    Livewire::test('book-cover', ['book' => $book])
+        ->assertSee('Reintentar la descarga');
+});
+
+it('una portada guardada borra la marca de imagen rechazada', function () {
+    $book = Book::factory()->coverRefused()->create();
+
+    Livewire::test('book-cover', ['book' => $book])
+        ->set('file', UploadedFile::fake()->createWithContent('portada.jpg', testImage(400, 600)))
+        ->call('save');
+
+    expect($book->fresh()->cover_refused)->toBeFalse();
+});

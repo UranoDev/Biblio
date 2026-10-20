@@ -48,6 +48,7 @@ use Illuminate\Support\Str;
  * @property CoverOrigin $cover_origin
  * @property Carbon|null $cover_failed_at
  * @property string|null $cover_failure
+ * @property bool $cover_refused
  * @property string|null $share_image_path
  * @property string|null $share_image_fingerprint
  * @property Carbon|null $share_image_queued_at
@@ -123,6 +124,7 @@ class Book extends Model
             'description_language' => DescriptionLanguage::class,
             'cover_origin' => CoverOrigin::class,
             'cover_failed_at' => 'datetime',
+            'cover_refused' => 'boolean',
             'source' => Source::class,
             'status' => Status::class,
             'read_on' => 'date',
@@ -874,11 +876,15 @@ class Book extends Model
      * Whether there is still somewhere to download the Cover from again. Without
      * a source URL —ManualEntry, or a Source that brought no image— the only way
      * is to upload it.
+     *
+     * Nor when the image that came from there was refused as not being a Cover:
+     * the same address hands back the same image, and it would be refused again.
      */
     public function canRetryCover(): bool
     {
         return ! $this->hasCover()
             && $this->cover_source_url !== null
+            && ! $this->cover_refused
             && $this->acceptsCoverFromSource();
     }
 
@@ -894,11 +900,16 @@ class Book extends Model
      * `cover_source_url` is deliberately left alone: it is what keeps the retry
      * and the manual upload available.
      */
-    public function coverDownloadFailed(string $reason): void
+    /**
+     * @param  bool  $refused  the image arrived and was not a Cover, so the same
+     *                         address is not worth asking again
+     */
+    public function coverDownloadFailed(string $reason, bool $refused = false): void
     {
         $this->forceFill([
             'cover_failed_at' => now(),
             'cover_failure' => Str::limit(Str::squish($reason), 250),
+            'cover_refused' => $refused,
         ])->save();
     }
 

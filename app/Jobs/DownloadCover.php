@@ -58,6 +58,7 @@ class DownloadCover implements ShouldQueue
         if ($url !== $book->cover_source_url) {
             $attributes['cover_failed_at'] = null;
             $attributes['cover_failure'] = null;
+            $attributes['cover_refused'] = false;
         }
 
         $book->forceFill($attributes)->save();
@@ -77,7 +78,7 @@ class DownloadCover implements ShouldQueue
             return false;
         }
 
-        if (! $book->acceptsCoverFromSource()) {
+        if (! $book->acceptsCoverFromSource() || $book->cover_refused) {
             return false;
         }
 
@@ -168,6 +169,6 @@ class DownloadCover implements ShouldQueue
             'reason' => $reason,
         ]);
 
-        $this->book->coverDownloadFailed($reason);
+        $this->book->coverDownloadFailed($reason, refused: true);
     }
 }
