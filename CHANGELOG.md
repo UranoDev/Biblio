@@ -1,5 +1,8 @@
 # Changelog
 
+## [2026.10.20.1] - 2026 oct 20
+_Sin issues cerrados en esta ventana_
+
 ## [2026.10.20] - 2026 oct 20
 ### Features
 - **BIB-73**: Alta con foto de la portada: OCR llena el formulario
