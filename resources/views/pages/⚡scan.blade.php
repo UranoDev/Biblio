@@ -40,6 +40,12 @@ new #[Title('Escaneo')] class extends Component
      */
     public array $burst = [];
 
+    /** What ManualEntry registered before sending the person back here. */
+    public function mount(): void
+    {
+        $this->notice = session('scan-notice');
+    }
+
     public function register(RegisterScan $scan): void
     {
         $typed = trim($this->isbn);

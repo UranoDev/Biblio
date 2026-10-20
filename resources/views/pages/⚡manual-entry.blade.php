@@ -101,6 +101,19 @@ new #[Title('Captura manual')] class extends Component
         unset($this->book);
     }
 
+    /**
+     * Registers the Book and goes back to the Scan, for the book that came out
+     * of a burst: the Scan says which one was registered and the burst goes on.
+     */
+    public function registerAndScan(AddBook $add): void
+    {
+        $this->register($add);
+
+        session()->flash('scan-notice', '«'.$this->book->title.'» quedó registrado a mano.');
+
+        $this->redirectRoute('scan', navigate: true);
+    }
+
     /** Leaves the screen ready for the next Book. */
     public function another(): void
     {
@@ -273,7 +286,19 @@ new #[Title('Captura manual')] class extends Component
 
             <flux:text>La Portada se sube en cuanto el Libro quede registrado, y se puede dejar sin ella.</flux:text>
 
-            <flux:button type="submit" variant="primary" class="self-start">Registrar el Libro</flux:button>
+            <div class="flex flex-wrap gap-3">
+                <flux:button type="submit" variant="primary">Registrar el Libro</flux:button>
+
+                <flux:button
+                    type="button"
+                    variant="outline"
+                    icon="plus"
+                    wire:click="registerAndScan"
+                    data-test="register-and-scan"
+                >
+                    Registrar y volver al Escaneo
+                </flux:button>
+            </div>
         </form>
     @endif
 </div>

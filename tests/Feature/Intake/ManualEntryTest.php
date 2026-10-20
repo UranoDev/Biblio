@@ -290,3 +290,24 @@ it('deja la pantalla en blanco para capturar el Book siguiente', function () {
 
     expect(Book::count())->toBe(1);
 });
+
+it('registra y regresa al Escaneo, que dice cuál quedó registrado', function () {
+    manualEntry()
+        ->set('title', 'Cartucho')
+        ->call('registerAndScan')
+        ->assertRedirect(route('scan'));
+
+    expect(Book::sole()->title)->toBe('Cartucho');
+
+    Livewire::test('pages::scan')
+        ->assertSet('notice', '«Cartucho» quedó registrado a mano.');
+});
+
+it('no regresa al Escaneo cuando falta el título', function () {
+    manualEntry()
+        ->call('registerAndScan')
+        ->assertHasErrors(['title' => 'required'])
+        ->assertNoRedirect();
+
+    expect(Book::count())->toBe(0);
+});
