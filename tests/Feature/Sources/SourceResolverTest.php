@@ -5,6 +5,7 @@ use App\Domain\Isbn;
 use App\Enums;
 use App\Sources\Candidate;
 use App\Sources\Candidates;
+use App\Sources\CoverSource;
 use App\Sources\LookupResult;
 use App\Sources\Record;
 use App\Sources\Source;
@@ -410,4 +411,53 @@ it('sin portada en ninguna Fuente contesta que no hay, y eso no es un error', fu
 
     expect($coverUrl)->toBeNull()
         ->and($second->lookups)->toBe(1);
+});
+
+/** A catalog that only knows the Cover, answering whatever the test says. */
+function coverSourceThat(?string $url): CoverSource
+{
+    return new class($url) implements CoverSource
+    {
+        public int $asked = 0;
+
+        public function __construct(private readonly ?string $url) {}
+
+        public function coverUrl(Isbn $isbn): ?string
+        {
+            $this->asked++;
+
+            return $this->url;
+        }
+    };
+}
+
+it('le pide la portada a la Fuente de portadas cuando ninguna Fuente trae imagen', function () {
+    $first = sourceThat(LookupResult::withRecord(fakeRecord(Enums\Source::GoogleBooks)), Enums\Source::GoogleBooks);
+    $covers = coverSourceThat('https://images-na.ssl-images-amazon.com/images/P/8437604176.01.LZZZZZZZ.jpg');
+
+    $result = (new SourceResolver([$first], covers: [$covers]))->byIsbn(Isbn::from('9788437604176'));
+
+    expect($result->record->coverUrl)->toBe('https://images-na.ssl-images-amazon.com/images/P/8437604176.01.LZZZZZZZ.jpg')
+        ->and($result->record->source)->toBe(Enums\Source::GoogleBooks);
+});
+
+it('no le pregunta a la Fuente de portadas cuando la Fuente ya trajo imagen', function () {
+    $first = sourceThat(
+        LookupResult::withRecord(fakeRecord(Enums\Source::OpenLibrary, 'https://covers.openlibrary.org/b/id/1-L.jpg')),
+        Enums\Source::OpenLibrary,
+    );
+    $covers = coverSourceThat('https://images-na.ssl-images-amazon.com/x.jpg');
+
+    (new SourceResolver([$first], covers: [$covers]))->byIsbn(Isbn::from('9788437604176'));
+
+    expect($covers->asked)->toBe(0);
+});
+
+it('usa la Fuente de portadas al volver a buscar la portada, y salta la dirección que ya falló', function () {
+    $first = sourceThat(LookupResult::withRecord(fakeRecord(Enums\Source::GoogleBooks)), Enums\Source::GoogleBooks);
+    $amazon = 'https://images-na.ssl-images-amazon.com/images/P/8437604176.01.LZZZZZZZ.jpg';
+    $resolver = new SourceResolver([$first], covers: [coverSourceThat($amazon)]);
+
+    expect($resolver->coverUrl(Isbn::from('9788437604176')))->toBe($amazon)
+        ->and($resolver->coverUrl(Isbn::from('9788437604176'), $amazon))->toBeNull();
 });

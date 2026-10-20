@@ -40,6 +40,10 @@ final readonly class Marker
         // is listed so the log says which of the two it was, and so a bigger
         // variant does not slip through.
         '542210da157d122a7dcbd39438d61e3b8570b6b03787a5c7ee02405a38d5e389' => 'Internet Archive, el templete blanco sobre negro, 320×220',
+        // Amazon, ISBN with no image: its own 1×1 GIF, 43 bytes, not the same
+        // file as Open Library's. AmazonCovers already refuses it before giving
+        // the address out; it is listed so a download of it says whose it was.
+        'cf4724b2f736ed1a0ae6bc28f1ead963d9cd2c1fd87b6ef32e7799fc1c5c8bda' => 'Amazon, el pixel de 1×1',
     ];
 
     /**

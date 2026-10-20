@@ -9,6 +9,8 @@ use App\Jobs\ProposeForBook;
 use App\Quotes\Html2Img;
 use App\Quotes\ImageRenderer;
 use App\Quotes\ShareImages;
+use App\Sources\AmazonCovers;
+use App\Sources\CoverSource;
 use App\Sources\GoogleBooks;
 use App\Sources\OpenLibrary;
 use App\Sources\Source;
@@ -35,6 +37,7 @@ class AppServiceProvider extends ServiceProvider
             fn (): SourceResolver => new SourceResolver(
                 sources: $this->sources('sources.order'),
                 titleOrder: $this->sources('sources.title_order'),
+                covers: $this->coverSources(),
             ),
         );
 
@@ -114,6 +117,33 @@ class AppServiceProvider extends ServiceProvider
                 (int) config('proposals.requests_per_minute', 5)
             )->by(ProposeForBook::LIMITER),
         );
+    }
+
+    /**
+     * The catalogs asked only for the Cover, after every Source.
+     *
+     * @return list<CoverSource>
+     */
+    protected function coverSources(): array
+    {
+        $timeout = (int) config('sources.timeout', 10);
+
+        $covers = [];
+
+        /** @var list<string> $order */
+        $order = config('sources.covers', []);
+
+        foreach ($order as $name) {
+            $covers[] = match ($name) {
+                'amazon' => new AmazonCovers(
+                    url: (string) config('sources.amazon_covers.url'),
+                    timeout: $timeout,
+                ),
+                default => throw new InvalidArgumentException("«{$name}» is not a known Cover source; check config/sources.php."),
+            };
+        }
+
+        return $covers;
     }
 
     /**

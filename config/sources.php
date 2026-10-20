@@ -56,6 +56,22 @@ return [
 
     'title_order' => ['google_books', 'open_library'],
 
+    /*
+    |--------------------------------------------------------------------------
+    | The catalogs asked only for the Cover
+    |--------------------------------------------------------------------------
+    |
+    | They bring no Record, so they never decide what gets registered: they are
+    | asked after every Source above came back without an image, at the intake
+    | and from the Covers screen. Leaving the list empty turns them off.
+    |
+    | Checked on 2026-10-19: of three Mexican editions Google Books knew
+    | without a Cover, Amazon had two.
+    |
+    */
+
+    'covers' => ['amazon'],
+
     'timeout' => (int) env('SOURCES_TIMEOUT', 10),
 
     'open_library' => [
@@ -84,6 +100,15 @@ return [
         'url' => env('GOOGLE_BOOKS_URL', 'https://www.googleapis.com'),
         'lookup_url' => env('GOOGLE_BOOKS_LOOKUP_URL', 'https://books.google.com'),
         'key' => env('GOOGLE_BOOKS_API_KEY'),
+    ],
+
+    /*
+    | The image Amazon serves by ISBN-10. It is not an API and it is not
+    | documented: see App\Sources\AmazonCovers before trusting it further.
+    */
+
+    'amazon_covers' => [
+        'url' => env('AMAZON_COVERS_URL', 'https://images-na.ssl-images-amazon.com'),
     ],
 
 ];

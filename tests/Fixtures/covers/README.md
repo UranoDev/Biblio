@@ -14,6 +14,8 @@ reescribieran a mano cambiarían el hash y la medición, y la prueba dejaría de
 | `google-books-not-available-128x170.png` | volumen `3TIctgEACAAJ`, `zoom=1` | 128×170 | 1 269 |
 | `internet-archive-placeholder.jpg` | `covers.openlibrary.org/b/id/15092702-L.jpg` | 320×220 | 5 045 |
 | `open-library-minimal-cover.jpg` | `covers.openlibrary.org/b/id/14656983-L.jpg` | 386×500 | 26 764 |
+| `amazon-empty-pixel.gif` | `images-na.ssl-images-amazon.com/images/P/1621364739.01.LZZZZZZZ.jpg` (2026-10-19) | 1×1 | 43 |
+| `amazon-6070725360.jpg` | `images-na.ssl-images-amazon.com/images/P/6070725360.01.LZZZZZZZ.jpg` (2026-10-19) | 295×500 | 37 750 |
 
 Tres cosas que se comprobaron bajándolas, y que no se ven en la tabla:
 

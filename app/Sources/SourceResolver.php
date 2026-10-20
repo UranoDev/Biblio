@@ -25,10 +25,12 @@ final class SourceResolver
      * @param  list<Source>  $sources  in the order they get asked for an ISBN
      * @param  list<Source>|null  $titleOrder  the order for the TitleLookup; the one
      *                                         above when no other is given
+     * @param  list<CoverSource>  $covers  asked for the Cover only, after every Source
      */
     public function __construct(
         private readonly array $sources,
         ?array $titleOrder = null,
+        private readonly array $covers = [],
     ) {
         $this->titleOrder = $titleOrder ?? $sources;
     }
@@ -124,6 +126,17 @@ final class SourceResolver
     {
         foreach ($sources as $source) {
             $coverUrl = $source->byIsbn($isbn)->record?->coverUrl;
+
+            if ($coverUrl !== null && $coverUrl !== $except) {
+                return $coverUrl;
+            }
+        }
+
+        // The catalogs that only have images go last: what they bring is the
+        // Cover and nothing else, so they are worth a request only once every
+        // Source came back without one.
+        foreach ($this->covers as $source) {
+            $coverUrl = $source->coverUrl($isbn);
 
             if ($coverUrl !== null && $coverUrl !== $except) {
                 return $coverUrl;
