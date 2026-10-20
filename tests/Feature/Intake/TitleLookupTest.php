@@ -63,11 +63,11 @@ it('pide sesión', function () {
     $this->get(route('title-lookup'))->assertRedirect(route('login'));
 });
 
-it('se abre con el Status en Wanted', function () {
+it('se abre con el Status en Owned', function () {
     $this->get(route('title-lookup'))->assertOk();
 
     Livewire::test('pages::title-lookup')
-        ->assertSet('status', Status::Wanted->value);
+        ->assertSet('status', Status::Owned->value);
 });
 
 it('muestra los Candidates con Cover, autores, editorial y año', function () {
@@ -148,14 +148,14 @@ it('registral Book con el Status elegida al elegir el Candidate', function () {
     $screen->assertSet('registered', $book->getKey())->assertSee('quedó registrado');
 });
 
-it('registra Wanted cuando no se cambial Status', function () {
+it('registra Owned cuando no se cambial Status', function () {
     sourcesReturn(twoEditions());
 
     $screen = lookUp();
 
     $screen->call('choose', candidateKey($screen));
 
-    expect(Book::sole()->status)->toBe(Status::Wanted);
+    expect(Book::sole()->status)->toBe(Status::Owned);
 });
 
 it('encolal Cover del Candidate que se eligió', function () {
@@ -262,7 +262,7 @@ it('deja la pantalla lista paral Book siguiente', function () {
         ->assertSet('title', '')
         ->assertSet('author', '')
         ->assertSet('registered', null)
-        ->assertSet('status', Status::Wanted->value)
+        ->assertSet('status', Status::Owned->value)
         ->assertCount('candidates', 0);
 });
 
@@ -307,16 +307,17 @@ it('registra solo con título cuando el autor queda en blanco', function () {
     expect(Book::sole()->authors)->toBe([]);
 });
 
-it('registra en el Acervo aunque la Situación diga Por comprar', function () {
+it('registra en Por comprar cuando esa es la Situación elegida', function () {
     sourcesAnswer(LookupResult::withoutRecord());
 
     Livewire::test('pages::title-lookup')
         ->set('title', 'Recetario familiar')
         ->set('status', Status::Wanted->value)
         ->call('registerAsTyped')
-        ->assertSet('notice', '«Recetario familiar» quedó registrado sin ISBN. Situación: Acervo.');
+        ->assertSet('notice', '«Recetario familiar» quedó registrado sin ISBN. Situación: Por comprar.');
 
-    expect(Book::sole()->status)->toBe(Status::Owned);
+    expect(Book::sole()->status)->toBe(Status::Wanted)
+        ->and(Book::sole()->isbn)->toBeNull();
 });
 
 it('no registra sin título', function () {
@@ -330,31 +331,20 @@ it('no registra sin título', function () {
     expect(Book::count())->toBe(0);
 });
 
-it('registra en Por comprar con el botón de Por comprar, solo con título y autor', function () {
+it('no registra en otra Situación que Acervo o Por comprar', function () {
     sourcesAnswer(LookupResult::withoutRecord());
 
     Livewire::test('pages::title-lookup')
         ->set('title', 'Recetario familiar')
-        ->set('status', Status::Owned->value)
-        ->call('registerAsTyped', Status::Wanted->value)
-        ->assertSet('notice', '«Recetario familiar» quedó registrado sin ISBN. Situación: Por comprar.');
+        ->set('status', Status::Read->value)
+        ->call('registerAsTyped')
+        ->assertHasErrors('status');
 
-    expect(Book::sole()->status)->toBe(Status::Wanted)
-        ->and(Book::sole()->isbn)->toBeNull();
+    expect(Book::count())->toBe(0);
 });
 
-it('no deja que el registro solo con título y autor nazca en otra Situación', function () {
-    sourcesAnswer(LookupResult::withoutRecord());
-
+it('muestra un solo botón de registro solo con título y autor', function () {
     Livewire::test('pages::title-lookup')
-        ->set('title', 'Recetario familiar')
-        ->call('registerAsTyped', Status::Read->value);
-
-    expect(Book::sole()->status)->toBe(Status::Owned);
-});
-
-it('muestra los dos botones de registro solo con título y autor', function () {
-    Livewire::test('pages::title-lookup')
-        ->assertSee('Registrar en el Acervo solo con título y autor')
-        ->assertSee('Registrar en Por comprar solo con título y autor');
+        ->assertSee('Registrar solo con título y autor')
+        ->assertDontSee('Registrar en Por comprar');
 });

@@ -60,9 +60,7 @@ new #[Title('Alta por título')] class extends Component
 
     public function mount(): void
     {
-        // Wanted by default: this is above all the path for the Books that are
-        // not there yet.
-        $this->status = Status::Wanted->value;
+        $this->status = Status::Owned->value;
     }
 
     #[Computed]
@@ -133,7 +131,7 @@ new #[Title('Alta por título')] class extends Component
 
         $result = $register->register(
             Candidate::fromArray($row),
-            Status::tryFrom($this->status) ?? Status::Wanted,
+            $this->chosenStatus(),
         );
 
         $this->forgetTheBooks();
@@ -155,11 +153,8 @@ new #[Title('Alta por título')] class extends Component
      * Registers the Book with the title and the Author as typed, without going
      * through a Source: for the books no catalog has, or that carry no ISBN.
      * It is a ManualEntry with two fields, so it is born marked as such.
-     *
-     * Each button says where the Book is born, so the Situación selector,
-     * which belongs to the editions of the Source, does not apply here.
      */
-    public function registerAsTyped(AddBook $add, string $status = 'owned'): void
+    public function registerAsTyped(AddBook $add): void
     {
         $this->validate($this->rules(), $this->messages());
 
@@ -168,7 +163,7 @@ new #[Title('Alta por título')] class extends Component
         $book = $add->byHand(new NewBook(
             title: trim($this->title),
             authors: $author === '' ? [] : [$author],
-            status: $status === Status::Wanted->value ? Status::Wanted : Status::Owned,
+            status: $this->chosenStatus(),
         ));
 
         $this->forgetTheBooks();
@@ -185,7 +180,13 @@ new #[Title('Alta por título')] class extends Component
         $this->resetValidation();
         $this->forgetTheBooks();
 
-        $this->status = Status::Wanted->value;
+        $this->status = Status::Owned->value;
+    }
+
+    /** The Situación picked on screen: Acervo unless Por comprar was chosen. */
+    private function chosenStatus(): Status
+    {
+        return $this->status === Status::Wanted->value ? Status::Wanted : Status::Owned;
     }
 
     /**
@@ -217,7 +218,7 @@ new #[Title('Alta por título')] class extends Component
         return [
             'title' => ['required', 'string', 'max:255'],
             'author' => ['nullable', 'string', 'max:255'],
-            'status' => ['required', Rule::enum(Status::class)],
+            'status' => ['required', Rule::enum(Status::class)->only([Status::Owned, Status::Wanted])],
         ];
     }
 
@@ -273,31 +274,20 @@ new #[Title('Alta por título')] class extends Component
             </div>
 
             <flux:radio.group wire:model="status" label="Situación">
-                <flux:radio value="{{ \App\Enums\Status::Wanted->value }}" label="Por comprar" />
                 <flux:radio value="{{ \App\Enums\Status::Owned->value }}" label="Acervo" />
+                <flux:radio value="{{ \App\Enums\Status::Wanted->value }}" label="Por comprar" />
             </flux:radio.group>
 
-            <flux:button type="submit" variant="primary" class="self-start">Consultar la Fuente</flux:button>
-
-            <flux:separator />
-
             <div class="flex flex-wrap gap-3">
+                <flux:button type="submit" variant="primary">Consultar la Fuente</flux:button>
+
                 <flux:button
                     type="button"
                     variant="outline"
-                    wire:click="registerAsTyped(@js(\App\Enums\Status::Owned->value))"
+                    wire:click="registerAsTyped"
                     data-test="register-as-typed"
                 >
-                    Registrar en el Acervo solo con título y autor
-                </flux:button>
-
-                <flux:button
-                    type="button"
-                    variant="outline"
-                    wire:click="registerAsTyped(@js(\App\Enums\Status::Wanted->value))"
-                    data-test="register-as-typed-wanted"
-                >
-                    Registrar en Por comprar solo con título y autor
+                    Registrar solo con título y autor
                 </flux:button>
             </div>
         </form>
