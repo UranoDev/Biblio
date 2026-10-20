@@ -173,6 +173,19 @@ new #[Title('Alta por título')] class extends Component
             .$book->status->label().'.';
     }
 
+    /**
+     * Registers the Book with the title and the Author as typed and goes back
+     * to the Scan, which says which one was registered.
+     */
+    public function registerAsTypedAndScan(AddBook $add): void
+    {
+        $this->registerAsTyped($add);
+
+        session()->flash('scan-notice', $this->notice);
+
+        $this->redirectRoute('scan', navigate: true);
+    }
+
     /** Leaves the screen ready for the next Book. */
     public function another(): void
     {
@@ -290,6 +303,16 @@ new #[Title('Alta por título')] class extends Component
                     data-test="register-as-typed"
                 >
                     Registrar solo con título y autor
+                </flux:button>
+
+                <flux:button
+                    type="button"
+                    variant="outline"
+                    icon="plus"
+                    wire:click="registerAsTypedAndScan"
+                    data-test="register-as-typed-and-scan"
+                >
+                    Registrar y volver al Escaneo
                 </flux:button>
             </div>
         </form>

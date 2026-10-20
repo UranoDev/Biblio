@@ -359,3 +359,28 @@ it('al guardar ofrece capturar otro Libro por título o ir al Escaneo', function
         ->assertSee('Ir al Escaneo')
         ->assertSee('href="'.route('scan').'"', false);
 });
+
+it('registra solo con título y autor y regresa al Escaneo, que dice cuál quedó registrado', function () {
+    sourcesAnswer(LookupResult::withoutRecord());
+
+    Livewire::test('pages::title-lookup')
+        ->set('title', 'La guía del dinero')
+        ->call('registerAsTypedAndScan')
+        ->assertRedirect(route('scan'));
+
+    expect(Book::sole()->title)->toBe('La guía del dinero');
+
+    Livewire::test('pages::scan')
+        ->assertSet('notice', '«La guía del dinero» quedó registrado sin ISBN. Situación: Acervo.');
+});
+
+it('no regresa al Escaneo cuando falta el título', function () {
+    sourcesAnswer(LookupResult::withoutRecord());
+
+    Livewire::test('pages::title-lookup')
+        ->call('registerAsTypedAndScan')
+        ->assertHasErrors(['title' => 'required'])
+        ->assertNoRedirect();
+
+    expect(Book::count())->toBe(0);
+});
