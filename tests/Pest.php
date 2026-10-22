@@ -1,8 +1,11 @@
 <?php
 
 use App\Books\ShareImage;
+use App\Covers\Image;
 use App\Domain\Isbn;
+use App\Drive\GoogleDrive;
 use App\Enums;
+use App\Models\CoverDraft;
 use App\Quotes\ImageRenderer;
 use App\Quotes\ShareImages;
 use App\Sources\Candidate;
@@ -12,6 +15,7 @@ use App\Sources\Record;
 use App\Sources\Source;
 use App\Sources\SourceResolver;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Http;
 use Tests\Support\FakeImageRenderer;
 use Tests\TestCase;
@@ -426,4 +430,52 @@ function testIsbn(int $number): string
     }
 
     return $twelve.((10 - $sum % 10) % 10);
+}
+
+/**
+ * Points the Drive import at a service account key made for the tests
+ * (BIB-74). The key in the fixtures signs nothing real: Google never sees it,
+ * because no test goes out to the internet.
+ */
+function configureDrive(): void
+{
+    $path = storage_path('framework/testing/drive-key.json');
+
+    if (! is_dir(dirname($path))) {
+        mkdir(dirname($path), 0777, true);
+    }
+
+    file_put_contents($path, json_encode([
+        'type' => 'service_account',
+        'client_email' => 'mibiblio@test.iam.gserviceaccount.com',
+        'private_key' => file_get_contents(base_path('tests/Fixtures/drive/test-key.pem')),
+        'token_uri' => 'https://oauth2.googleapis.com/token',
+    ]));
+
+    config([
+        'drive.credentials' => $path,
+        'drive.folder' => 'inbox',
+        'drive.processed_folder' => 'done',
+    ]);
+
+    app()->forgetInstance(GoogleDrive::class);
+    Cache::forget('drive.access-token');
+}
+
+/**
+ * A CoverDraft with its photograph on the (faked) disk, as the Drive import
+ * leaves it (BIB-74).
+ *
+ * @param  array<string, mixed>  $attributes
+ */
+function coverDraft(array $attributes = []): CoverDraft
+{
+    static $count = 0;
+    $count++;
+
+    $draft = new CoverDraft(['drive_file_id' => "drive-{$count}", 'drive_file_name' => "foto-{$count}.jpg"]);
+    $draft->keepPhoto(Image::from(testImage()));
+    $draft->forceFill($attributes)->save();
+
+    return $draft;
 }

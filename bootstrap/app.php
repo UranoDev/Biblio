@@ -1,6 +1,7 @@
 <?php
 
 use App\Jobs\ImportAmazonWishlist;
+use App\Jobs\ImportDrivePhotos;
 use Illuminate\Console\Scheduling\Schedule;
 use Illuminate\Foundation\Application;
 use Illuminate\Foundation\Configuration\Exceptions;
@@ -15,6 +16,7 @@ return Application::configure(basePath: dirname(__DIR__))
     )
     ->withSchedule(function (Schedule $schedule): void {
         $schedule->job(ImportAmazonWishlist::class)->weekly();
+        $schedule->job(ImportDrivePhotos::class)->everyFiveMinutes();
     })
     ->withMiddleware(function (Middleware $middleware): void {
         //

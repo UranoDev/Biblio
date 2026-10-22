@@ -51,6 +51,12 @@
                         Captura manual
                     </flux:sidebar.item>
 
+                    @php($coverDrafts = \App\Models\CoverDraft::query()->count())
+
+                    <flux:sidebar.item icon="photo" :href="route('cover-drafts')" :current="request()->routeIs('cover-drafts')" :badge="$coverDrafts ?: null" wire:navigate>
+                        Fotos por revisar
+                    </flux:sidebar.item>
+
                     {{--
                         Ajustes vivía en el menú del perfil, arriba a la derecha,
                         donde costaba encontrarlo (BIB-56). Entra por Perfil,

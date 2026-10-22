@@ -5,6 +5,7 @@ namespace App\Providers;
 use App\Ai\LocalServer;
 use App\Books\ShareImage;
 use App\Covers\CoverStore;
+use App\Drive\GoogleDrive;
 use App\Jobs\ProposeForBook;
 use App\Quotes\Html2Img;
 use App\Quotes\ImageRenderer;
@@ -88,6 +89,14 @@ class AppServiceProvider extends ServiceProvider
             fn (): ShareImage => new ShareImage(
                 renderer: $this->app->make(ImageRenderer::class),
                 directory: (string) config('books.share_image.directory', 'books'),
+            ),
+        );
+
+        $this->app->singleton(
+            GoogleDrive::class,
+            fn (): GoogleDrive => new GoogleDrive(
+                credentialsPath: config('drive.credentials'),
+                timeout: (int) config('drive.timeout', 30),
             ),
         );
 

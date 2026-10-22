@@ -135,6 +135,12 @@ Registrar un Book escribiendo sus datos a mano, porque ninguna Source lo conoce.
 salida de emergencia de las otras dos vías.
 _Avoid_: ManualCapture, Custom; alta manual
 
+**CoverDraft** · en la interfaz: «foto por revisar»:
+La foto de una portada que llegó de la carpeta del Drive, ya leída por la IA, esperando a
+que alguien revise sus datos. **No es un Book**: el Book nace cuando se registra desde la
+ManualEntry, y hasta entonces no aparece en el Shelf ni en el Showcase.
+_Avoid_: PendingBook, Draft a secas; borrador, libro pendiente
+
 ### Lo mío
 
 **Reading** · en la interfaz: «lectura»:

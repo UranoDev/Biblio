@@ -30,11 +30,23 @@ final class ReadCover
      */
     public function read(UploadedFile $photo): CoverReading
     {
+        // The type read off its bytes: a file Livewire keeps between requests
+        // arrives without the type the browser gave it.
+        return $this->readImage((string) $photo->get(), (string) $photo->getMimeType());
+    }
+
+    /**
+     * The same reading, out of the bytes of the photograph: the ones that
+     * arrive from the Drive folder are not uploads (BIB-74).
+     *
+     * @throws CoverUnreadable when the AI could not be asked or answered nothing usable
+     */
+    public function readImage(string $binary, string $mimeType): CoverReading
+    {
         try {
-            // Sent as base64 with the type read off its bytes: a file Livewire
-            // keeps between requests arrives without the type the browser gave
-            // it, and the SDK takes an image without a type for a document.
-            $image = new Base64Image(base64_encode((string) $photo->get()), (string) $photo->getMimeType());
+            // Sent as base64 with its type: the SDK takes an image without a
+            // type for a document.
+            $image = new Base64Image(base64_encode($binary), $mimeType);
 
             $answer = (new CoverReader)->prompt(
                 'Read this book cover.',

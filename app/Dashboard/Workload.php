@@ -7,6 +7,7 @@ use App\Enums\GenerationStatus;
 use App\Enums\Status;
 use App\Models\Book;
 use App\Models\Category;
+use App\Models\CoverDraft;
 use App\Models\Quote;
 
 /**
@@ -18,9 +19,10 @@ use App\Models\Quote;
  * each, they all lead to the Shelf, and the address each one opens has to be
  * written next to the number it opens — not two files away.
  *
- * The whole screen costs three queries, and the three of them cost the same
- * with ten Books as with two hundred: one grouped row for everything about the
- * Books, one count of Quotes, and one of the jobs the queue gave up on.
+ * The whole screen costs a handful of queries, and they cost the same with ten
+ * Books as with two hundred: one grouped row for everything about the Books,
+ * and one count each of Quotes, of the jobs the queue gave up on, of the
+ * Categories to review and of the photographs waiting from Drive.
  */
 final class Workload
 {
@@ -32,6 +34,7 @@ final class Workload
         private readonly int $quotes,
         private readonly int $failedJobs,
         private readonly int $pendingCategories,
+        private readonly int $coverDrafts,
     ) {}
 
     public static function read(): self
@@ -41,6 +44,7 @@ final class Workload
             quotes: Quote::query()->count(),
             failedJobs: FailedJobs::count(),
             pendingCategories: Category::query()->pendingReview()->count(),
+            coverDrafts: CoverDraft::query()->count(),
         );
     }
 
@@ -53,6 +57,13 @@ final class Workload
     public function pending(): array
     {
         return [
+            new Counter(
+                key: 'cover-drafts',
+                label: 'Fotos por revisar',
+                total: $this->coverDrafts,
+                url: route('cover-drafts'),
+                done: 'No hay fotos por revisar.',
+            ),
             new Counter(
                 key: 'cover-generated',
                 label: 'Portadas por fotografiar',
@@ -141,10 +152,13 @@ final class Workload
         ];
     }
 
-    /** Whether there is anything registered at all. */
+    /**
+     * Whether there is anything registered at all. Photographs waiting from
+     * Drive count: the first Books may well arrive that way.
+     */
     public function empty(): bool
     {
-        return $this->book('total') === 0;
+        return $this->book('total') === 0 && $this->coverDrafts === 0;
     }
 
     private function book(string $key): int

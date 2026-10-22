@@ -3,6 +3,7 @@
 use App\Http\Controllers\DownloadQuoteImage;
 use App\Http\Controllers\ServeBookImage;
 use App\Http\Controllers\ServeCover;
+use App\Http\Controllers\ServeCoverDraftPhoto;
 use App\Http\Controllers\ServeQuoteImage;
 use App\Http\Controllers\ShowPrivacyNotice;
 use App\Http\Controllers\ShowShowcase;
@@ -129,6 +130,16 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::livewire('title-lookup', 'pages::title-lookup')->name('title-lookup');
 
     Route::livewire('manual-entry', 'pages::manual-entry')->name('manual-entry');
+
+    /*
+     * The photographs that arrived from the Drive folder and wait to be
+     * reviewed (BIB-74). Each one opens ManualEntry already filled in.
+     */
+    Route::livewire('cover-drafts', 'pages::cover-drafts')->name('cover-drafts');
+
+    Route::get('cover-drafts/{draft}/photo', ServeCoverDraftPhoto::class)
+        ->whereNumber('draft')
+        ->name('cover-draft.photo');
 
     Route::livewire('books/{book}', 'pages::book')->name('book');
 

@@ -4,15 +4,18 @@ use App\Covers\CoverNotStored;
 use App\Covers\CoverStore;
 use App\Covers\InvalidImage;
 use App\Domain\Isbn;
+use App\Enums\CoverOrigin;
 use App\Enums\Status;
 use App\Intake\AddBook;
 use App\Intake\CoverUnreadable;
 use App\Intake\NewBook;
 use App\Intake\ReadCover;
 use App\Models\Book;
+use App\Models\CoverDraft;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Validation\Rule;
 use Livewire\Attributes\Computed;
+use Livewire\Attributes\Locked;
 use Livewire\Attributes\Title;
 use Livewire\Component;
 use Livewire\WithFileUploads;
@@ -28,6 +31,11 @@ use Livewire\WithFileUploads;
  * It can also start from a photograph of the Cover (BIB-73): an AI reads what
  * is printed on it and fills in the form, which is reviewed before registering,
  * and the photograph stays as the Cover of the Book.
+ *
+ * And it opens a CoverDraft (BIB-74): a photograph that arrived from the Drive
+ * folder and was already read in the queue. The form starts filled in with
+ * that, and registering the Book keeps the photograph as its Cover and takes
+ * the draft off the list.
  */
 new #[Title('Captura manual')] class extends Component
 {
@@ -58,6 +66,10 @@ new #[Title('Captura manual')] class extends Component
 
     public string $status = '';
 
+    /** The CoverDraft the form was filled in from, when it came from Drive. */
+    #[Locked]
+    public ?int $draft = null;
+
     /** The Book just registered, which can still have its Cover uploaded. */
     public ?int $registered = null;
 
@@ -75,6 +87,50 @@ new #[Title('Captura manual')] class extends Component
         }
 
         $this->status = Status::Read->value;
+
+        $this->fillFromDraft(CoverDraft::query()->find((int) request()->query('draft')));
+    }
+
+    /**
+     * What was read off the photograph fills the form, the same as when it is
+     * uploaded here. A draft whose photograph could not be fetched has nothing
+     * to fill it with.
+     */
+    private function fillFromDraft(?CoverDraft $draft): void
+    {
+        if (! $draft instanceof CoverDraft || ! $draft->hasPhoto()) {
+            return;
+        }
+
+        $this->draft = $draft->getKey();
+
+        if (! $draft->isRead()) {
+            $this->readNotice = 'La foto todavía no se lee. Escribe los datos a mano; la foto se queda como Portada.';
+
+            return;
+        }
+
+        if ($draft->wasUnreadable()) {
+            $this->readNotice = 'No se pudieron leer los datos de la foto. Escríbelos a mano; la foto se queda como Portada.';
+
+            return;
+        }
+
+        $this->title = $draft->title ?? '';
+        $this->publisher = $draft->publisher ?? '';
+        $this->year = $draft->year === null ? '' : (string) $draft->year;
+        $this->isbn = $draft->isbn ?? '';
+        $this->authors = $draft->authors ?: [''];
+
+        $this->readNotice = $draft->from_source
+            ? 'La foto traía el ISBN y la Fuente tenía la ficha: revisa los datos y registra el Libro.'
+            : 'Estos datos se leyeron de la foto: revísalos antes de registrar el Libro.';
+    }
+
+    #[Computed]
+    public function coverDraft(): ?CoverDraft
+    {
+        return $this->draft === null ? null : CoverDraft::query()->find($this->draft);
     }
 
     #[Computed]
@@ -128,6 +184,10 @@ new #[Title('Captura manual')] class extends Component
     /** The photograph as the browser can show it before anything is saved. */
     public function photoPreview(): ?string
     {
+        if (! $this->coverPhoto && $this->coverDraft?->hasPhoto()) {
+            return route('cover-draft.photo', $this->coverDraft);
+        }
+
         if (! $this->coverPhoto || ! method_exists($this->coverPhoto, 'isPreviewable') || ! $this->coverPhoto->isPreviewable()) {
             return null;
         }
@@ -172,6 +232,11 @@ new #[Title('Captura manual')] class extends Component
 
         $this->keepThePhotoAsTheCover($book, $covers);
 
+        // The draft is done with: its photograph is the Cover now, or the
+        // screen says why it could not be.
+        $this->coverDraft?->delete();
+        unset($this->coverDraft);
+
         $this->registered = $book->getKey();
 
         unset($this->book);
@@ -184,12 +249,16 @@ new #[Title('Captura manual')] class extends Component
      */
     private function keepThePhotoAsTheCover(Book $book, CoverStore $covers): void
     {
-        if (! $this->coverPhoto) {
+        $fromDraft = $this->coverPhoto ? null : $this->coverDraft?->photo();
+
+        if (! $this->coverPhoto && $fromDraft === null) {
             return;
         }
 
         try {
-            $covers->storeUpload($book, $this->coverPhoto);
+            $this->coverPhoto
+                ? $covers->storeUpload($book, $this->coverPhoto)
+                : $covers->store($book, $fromDraft, CoverOrigin::Owner);
         } catch (InvalidImage $failure) {
             $this->readNotice = 'La foto no quedó como Portada: '.$failure->getMessage();
         } catch (CoverNotStored) {
@@ -213,12 +282,12 @@ new #[Title('Captura manual')] class extends Component
     /** Leaves the screen ready for the next Book. */
     public function another(): void
     {
-        $this->reset('title', 'authors', 'publisher', 'year', 'edition', 'isbn', 'registered', 'coverPhoto', 'readNotice');
+        $this->reset('title', 'authors', 'publisher', 'year', 'edition', 'isbn', 'registered', 'coverPhoto', 'readNotice', 'draft');
         $this->resetValidation();
 
         $this->status = Status::Read->value;
 
-        unset($this->book);
+        unset($this->book, $this->coverDraft);
     }
 
     /** @return array<string, array<int, mixed>> */
@@ -309,7 +378,15 @@ new #[Title('Captura manual')] class extends Component
             <livewire:book-cover :book="$this->book" :key="'cover-'.$this->book->getKey()" />
 
             <div class="flex gap-3">
-                <flux:button wire:click="another" variant="primary">Capturar otro Libro</flux:button>
+                @php($moreDrafts = $draft !== null && \App\Models\CoverDraft::query()->exists())
+
+                @if ($moreDrafts)
+                    <flux:button :href="route('cover-drafts')" variant="primary" wire:navigate data-test="next-draft">
+                        Siguiente foto por revisar
+                    </flux:button>
+                @endif
+
+                <flux:button wire:click="another" :variant="$moreDrafts ? 'outline' : 'primary'">Capturar otro Libro</flux:button>
 
                 <flux:button :href="route('book', $this->book)" variant="outline" wire:navigate>
                     Ver la ficha
