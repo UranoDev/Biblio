@@ -21,6 +21,18 @@ export PATH="$HOME/.phpenv/shims:$HOME/.nodenv/shims:$PATH"
 
 cd "$(dirname "$0")/.."
 
+# Un push que lleva la rama y el tag del release llega a Plesk como dos avisos,
+# y Plesk corre este script dos veces con un segundo de diferencia. Dos `npm ci`
+# a la vez se borran `node_modules` uno al otro: uno falla con ENOTEMPTY, el
+# otro termina sin `vp`, y el `set -e` corta antes de migrar (oct 2026; lo mismo
+# dejó pendiente la migración de BIB-52). El segundo espera a que el primero
+# termine y corre completo después, sobre los mismos archivos.
+exec 9>"$HOME/.biblio-deploy.lock"
+if ! flock -w 900 9; then
+    echo "Otro despliegue lleva más de 15 minutos corriendo; éste no se ejecutó." >&2
+    exit 1
+fi
+
 echo "→ Dependencias de PHP"
 composer install --no-dev --optimize-autoloader
 
