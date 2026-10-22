@@ -1,5 +1,8 @@
 # Changelog
 
+## [2026.10.22.1] - 2026 oct 22
+_Sin issues cerrados en esta ventana_
+
 ## [2026.10.22] - 2026 oct 22
 _Sin issues cerrados en esta ventana_
 
